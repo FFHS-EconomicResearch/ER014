@@ -1,0 +1,291 @@
+---
+title: "ER108 Session 2"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+date: "2023-02-17"
+author: "Anastasija Tetereva, PhD"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(ggplot2)
+my_in_file <- "TISSUE.xlsx"
+tissue_data <- read_xlsx(xfun::from_root('data','raw',my_in_file))
+head(tissue_data)
+```
+## Diary of a Kleenex User - How Many Tissues in a Box?
+In 1924, Kimberly-Clark Corporation invented a facial tissue for removing cold cream and began marketing it as Kleenex® brand tissues. Today, Kleenex® is recognized as the top-selling brand of tissue in the world. A wide variety of Kleenex® products are available, ranging from extra-large tissues to tissues with lotion. Over the past 80 years, Kimberly-Clark Corporation has packaged the tissues in boxes of different sizes and shapes and varied the number of tissues packaged in each box. For example, typically a family-size box contains 144 two-ply tissues, a cold-care box contains 70 tissues
+(coated with lotion), and a convenience pocket pack contains 15 miniature tissues. How does Kimberly-Clark Corp. decide how many tissues to put in each box? According to the Wall Street Journal, marketing experts at the company use the results of a survey of Kleenex® customers to help determine how many tissues should be packed in a box. In the mid-1980s, when Kimberly-Clark Corp. developed the cold-care box designed especially for people who have a cold, the company conducted their initial survey of customers for this purpose. Hundreds of customers were asked to keep count of their Kleenex® use in diaries. According to the Wall Street Journal report, the survey results left “little doubt that the company should put 60 tissues in each box.” The number 60 was “the average number of times people blow their nose during a cold.” Currently, the company continues to package 60 tissues in a cold-care (now renamed “anti-viral”) box. From summary information provided in the Wall Street Journal article, we constructed a data set that represents the results of a survey similar to the one described above. In the data file named TISSUE, we recorded the number of tissues used by each of 250 consumers during a period when they had a cold. We apply the hypothesis-testing methodology presented in this chapter to this data set in several Statistics in Action Revisited examples.
+
+### Descriptive statistics
+```{r tissue1}
+summary(tissue_data)
+boxplot.tissue <- ggplot(tissue_data, aes(x=NUMUSED)) + 
+                  geom_boxplot(outlier.colour="red", outlier.shape=8,  outlier.size=4)
+boxplot.tissue + coord_flip()
+```
+Boxplots or box–whisker diagrams are really useful ways to display your data. At the centre of the plot is the median, which is surrounded by a box the top
+and bottom of which are the limits within which the middle 50% of observations fall (the interquartile range). Sticking out of the top and bottom of the box are two whiskers that extend to one and a half times the interquartile range.
+```{r tissue2}
+hist.tissue <- ggplot(tissue_data, aes(NUMUSED)) + 
+               geom_histogram(aes(y = ..density..), colour = "black", fill = "white") +
+               labs(x = "Number of tissues used", y = "Density")
+hist.tissue
+```
+Once you’ve collected some data a very useful thing to do is to plot a graph of how many times each score occurs. This is known as a frequency distribution, or histogram, which is a graph plotting values of observations on the horizontal axis, with a bar showing how many times each value occurred in the data set. Frequency distributions can be very useful for assessing properties of the distribution of scores.
+
+```{r tissue3}
+hist.tissue <- ggplot(tissue_data, aes(NUMUSED)) + 
+               geom_histogram(aes(y = ..density..), colour = "black", fill = "white") +
+               labs(x = "Number of tissues used", y = "Density")+
+               geom_density()
+              
+hist.tissue
+```
+Kernel density estimation is a commonly used means of representing densities of spatial data points. The technique produces a smooth and continuous surface where each pixel represents a density value based on the number of points within a given distance bandwidth. 
+```{r qqplot}
+p <- ggplot(tissue_data, aes(sample = NUMUSED))
+p + stat_qq() + stat_qq_line()
+```
+In statistics, a Q–Q plot (quantile-quantile plot) is a probability plot, a graphical method for comparing two probability distributions by plotting their quantiles against each other. A point on the plot corresponds to one of the quantiles of the second distribution plotted against the same quantile of the first distribution. This defines a parametric curve where the parameter is the index of the quantile interval. If the two distributions being compared are similar, the points in the Q–Q plot will approximately lie on the identity line. For our data set, we plot empirical quantiles of tissues used against theoretical quantiles of the Normal distribution. It allows us to visually inspect if the underlying distribution is Normal or not. However, formal tests also can be conducted.
+```{r swtest}
+shapiro.test(tissue_data$NUMUSED)
+```
+Visual inspection, described in the previous section, is usually unreliable. It’s possible to use a significance test comparing the sample distribution to a normal one in order to ascertain whether data show or not a serious deviation from normality. There are several methods for normality test such as Kolmogorov-Smirnov (K-S) normality test and Shapiro-Wilk’s test. Shapiro-Wilk’s method is widely recommended for normality test and it provides better power than K-S. It is based on the correlation between the data and the corresponding normal scores.
+## Hypothesis testing
+In Kimberly-Clark Corp.’s survey of people with colds, each of 250 customers was asked to keep count of his or her use of Kleenex tissues in diaries. One goal of the company was to determine how many tissues to package in a cold-care box of Kleenex®; consequently, the total number of tissues used was recorded for each person surveyed. Since the number of tissues is a quantitative variable, the parameter of interest is either the mean number of tissues used by all customers with colds or the variance of the number of tissues used. Recall that the company packages 60 tissues in an ''anti-viral'' box of Kleenex tissues. Since the time of the original survey, Kimberly-Clark Corp. offers a variety of
+tissue box choices, ranging from ''ultra soft'' (with 75 tissues) to ''soothing lotion'' (also with 75 tissues). The decision was based on a claim made by marketing experts that the average number of times a person will blow his or her nose during a cold exceeds the previous mean of 60. The key word average implies that the parameter of interest is  mean number of tissues used by all customers with colds, and the marketers are claiming that it is 60. In order to test the claim, we run the $t$-test
+```{r mean}
+mean(tissue_data$NUMUSED)
+```
+We can compute mean value of tissues used. However, for general conclusions, we must run hypothesis testing.
+
+```{r twosidedhypothesis}
+t.test(tissue_data$NUMUSED, mu = 60)
+```
+We conducted a one-sample t-test, we use the syntax where the first variable is the name of our variable of interest and mu is set equal to the mean specified by the null hypothesis. So, we wanted to test whether the mean number of tissues used is 60. 
+```{r confidenceinterval}
+t.test(tissue_data$NUMUSED)$"conf.int"
+```
+Actually, testing hypothesis is equivalent to constructing confidence intervals. If the inteval covers the value of interest, you can not reject the hypothesis. Will this interval be larger or smaller if we increase the confidence level to 0.99? Will it be larger or smaller if we (a bit unrealistic to assume but let's do that) know the variance of the distribution in advance? And how does the width of the interval depend on the sample size?
+
+
+```{r onesidedhypothesis}
+t.test(tissue_data$NUMUSED, mu = 60, alternative = "greater")
+```
+But is one-sided hypothesis is the one we should consider? 60 tissues in the package are definitely not enough. How many should we put in the package?
+Since this $p$-value is less than $\alpha = .05$, we have sufficient evidence to reject $H_0: \mu = 60$; (alternative was $H_1: \mu > 60$) therefore, we conclude that the mean number of tissues used by a person with cold is greater than 60 tissues. This result supports the company’s decision to put more
+than 60 tissues in boxes of Kleenex (e.g., ''ultra soft'' and ''soothing lotion'' boxes).
+
+
+When testing hypothesis, we have several options. E.g. we can
+
+- Compute critical value of the test statistic and compare it to the observed value of the test statistic
+- Look at the $p$-value
+- Look at the confidence interval (if it covers the value specified in hypothesis testing)
+
+
+Let's try to understand the underlying theory. The most important thing is the sampling distribution of the parameter of interest (mean, proportion etc.) Thanks to the law of large numbers and the central limit theorem, we know a lot about the sampling distribution for the mean. 
+
+## Sampling distribution. LLL. CLT
+
+$N$ represents the total number of observations, or in this example, coin flips.
+$o$ represents the number of observations to display to look at the results as they are run.
+$o$ should not exceed 100 for practical purposes.
+``` {r}  
+N <- 10000  
+o <- 10   
+set.seed(1963)
+```
+
+Now we will set 3 variables to simulate the coin flips.
+
+$x$ - stores the sample flips as a 0 or 1. The number of flips will me set by the value of N set previously.
+$s$ - stores a running total of the occurrences of a value of “1”.
+$r.avg$ - stores the running avg with each flip.
+
+``` {r}
+x <- sample(0:1, N, replace = T)
+s <- cumsum(x)    
+r.avg <- s/(1:N)
+
+r.stats <- round(cbind(x,s,r.avg), 3)[1:o,]
+print(r.stats)
+```
+Create a plot chart to illustrate how the means of the sample approximately equals the population with large sample sizes. 
+The plot uses line charts to reflect (1) the running averages of the coin flips and (2) the expected average of the population.
+``` {r}
+options(scipen = 10)  
+plot(r.avg, ylim=c(.30, .70), type = "l", xlab = "Observations"
+     ,ylab = "Probability", lwd = 2)
+lines(c(0,N), c(.50,.50),col="red", lwd = 2)
+```
+
+Further, we will investigate the exponential distribution and compare it with the Central Limit Theorem.
+(Central Limit Theorem) Consider a random sample of $n$ observations selected from a population (any probability
+distribution) with mean $\mu$ and standard deviation $\sigma$. Then, when $n$ is sufficiently
+large, the sampling distribution of the mean will be approximately a normal distribution with
+mean $\mu_x = \mu$ and standard deviation $\sigma_x = \sigma/n$. The larger the sample size, the
+better will be the normal approximation to the sampling distribution.
+
+The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. Set lambda = 0.2 for all of the simulations. We will investigate the distribution of averages of 40 exponentials. Note that you will need to do a thousand simulations.
+
+As mentioned above we create a simulation of exponantial distribution with 1000 times and every time we take average of 40 points generated from exponantial distribution. rexp(n, lambda) is funtion we use to generate data and take 1000 simulation and store it in variable average.
+
+``` {r}
+
+lambda <- 0.2
+n <- 40
+average <- NULL
+for(i in 1:1000)
+    average <- c(average, mean(rexp(n, lambda)))
+qplot(rexp(1000, lambda),geom="density")
+```
+We should take a look of data we generate from rexp function .for a better graph distribution we take 1000 observations. The Central Limit Theorem states that the sampling distribution of the sampling means approaches a normal distribution as the sample size gets larger — no matter what the shape of the population distribution. This fact holds especially true for sample sizes over 30. All this is saying is that as you take more samples, especially large ones, your graph of the sample means will look more like a normal distribution.
+``` {r}
+theo_mean<-1/lambda
+sample_mean<-mean(average)
+
+thvar<-(lambda * sqrt(n)) ^ -2
+samvar<-var(average)
+```
+
+``` {r}
+dfRowMeans<-data.frame(average) # convert to data.frame for ggplot
+mp<-ggplot(dfRowMeans,aes(x=average))
+mp<-mp+geom_histogram(binwidth = lambda,fill="darkgreen",color="black",aes(y = ..density..))
+mp<-mp + labs(title="Density of 40 Numbers from Exponential Distribution", x="Mean of 40 Selections", y="Density")
+mp<-mp + geom_vline(xintercept=sample_mean,size=1.0, color="black") # add a line for the actual mean
+mp<-mp + stat_function(fun=dnorm,args=list(mean=sample_mean, sd=sqrt(samvar)),color = "blue", size = 1.0)
+mp<-mp + geom_vline(xintercept=theo_mean,size=1.0,color="yellow",linetype = "longdash")
+mp<-mp + stat_function(fun=dnorm,args=list(mean=theo_mean, sd=sqrt(thvar)),color = "red", size = 1.0)
+mp
+```
+
+- As we can see according to central limit theorem distribution of mean of sample means are apporximately normal as stated in the theorem.No matter what is the distribution of data as our data has exponentail distribution.
+
+- In the graph we can also sean that our sample mean and population mean are almost same.
+
+- As we can see our red and blue density curve line are almost overlapping so we can say that our variances of mean of samples and population varince are also comparable as we see the values before.
+
+## $p$ - value
+In a significance test we want to exploit the information contained in a sample as evidence in favor or against a hypothesis. Essentially, hypotheses are simple questions that can be answered by ‘yes’ or ‘no’. In a hypothesis test we typically deal with two different hypotheses:
+
+- The null hypothesis, denoted  $H_0$, is the hypothesis we are interested in testing.
+
+- There must be an alternative hypothesis, denoted $H_1$, the hypothesis that is thought to hold if the null hypothesis is rejected.
+Assume that the null hypothesis is true. The  $p$ -value is the probability of drawing data and observing a corresponding test statistic that is at least as adverse to what is stated under the null hypothesis as the test statistic actually computed using the sample data.
+``` {r}
+# plot the standard normal density on the interval [-4,4]
+curve(dnorm(x),
+      xlim = c(-4, 4),
+      main = "Calculating a p-Value",
+      yaxs = "i",
+      xlab = "z",
+      ylab = "",
+      lwd = 2,
+      axes = "F")
+
+# add x-axis
+axis(1, 
+     at = c(-1.5, 0, 1.5), 
+     padj = 0.75,
+     labels = c(expression(-frac(bar(Y)^"act"~-~bar(mu)[Y,0], sigma[bar(Y)])),
+                0,
+                expression(frac(bar(Y)^"act"~-~bar(mu)[Y,0], sigma[bar(Y)]))))
+
+# shade p-value/2 region in left tail
+polygon(x = c(-6, seq(-6, -1.5, 0.01), -1.5),
+        y = c(0, dnorm(seq(-6, -1.5, 0.01)),0), 
+        col = "steelblue")
+
+# shade p-value/2 region in right tail
+polygon(x = c(1.5, seq(1.5, 6, 0.01), 6),
+        y = c(0, dnorm(seq(1.5, 6, 0.01)), 0), 
+        col = "steelblue")
+```
+The next plot shows that the distribution of standard error of the estimator. It tightens around the true value that is equal to 3 as the sample size increases. The function that estimates the standard deviation of an estimator is called the standard error of the estimator. 
+```{r}
+# vector of sample sizes
+n <- c(10000, 5000, 2000, 1000, 500)
+
+# sample observations, estimate using 'sd()' and plot the estimated distributions
+sq_y <- replicate(n = 10000, expr = sd(rnorm(n[1], 10, 3)))
+plot(density(sq_y),
+     main = expression("Sampling Distributions o" ~ s[Y]),
+     xlab = expression(s[y]),
+     lwd = 2)
+
+for (i in 2:length(n)) {
+  sq_y <- replicate(n = 10000, expr = sd(rnorm(n[i], 10, 3)))
+  lines(density(sq_y), 
+        col = i, 
+        lwd = 2)
+}
+
+# add a legend
+legend("topleft",
+       legend = c(expression(n == 10000),
+                  expression(n == 5000),
+                  expression(n == 2000),
+                  expression(n == 1000),
+                  expression(n == 500)), 
+       col = 1:5,
+       lwd = 2)
+
+```
+### Determining sample size
+We investigated Kimberly-Clark Corporation’s assertion that the company should put more than 60 tissues in a box of Kleenex® tissues. We did this by testing the claim that the mean number of tissues used by a person with a cold is $m$ = 60, using data collected from a survey of 250 Kleenex users. Another approach to the problem is to consider the proportion of Kleenex users who use more than 60 tissues when they have a cold. Now the population parameter of interest is $p$, the proportion of all Kleenex users who use more than 60 tissues when they have a cold.
+Kimberly-Clark Corporation’s belief that the company should put more than 60 tissues in a box will be supported if over half of the Kleenex users surveyed used more than 60 tissues. Is there evidence to indicate that the population proportion exceeds .5? To answer this question, we set up the following null and alternative hypotheses:$H_0: p=0.5$,  $H_1: p>0.5$.
+In addition to the number of tissues used by each person, the file
+contains a qualitative variable—called USED60—representing whether the person
+used fewer or more than 60 tissues. The number of the 250 people with colds
+who used more than 60 tissues is 154. This value is used to compute the test statistic $z = 3.67$ (can you replicate this result?). The $p$-value of the test, also highlighted $p$-value = .000. Since this value is less than $\alpha = .05$, there is sufficient evidence (at $\alpha = .05$) to reject $H_0$; we conclude that the proportion of all Kleenex users who use more than 60 tissues when they have a cold exceeds 0.5. This conclusion supports again the company’s decision to put more than 60 tissues in a box of Kleenex.
+
+Consider the problem of estimating the error rate when estimating proportion. We want to estimate the true percentage of people with colds
+who used more than 60 tissues to within .1 with 95% confidence. How many people should be randomly sampled in order to attain the desired
+estimate?
+
+$N= \frac{{z_{\alpha/2}}^2p(1-p)}{(SE)^2} =  \frac{{z_{\alpha/2}}^2 0.62(0.38)}{(0.1)^2} = 90.51$. And if we want to be more precise and to determine this proportion to within .01 with 95% confidence? $n$ should be equal to 9051.
+
+### Nonparametric tests
+When using $t$-test, we rely on the assumptions about the sampling distribution. If our sample size $n>30$, we can use $t$-test regardless the underlying distribution of the random variable (due to CLT). If sample size is smallet than 30, we can use $t$-test only for random variables that have Normal distribution. Therefore, some alternative is needed for cases when sample size is small and we can't be sure that the underlying distribution is Normal.
+
+Distribution-free tests are statistical tests that do not rely on any underlying assumptions about the probability distribution of the sampled population. The branch of inferential statistics devoted to distribution-free tests is called nonparametrics. Nonparametric statistics (or tests) based on the ranks of measurements are called rank statistics (or rank tests).
+The Wilcoxon sign test is a relatively simple, nonparametric procedure for testing hypotheses about the central tendency of a nonnormal probability distribution. Note that we used the phrase central tendency rather than population mean. This is because the sign test, like many nonparametric procedures, provides inferences about the population median rather than the population mean $\mu$. The Wilcoxon test can be a good alternative to the $t$-test when population means are not of interest; for example, when one wishes to test whether a population's median is nonzero.
+```{r}
+wilcox.test(tissue_data$NUMUSED, mu = 60, alternative = c("greater"),conf.level = 0.95)
+```
+
+
+According to the Central Limit Theorem, the sampling distribution for the sample mean has a Normal distribution. Now we consider another method of estimating confidence intervals (alternatively hypothesis testing). It’s called the ''bootstrap''. Why is it called the bootstrap? Well, you take a single sample, and estimate the variability in the population by ''pulling yourself up by your bootstraps''. 
+We have only one sample, but we want to use it to get more samples from the sampling distribution of the same size. We do this by sampling from replacement. We are pulling things out of a hat and throwing them back before we draw the next number. Let's draw new samples with the same distribution:
+```{r}
+sample(c(1,2,3,4),size=4,replace=TRUE)
+sample(c(1,2,3,4),size=4,replace=TRUE)
+sample(c(1,2,3,4),size=4,replace=TRUE)
+```
+```{r}
+set.seed(4)
+dp1000 <- c(0)
+sample.size <- nrow(tissue_data)
+for (i in 1:1000) {
+  dp1000[i] = mean(sample(tissue_data$NUMUSED, size=sample.size, replace = TRUE))
+}
+head(dp1000)
+
+hist(dp1000, main = "Simulated test statistic", xlab = "mean")
+```
+
+```{r}
+#install.packages("bootstrap")
+library(bootstrap)
+theta <- function(x){mean(x)}
+results <- bootstrap(tissue_data$NUMUSED,1000, theta)
+quantile(results$thetastar, c(0.05, 0.95))
+```
+
+Nice thing about bootstrap is that you can test hypothesis not only about the mean, but also about the median, quantiles etc.

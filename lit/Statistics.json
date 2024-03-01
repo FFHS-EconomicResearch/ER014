@@ -1,0 +1,2304 @@
+[
+	{
+		"id": "kotz_breakthroughs_1992",
+		"type": "book",
+		"call-number": "QA276 .B68465 1992",
+		"collection-title": "Springer series in statistics",
+		"event-place": "New York",
+		"ISBN": "978-0-387-97566-5",
+		"number-of-pages": "3",
+		"publisher": "Springer-Verlag",
+		"publisher-place": "New York",
+		"source": "Library of Congress ISBN",
+		"title": "Breakthroughs in statistics",
+		"editor": [
+			{
+				"family": "Kotz",
+				"given": "Samuel"
+			},
+			{
+				"family": "Johnson",
+				"given": "Norman Lloyd"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"1992"
+				]
+			]
+		}
+	},
+	{
+		"id": "kolmogorov_foundations_1933",
+		"type": "book",
+		"event-place": "Berlin",
+		"publisher": "Julius Springer",
+		"publisher-place": "Berlin",
+		"title": "Foundations of Probability Theory",
+		"author": [
+			{
+				"family": "Kolmogorov",
+				"given": "Andrey Nikolaevich"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"1933"
+				]
+			]
+		}
+	},
+	{
+		"id": "schwarze_grundlagen_2014",
+		"type": "book",
+		"collection-title": "NWB Studium Betriebswirtschaft",
+		"edition": "12., vollst. überarb. Aufl",
+		"event-place": "Herne",
+		"ISBN": "978-3-482-59482-3",
+		"language": "ger",
+		"number-of-pages": "256",
+		"publisher": "NWB-Verl",
+		"publisher-place": "Herne",
+		"source": "K10plus ISBN",
+		"title": "Grundlagen der Statistik. 1: Beschreibende Verfahren",
+		"title-short": "Grundlagen der Statistik. 1",
+		"author": [
+			{
+				"family": "Schwarze",
+				"given": "Jochen"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2014"
+				]
+			]
+		}
+	},
+	{
+		"id": "schwarze_grundlagen_2013-1",
+		"type": "book",
+		"collection-title": "NWB-Studium",
+		"edition": "10., vollst. überarb. Aufl",
+		"event-place": "Herne",
+		"ISBN": "978-3-482-56860-2",
+		"language": "ger",
+		"number-of-pages": "264",
+		"publisher": "NWB-Verl",
+		"publisher-place": "Herne",
+		"source": "K10plus ISBN",
+		"title": "Grundlagen der Statistik. Bd. 2: Wahrscheinlichkeitsrechnung und induktive Statistik",
+		"title-short": "Grundlagen der Statistik. Bd. 2",
+		"author": [
+			{
+				"family": "Schwarze",
+				"given": "Jochen"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2013"
+				]
+			]
+		}
+	},
+	{
+		"id": "auer_statistik_2015",
+		"type": "book",
+		"call-number": "330.015 195",
+		"collection-title": "Lehrbuch",
+		"edition": "3., überarb. u. aktualisierte Aufl",
+		"event-place": "Wiesbaden",
+		"ISBN": "978-3-658-06439-6",
+		"language": "ger",
+		"publisher": "Springer Fachmedien Wiesbaden GmbH",
+		"publisher-place": "Wiesbaden",
+		"source": "BnF ISBN",
+		"title": "Statistik und Ökonometrie für Wirtschaftswissenschaftler: Eine anwendungsorientierte Einführung",
+		"title-short": "Statistik und Ökonometrie für Wirtschaftswissenschaftler",
+		"author": [
+			{
+				"family": "Auer",
+				"given": "Benjamin R."
+			},
+			{
+				"family": "Rottmann",
+				"given": "Horst"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2015"
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_poisson_nodate",
+		"type": "webpage",
+		"title": "The Poisson Distribution in R",
+		"URL": "https://rstudio-pubs-static.s3.amazonaws.com/456645_107fa2aa82de4b1da6c78c418bab9fe9.html",
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					6,
+					8
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_ualbany_nodate",
+		"type": "webpage",
+		"title": "UAlbany Psychology Statistics Courses Support Page",
+		"URL": "https://www.albany.edu/psychology/statistics/#applets",
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					6,
+					12
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_15_nodate",
+		"type": "webpage",
+		"abstract": "Why do these things correlate? These 15 correlations will blow your mind. (Is this headline sensationalist enough for you to click on it yet?)",
+		"language": "en",
+		"title": "15 Insane Things That Correlate With Each Other",
+		"URL": "http://tylervigen.com/spurious-correlations",
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					6,
+					12
+				]
+			]
+		}
+	},
+	{
+		"id": "phd_8_nodate",
+		"type": "book",
+		"abstract": "This is a textbook written for POLI 2900 at the University of New Orleans.",
+		"source": "bookdown.org",
+		"title": "8 The Central Limit Theorem | Introduction to Quantitative Methods in R",
+		"URL": "https://bookdown.org/ejvanholm/Textbook/the-central-limit-theorem.html",
+		"author": [
+			{
+				"family": "PhD",
+				"given": "Eric van Holm"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					6,
+					12
+				]
+			]
+		}
+	},
+	{
+		"id": "van_holm_introduction_2021",
+		"type": "book",
+		"abstract": "This is a textbook written for an Introduction to Research Methods class in the social sciences",
+		"source": "bookdown.org",
+		"title": "Introduction to Research Methods",
+		"URL": "https://bookdown.org/ejvanholm/Textbook/",
+		"author": [
+			{
+				"family": "Holm",
+				"given": "Eric",
+				"non-dropping-particle": "van"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					6,
+					12
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2021"
+				]
+			]
+		}
+	},
+	{
+		"id": "wickham_r_2016",
+		"type": "book",
+		"abstract": "\"This book introduces you to R, RStudio, and the tidyverse, a collection of R packages designed to work together to make data science fast, fluent, and fun. Suitable for readers with no previous programming experience\"--",
+		"call-number": "QA276.45.R3 W53 2016",
+		"edition": "First edition",
+		"event-place": "Sebastopol, CA",
+		"ISBN": "978-1-4919-1039-9",
+		"note": "OCLC: ocn968213225",
+		"number-of-pages": "492",
+		"publisher": "O'Reilly",
+		"publisher-place": "Sebastopol, CA",
+		"source": "Library of Congress ISBN",
+		"title": "R for data science: import, tidy, transform, visualize, and model data",
+		"title-short": "R for data science",
+		"URL": "https://r4ds.had.co.nz/index.html",
+		"author": [
+			{
+				"family": "Wickham",
+				"given": "Hadley"
+			},
+			{
+				"family": "Grolemund",
+				"given": "Garrett"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2016"
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_warteschlangen_nodate",
+		"type": "post-weblog",
+		"abstract": "Blog über Agiles Arbeiten, Scrum, eduScrum, Ablage, DMS, Projektmanagement, Dokumentenmanagement, Office, Outlook, Excel, OneNote",
+		"language": "de",
+		"title": "Warteschlangen im Management",
+		"URL": "https://www.teamworkblog.de/2015/04/warteschlangen-im-management.html",
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					6,
+					12
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_statistical_nodate",
+		"type": "webpage",
+		"abstract": "This year’s 71st edition of the bp Statistical Review of World Energy helps to make sense of the  greatest challenges and uncertainties facing the global energy system for almost 50 years",
+		"container-title": "bp global",
+		"language": "en",
+		"title": "Statistical Review of World Energy | Energy economics | Home",
+		"URL": "https://www.bp.com/en/global/corporate/energy-economics/statistical-review-of-world-energy.html",
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					7,
+					4
+				]
+			]
+		}
+	},
+	{
+		"id": "walther_normalverteilung_2021",
+		"type": "post-weblog",
+		"abstract": "Dieser Artikel zeigt, wie man in R einzelne Variablen auf Normalverteilung prüfen kann - analytisch als auch grafisch.",
+		"container-title": "Björn Walther",
+		"language": "de-DE",
+		"title": "Normalverteilung in R prüfen",
+		"URL": "https://bjoernwalther.com/normalverteilung-in-r-pruefen/",
+		"author": [
+			{
+				"family": "Walther",
+				"given": "Björn"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					8,
+					17
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2021",
+					1,
+					27
+				]
+			]
+		}
+	},
+	{
+		"id": "agresti_statistics_2023",
+		"type": "book",
+		"edition": "fifth edition, global edition",
+		"event-place": "Harlow",
+		"ISBN": "978-1-292-44476-5",
+		"language": "eng",
+		"note": "OCLC: 1347213662",
+		"publisher": "Pearson",
+		"publisher-place": "Harlow",
+		"source": "Open WorldCat",
+		"title": "Statistics: the art and science of learning from data",
+		"title-short": "Statistics",
+		"author": [
+			{
+				"family": "Agresti",
+				"given": "Alan"
+			},
+			{
+				"family": "Franklin",
+				"given": "Christine A."
+			},
+			{
+				"family": "Klingenberg",
+				"given": "Bernhard"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2023"
+				]
+			]
+		}
+	},
+	{
+		"id": "spiegelhalter_art_2019",
+		"type": "book",
+		"collection-title": "A Pelican book",
+		"event-place": "UK USA Canada Ireland Australia India New Zealand South Africa",
+		"ISBN": "978-0-241-39863-0",
+		"language": "eng",
+		"number-of-pages": "426",
+		"publisher": "Pelican",
+		"publisher-place": "UK USA Canada Ireland Australia India New Zealand South Africa",
+		"source": "K10plus ISBN",
+		"title": "The art of statistics: learning from data",
+		"title-short": "The art of statistics",
+		"author": [
+			{
+				"family": "Spiegelhalter",
+				"given": "David J."
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2019"
+				]
+			]
+		}
+	},
+	{
+		"id": "backhaus_multivariate_2021",
+		"type": "book",
+		"event-place": "Wiesbaden",
+		"ISBN": "978-3-658-32424-7",
+		"language": "de",
+		"note": "DOI: 10.1007/978-3-658-32425-4",
+		"publisher": "Springer Fachmedien",
+		"publisher-place": "Wiesbaden",
+		"source": "DOI.org (Crossref)",
+		"title": "Multivariate Analysemethoden: Eine anwendungsorientierte Einführung",
+		"title-short": "Multivariate Analysemethoden",
+		"URL": "https://link.springer.com/10.1007/978-3-658-32425-4",
+		"author": [
+			{
+				"family": "Backhaus",
+				"given": "Klaus"
+			},
+			{
+				"family": "Erichson",
+				"given": "Bernd"
+			},
+			{
+				"family": "Gensler",
+				"given": "Sonja"
+			},
+			{
+				"family": "Weiber",
+				"given": "Rolf"
+			},
+			{
+				"family": "Weiber",
+				"given": "Thomas"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					12,
+					11
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2021"
+				]
+			]
+		}
+	},
+	{
+		"id": "fahrmeir_statistik_2011",
+		"type": "book",
+		"collection-title": "Springer-Lehrbuch",
+		"edition": "7. Aufl., korr. Nachdr",
+		"event-place": "Berlin Heidelberg",
+		"ISBN": "978-3-642-01938-8",
+		"language": "ger",
+		"number-of-pages": "610",
+		"publisher": "Springer",
+		"publisher-place": "Berlin Heidelberg",
+		"source": "K10plus ISBN",
+		"title": "Statistik: der Weg zur Datenanalyse",
+		"title-short": "Statistik",
+		"editor": [
+			{
+				"family": "Fahrmeir",
+				"given": "Ludwig"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2011"
+				]
+			]
+		}
+	},
+	{
+		"id": "sohil_introduction_2022",
+		"type": "article-journal",
+		"container-title": "Statistical Theory and Related Fields",
+		"DOI": "10.1080/24754269.2021.1980261",
+		"ISSN": "2475-4269, 2475-4277",
+		"issue": "1",
+		"journalAbbreviation": "Statistical Theory and Related Fields",
+		"language": "en",
+		"page": "87-87",
+		"source": "DOI.org (Crossref)",
+		"title": "An introduction to statistical learning with applications in R: by Gareth James, Daniela Witten, Trevor Hastie, and Robert Tibshirani, New York, Springer Science and Business Media, 2013, $41.98, eISBN: 978-1-4614-7137-7",
+		"title-short": "An introduction to statistical learning with applications in R",
+		"URL": "https://www.tandfonline.com/doi/full/10.1080/24754269.2021.1980261",
+		"volume": "6",
+		"author": [
+			{
+				"family": "Sohil",
+				"given": "Fariha"
+			},
+			{
+				"family": "Sohali",
+				"given": "Muhammad Umair"
+			},
+			{
+				"family": "Shabbir",
+				"given": "Javid"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					2,
+					1
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2022",
+					1,
+					2
+				]
+			]
+		}
+	},
+	{
+		"id": "weinberg_statistics_2020",
+		"type": "book",
+		"edition": "1",
+		"ISBN": "978-1-108-75535-1",
+		"note": "DOI: 10.1017/9781108755351",
+		"publisher": "Cambridge University Press",
+		"source": "DOI.org (Crossref)",
+		"title": "Statistics Using R: An Integrative Approach",
+		"title-short": "Statistics Using R",
+		"URL": "https://www.cambridge.org/highereducation/books/statistics-using-r/8973D255EB8B0836D08198F830248245#contents",
+		"author": [
+			{
+				"family": "Weinberg",
+				"given": "Sharon Lawner"
+			},
+			{
+				"family": "Harel",
+				"given": "Daphna"
+			},
+			{
+				"family": "Abramowitz",
+				"given": "Sarah Knapp"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					2,
+					9
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2020",
+					8,
+					13
+				]
+			]
+		}
+	},
+	{
+		"id": "schuldenzucker_prufungstraining_nodate",
+		"type": "book",
+		"event-place": "Stuttgart",
+		"ISBN": "978-3-7992-6934-6",
+		"publisher": "Schäffer-Poeschel",
+		"publisher-place": "Stuttgart",
+		"title": "Prüfungstraining Deskriptive Statistik. Klausur- und Prüfungsvorbereitung Wirtschaftsmathematik",
+		"author": [
+			{
+				"family": "Schuldenzucker",
+				"given": "Ulrike"
+			}
+		]
+	},
+	{
+		"id": "schuldenzucker_prufungstraining_2014-2",
+		"type": "book",
+		"event-place": "Stuttgart",
+		"ISBN": "978-3-7992-6935-3",
+		"publisher": "Schäffer-Poeschel",
+		"publisher-place": "Stuttgart",
+		"title": "Prüfungstraining Induktive Statistik. Klausur- und Prüfungsvorbereitung Wirtschaftsmathematik",
+		"author": [
+			{
+				"family": "Schuldenzucker",
+				"given": "Ulrike"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2014"
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_bayes_nodate",
+		"type": "webpage",
+		"title": "Bayes Factors for Ordinal Scales",
+		"URL": "https://martinschnuerch.shinyapps.io/likertBF/",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					4,
+					4
+				]
+			]
+		}
+	},
+	{
+		"id": "schnuerch_meaningful_2022",
+		"type": "article-journal",
+		"abstract": "Ordinal-scale items—say items that assess agreement with a proposition on an ordinal rating scale from strongly disagree to strongly agree—are exceedingly popular in psychological research. A common research question concerns the comparison of response distributions on ordinal-scale items across conditions. In this context, there is often a lingering question of whether metric-level descriptions of the results and parametric tests are appropriate. We consider a different problem, perhaps one that supersedes the parametric-vs-nonparametric issue: When is it appropriate to reduce the comparison of two (ordinal) distributions to the comparison of simple summary statistics (e.g., measures of location)? In this paper, we provide a Bayesian modeling approach to help researchers perform meaningful comparisons of two response distributions and draw appropriate inferences from ordinal-scale items. We develop four statistical models that represent possible relationships between two distributions: an unconstrained model representing a complex, non-ordinal relationship, a nonparametric stochastic-dominance model, a parametric shift model, and a null model representing equivalence in distribution. We show how these models can be compared in light of data with Bayes factors and illustrate their usefulness with two real-world examples. We also provide a freely available web applet for researchers who wish to adopt the approach.",
+		"container-title": "Collabra: Psychology",
+		"DOI": "10.1525/collabra.38594",
+		"ISSN": "2474-7394",
+		"issue": "1",
+		"journalAbbreviation": "Collabra: Psychology",
+		"page": "38594",
+		"source": "Silverchair",
+		"title": "Meaningful Comparisons With Ordinal-Scale Items",
+		"URL": "https://doi.org/10.1525/collabra.38594",
+		"volume": "8",
+		"author": [
+			{
+				"family": "Schnuerch",
+				"given": "Martin"
+			},
+			{
+				"family": "Haaf",
+				"given": "Julia M."
+			},
+			{
+				"family": "Sarafoglou",
+				"given": "Alexandra"
+			},
+			{
+				"family": "Rouder",
+				"given": "Jeffrey N."
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					4,
+					4
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2022",
+					10,
+					24
+				]
+			]
+		}
+	},
+	{
+		"id": "seufert_statistical_2020",
+		"type": "article-journal",
+		"abstract": "Due to biased assumptions on the underlying ordinal rating scale in subjective Quality of Experience (QoE) studies, Mean Opinion Score (MOS)-based evaluations provide results, which are hard to interpret and can be misleading. This paper proposes to consider the full QoE distribution for evaluating, reporting, and modeling QoE results instead of relying on MOS-based metrics derived from results based on ordinal rating scales. The QoE distribution can be represented in a concise way by using the parameters of a multinomial distribution without losing any information about the underlying QoE ratings, and even keeps backward compatibility with previous, biased MOS-based results. Considering QoE results as a realization of a multinomial distribution allows to rely on a well-established theoretical background, which enables meaningful evaluations also for ordinal rating scales. Moreover, QoE models based on QoE distributions keep detailed information from the results of a QoE study of a technical system, and thus, give an unprecedented richness of insights into the end users’ experience with the technical system. In this work, existing and novel statistical methods for QoE distributions are summarized and exemplary evaluations are outlined. Furthermore, using the novel concept of quality steps, simulative and analytical QoE models based on QoE distributions are presented and showcased. The goal is to demonstrate the fundamental advantages of considering QoE distributions over MOS-based evaluations if the underlying rating data is ordinal in nature.",
+		"container-title": "Quality and User Experience",
+		"DOI": "10.1007/s41233-020-00044-z",
+		"ISSN": "2366-0147",
+		"issue": "1",
+		"journalAbbreviation": "Qual User Exp",
+		"language": "en",
+		"page": "3",
+		"source": "Springer Link",
+		"title": "Statistical methods and models based on quality of experience distributions",
+		"URL": "https://doi.org/10.1007/s41233-020-00044-z",
+		"volume": "6",
+		"author": [
+			{
+				"family": "Seufert",
+				"given": "Michael"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					4,
+					4
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2020",
+					12,
+					26
+				]
+			]
+		}
+	},
+	{
+		"id": "akinkunmi_introduction_2019",
+		"type": "book",
+		"collection-title": "Synthesis Lectures on Mathematics & Statistics",
+		"event-place": "Cham",
+		"ISBN": "978-3-031-01291-4",
+		"language": "en",
+		"note": "DOI: 10.1007/978-3-031-02419-1",
+		"publisher": "Springer International Publishing",
+		"publisher-place": "Cham",
+		"source": "DOI.org (Crossref)",
+		"title": "Introduction to Statistics Using R",
+		"URL": "https://link.springer.com/10.1007/978-3-031-02419-1",
+		"author": [
+			{
+				"family": "Akinkunmi",
+				"given": "Mustapha"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					4,
+					9
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2019"
+				]
+			]
+		}
+	},
+	{
+		"id": "verzani_simpler_nodate",
+		"type": "article-journal",
+		"language": "en",
+		"source": "Zotero",
+		"title": "simpleR – Using R for Introductory Statistics",
+		"author": [
+			{
+				"family": "Verzani",
+				"given": "John"
+			}
+		]
+	},
+	{
+		"id": "noauthor_learning_nodate",
+		"type": "webpage",
+		"title": "Learning Statistics with R",
+		"URL": "https://learningstatisticswithr.com",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					4,
+					9
+				]
+			]
+		}
+	},
+	{
+		"id": "ansell_ansellbr3_introduction_nodate",
+		"type": "book",
+		"abstract": "Introduction to R - tidyverse",
+		"source": "bookdown.org",
+		"title": "Introduction to R - tidyverse",
+		"URL": "https://bookdown.org/ansellbr/WEHI_tidyR_course_book/",
+		"author": [
+			{
+				"family": "Ansell @ansellbr3",
+				"given": "Brendan R. E."
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					4,
+					9
+				]
+			]
+		}
+	},
+	{
+		"id": "myers_project-based_2021",
+		"type": "book",
+		"abstract": "\"One of the most difficult transitions students face when beginning a first \"real\" job after college is moving beyond solving the well-designed problems found in textbooks to tackling the messy, complex problems they face in the real world. Statistics: A Project-Based Approach Using R is designed as a companion text for undergraduate students who wish to learn basic R programming and gain experience analyzing data from larger, real-world projects. Topics covered include working with R and RStudio, basic descriptive statistics, two-way tables, simple linear regression and hypothesis testing for means and proportions\"--",
+		"call-number": "QA276.4",
+		"edition": "First edition",
+		"event-place": "Boca Raton",
+		"ISBN": "978-0-429-29200-2",
+		"number-of-pages": "1",
+		"publisher": "Taylor and Francis",
+		"publisher-place": "Boca Raton",
+		"source": "Library of Congress ISBN",
+		"title": "Project-based R companion to introductory statistics",
+		"author": [
+			{
+				"family": "Myers",
+				"given": "Chelsea"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2021"
+				]
+			]
+		}
+	},
+	{
+		"id": "american_statistical_association_advances_2022",
+		"type": "book",
+		"abstract": "\"The latest developments in the production of business statistics, methods, and data collection In Advances in Business Statistics, Methods and Data Collection, distinguished researcher Dr. Ger Snijkers delivers an invaluable collection of new issues in business statistics, as well as its methods, and in the collection of business data. This edited volume offers new developments in business surveys--including discussions of non-probability sampling and web surveys--and statistical process control, the use of secondary data sources, register methodology, and possibilities presented by the Internet of Things. The included works present some of the most innovative and impactful developments in the optimization of the development, conduct, and evaluation of modern business programs. These include advancements in big data, machine learning, and advanced visualization. Providing a broad overview of the most up-to-date changes in business statistics and data, this book challenges the status quo and prepares researchers for future challenges\"--",
+		"call-number": "HF1017 .A347 2022",
+		"event-place": "Hoboken, NJ",
+		"ISBN": "978-1-119-67230-2",
+		"publisher": "Wiley",
+		"publisher-place": "Hoboken, NJ",
+		"source": "Library of Congress ISBN",
+		"title": "Advances in business statistics, methods and data collection",
+		"editor": [
+			{
+				"family": "American Statistical Association",
+				"given": ""
+			},
+			{
+				"family": "John Wiley & Sons",
+				"given": ""
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2022"
+				]
+			]
+		}
+	},
+	{
+		"id": "levine_even_2021",
+		"type": "book",
+		"edition": "4",
+		"event-place": "Hoboken",
+		"ISBN": "978-0-13-765476-5",
+		"publisher": "Pearson Education, Inc",
+		"publisher-place": "Hoboken",
+		"source": "Library of Congress ISBN",
+		"title": "Even you can learn statistics and analytics: an easy to understand guide",
+		"title-short": "Even you can learn statistics and analytics",
+		"author": [
+			{
+				"family": "Levine",
+				"given": "David M."
+			},
+			{
+				"family": "Stephan",
+				"given": "David"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2021"
+				]
+			]
+		}
+	},
+	{
+		"id": "peren_statistics_2022",
+		"type": "book",
+		"edition": "Second edition",
+		"event-place": "Berlin [Heidelberg]",
+		"ISBN": "978-3-662-65845-1",
+		"language": "eng",
+		"number-of-pages": "310",
+		"publisher": "Springer",
+		"publisher-place": "Berlin [Heidelberg]",
+		"source": "K10plus ISBN",
+		"title": "Statistics for business and economics: compendium of essential formulas",
+		"title-short": "Statistics for business and economics",
+		"author": [
+			{
+				"family": "Peren",
+				"given": "Franz W."
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2022"
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_r-companion_nodate",
+		"type": "webpage",
+		"title": "An R-companion for Statistics for Business: Decision Making and Analysis",
+		"URL": "http://www-stat.wharton.upenn.edu/~stine/r_companion/_book/index.html",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					4,
+					10
+				]
+			]
+		}
+	},
+	{
+		"id": "stine_statistics_2018",
+		"type": "book",
+		"call-number": "HF1017 .S74 2018",
+		"edition": "Third Edition",
+		"event-place": "Boston",
+		"ISBN": "978-0-13-449716-7",
+		"number-of-pages": "821",
+		"publisher": "Pearson",
+		"publisher-place": "Boston",
+		"source": "Library of Congress ISBN",
+		"title": "Statistics for business: decision making and analysis",
+		"title-short": "Statistics for business",
+		"author": [
+			{
+				"family": "Stine",
+				"given": "Robert A."
+			},
+			{
+				"family": "Foster",
+				"given": "Dean P."
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2018"
+				]
+			]
+		}
+	},
+	{
+		"id": "heumann_introduction_2016",
+		"type": "book",
+		"event-place": "Cham",
+		"ISBN": "978-3-319-46160-1",
+		"language": "en",
+		"note": "DOI: 10.1007/978-3-319-46162-5",
+		"publisher": "Springer International Publishing",
+		"publisher-place": "Cham",
+		"source": "DOI.org (Crossref)",
+		"title": "Introduction to Statistics and Data Analysis",
+		"URL": "http://link.springer.com/10.1007/978-3-319-46162-5",
+		"author": [
+			{
+				"family": "Heumann",
+				"given": "Christian"
+			},
+			{
+				"family": "Schomaker",
+				"given": "Michael"
+			},
+			{
+				"literal": "Shalabh"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					4,
+					10
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2016"
+				]
+			]
+		}
+	},
+	{
+		"id": "davenport_keeping_2013",
+		"type": "book",
+		"call-number": "HD30.25 .D366 2013",
+		"event-place": "Boston, Massachusetts",
+		"ISBN": "978-1-4221-8725-8",
+		"number-of-pages": "228",
+		"publisher": "Harvard Business Review Press",
+		"publisher-place": "Boston, Massachusetts",
+		"source": "Library of Congress ISBN",
+		"title": "Keeping up with the quants: your guide to understanding and using analytics",
+		"title-short": "Keeping up with the quants",
+		"author": [
+			{
+				"family": "Davenport",
+				"given": "Thomas H."
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2013"
+				]
+			]
+		}
+	},
+	{
+		"id": "schoder_orlando_2023",
+		"type": "article-journal",
+		"title": "Orlando Magic",
+		"author": [
+			{
+				"family": "Schoder",
+				"given": "Jörg"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2023"
+				]
+			]
+		}
+	},
+	{
+		"id": "thulin_modern_nodate-1",
+		"type": "book",
+		"abstract": "Modern Statistics with R",
+		"source": "www.modernstatisticswithr.com",
+		"title": "Modern Statistics with R",
+		"URL": "https://www.modernstatisticswithr.com/",
+		"author": [
+			{
+				"family": "Thulin",
+				"given": "Måns"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					4,
+					12
+				]
+			]
+		}
+	},
+	{
+		"id": "landers_step-by-step_2013",
+		"type": "book",
+		"edition": "1st ed",
+		"event-place": "Thousand Oaks, CA",
+		"ISBN": "978-1-4462-0820-5",
+		"publisher": "Sage publications",
+		"publisher-place": "Thousand Oaks, CA",
+		"source": "Library of Congress ISBN",
+		"title": "A step-by-step introduction to statistics for business and economics",
+		"author": [
+			{
+				"family": "Landers",
+				"given": "Richard N."
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2013"
+				]
+			]
+		}
+	},
+	{
+		"id": "stinerock_statistics_2022",
+		"type": "book",
+		"abstract": "\"Statistics is made simple with this award-winning guide to using R and applied statistical methods. With a clear step-by-step approach explained using real world examples, learn the practical skills you need to use statistical methods in your research from an expert with over 30 years of teaching experience. With a wealth of hands-on exercises and online resources, practice your skills using the data sets and R scripts from the book with handy screencasts to accompany you. This book is ideal for anyone looking to: Complete an introductory course in statistics Prepare for more advanced statistical courses Gain the transferable analytical skills needed to interpret research from across the social sciences Learn the technical skills needed to present data visually Acquire a basic competence in the use of R. This edition also includes a gentle introduction to Bayesian methods integrated throughout\"--",
+		"edition": "Second",
+		"event-place": "Thousand Oaks",
+		"ISBN": "978-1-5297-5352-3",
+		"publisher": "Sage Publications",
+		"publisher-place": "Thousand Oaks",
+		"source": "Library of Congress ISBN",
+		"title": "Statistics with R: a beginner's guide",
+		"title-short": "Statistics with R",
+		"author": [
+			{
+				"family": "Stinerock",
+				"given": "Robert"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2022"
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_verbraucherpreisindex_nodate",
+		"type": "article-journal",
+		"language": "de",
+		"source": "Zotero",
+		"title": "Verbraucherpreisindex für Deutschland"
+	},
+	{
+		"id": "pipis_contingency_2022",
+		"type": "webpage",
+		"abstract": "A comprehensive tutorial about Contingency Tables in R showing how to analyze the relationship between categorical data",
+		"container-title": "Medium",
+		"language": "en",
+		"title": "Contingency Tables in R",
+		"URL": "https://levelup.gitconnected.com/contingency-tables-in-r-1385b9d689dd",
+		"author": [
+			{
+				"family": "Pipis",
+				"given": "George"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					8
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2022",
+					11,
+					29
+				]
+			]
+		}
+	},
+	{
+		"id": "whitlock_tutorials_2021",
+		"type": "webpage",
+		"container-title": "The Analysis of Biological Data",
+		"title": "Tutorials using R: 7: Contingency analysis",
+		"URL": "https://whitlockschluter3e.zoology.ubc.ca/Tutorials%20using%20R/R_tutorial_Contingency_analysis.html",
+		"author": [
+			{
+				"family": "Whitlock",
+				"given": "Michael"
+			},
+			{
+				"family": "Schluter",
+				"given": "Dolph"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					8
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2021"
+				]
+			]
+		}
+	},
+	{
+		"id": "sibbertsen_statistik_2021-1",
+		"type": "book",
+		"event-place": "Berlin, Heidelberg",
+		"ISBN": "978-3-662-62695-5",
+		"language": "de",
+		"note": "DOI: 10.1007/978-3-662-62696-2",
+		"publisher": "Springer",
+		"publisher-place": "Berlin, Heidelberg",
+		"source": "DOI.org (Crossref)",
+		"title": "Statistik: Einführung für Wirtschafts- und Sozialwissenschaftler",
+		"title-short": "Statistik",
+		"URL": "https://link.springer.com/10.1007/978-3-662-62696-2",
+		"author": [
+			{
+				"family": "Sibbertsen",
+				"given": "Philipp"
+			},
+			{
+				"family": "Lehne",
+				"given": "Hartmut"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					11
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2021"
+				]
+			]
+		}
+	},
+	{
+		"id": "giesselmann_regressionsmodelle_2012-1",
+		"type": "book",
+		"event-place": "Wiesbaden",
+		"ISBN": "978-3-531-18694-8",
+		"language": "de",
+		"note": "DOI: 10.1007/978-3-531-18695-5",
+		"publisher": "VS Verlag für Sozialwissenschaften",
+		"publisher-place": "Wiesbaden",
+		"source": "DOI.org (Crossref)",
+		"title": "Regressionsmodelle zur Analyse von Paneldaten",
+		"URL": "http://link.springer.com/10.1007/978-3-531-18695-5",
+		"author": [
+			{
+				"family": "Giesselmann",
+				"given": "Marco"
+			},
+			{
+				"family": "Windzio",
+				"given": "Michael"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					18
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2012"
+				]
+			]
+		}
+	},
+	{
+		"id": "nielsen_business_nodate",
+		"type": "book",
+		"abstract": "Dansksprogede noter, der opsummerer væsentlige dele af pensum i HD Business Intelligence.",
+		"source": "bookdown.org",
+		"title": "Business Analytics: Metoder og anvendelser",
+		"title-short": "Business Analytics",
+		"URL": "https://bookdown.org/madsstenbonielsen/hd_business_intelligence_f23",
+		"author": [
+			{
+				"family": "Nielsen",
+				"given": "Udarbejdet af Mads Stenbo"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					18
+				]
+			]
+		}
+	},
+	{
+		"id": "ross_gsb_2022",
+		"type": "webpage",
+		"language": "en",
+		"title": "GSB 518 Handouts",
+		"URL": "https://bookdown.org/kevin_davisross/gsb518-handouts-2022/",
+		"author": [
+			{
+				"family": "Ross",
+				"given": "Kevin"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					18
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2022",
+					8,
+					1
+				]
+			]
+		}
+	},
+	{
+		"id": "science_practical_nodate",
+		"type": "book",
+		"abstract": "Practical Data Skills",
+		"source": "bookdown.org",
+		"title": "Practical Data Skills",
+		"URL": "https://bookdown.org/hbsabafaculty/ids_book/",
+		"author": [
+			{
+				"family": "Science",
+				"given": "Introduction To Data"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					18
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_business_nodate-1",
+		"type": "book",
+		"abstract": "Business Statistics",
+		"source": "bookdown.org",
+		"title": "Business Statistics",
+		"URL": "https://bookdown.org/jarneric/spring_school/",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					18
+				]
+			]
+		}
+	},
+	{
+		"id": "jeppson_mosaic_2021",
+		"type": "software",
+		"abstract": "Designed to create visualizations of categorical data, geom_mosaic() has the capability to produce bar charts, stacked bar charts, mosaic plots, and double decker plots and therefore offers a wide range of potential plots. The plots below highlight the package’s versatility.",
+		"collection-title": "Package Vignette",
+		"source": "R-Packages",
+		"title": "Mosaic Plots with ggplot2",
+		"URL": "https://cran.r-project.org/web/packages/ggmosaic/vignettes/ggmosaic.html",
+		"author": [
+			{
+				"family": "Jeppson",
+				"given": "Haley"
+			},
+			{
+				"family": "Hofmann",
+				"given": "Heike"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					18
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2021"
+				]
+			]
+		}
+	},
+	{
+		"id": "wewel_statistik_2019",
+		"type": "book",
+		"collection-title": "wi - wirtschaft",
+		"edition": "4., aktualisierte Auflage",
+		"event-place": "Hallbergmoos/Germany",
+		"ISBN": "978-3-86894-381-8",
+		"language": "ger",
+		"number-of-pages": "352",
+		"publisher": "Pearson",
+		"publisher-place": "Hallbergmoos/Germany",
+		"source": "K10plus ISBN",
+		"title": "Statistik im Bachelor-Studium der BWL und VWL: Methoden, Anwendung, Interpretation",
+		"title-short": "Statistik im Bachelor-Studium der BWL und VWL",
+		"author": [
+			{
+				"family": "Wewel",
+				"given": "Max C."
+			},
+			{
+				"family": "Blatter",
+				"given": "Anja"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2019"
+				]
+			]
+		}
+	},
+	{
+		"id": "ismay_statistical_2023",
+		"type": "book",
+		"abstract": "An open-source and fully-reproducible electronic textbook for teaching statistical inference using tidyverse data science tools.",
+		"event-place": "Boca Raton",
+		"publisher": "CRC Press / Taylor & Francis Group",
+		"publisher-place": "Boca Raton",
+		"source": "moderndive.com",
+		"title": "Statistical Inference via Data Science. A ModernDive into R and the Tidyverse",
+		"URL": "https://moderndive.com/",
+		"author": [
+			{
+				"family": "Ismay",
+				"given": "Chester"
+			},
+			{
+				"family": "Kim",
+				"given": "Albert Y."
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					20
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2023"
+				]
+			]
+		}
+	},
+	{
+		"id": "bogner_kapitel_nodate",
+		"type": "book",
+		"abstract": "Kernpakete aus tidyverse benennen  ein einfaches Workflow (Daten einlesen, zusammenfassen, darstellen) mit tidyverse durchführen  Funktionen des Pakets dplyr für Datentransformation anwenden ...",
+		"language": "en",
+		"source": "chrisbogner.github.io",
+		"title": "Kapitel 6 Explorative Datenanalyse mit tidyverse | Datenanalyse mit R",
+		"URL": "https://chrisbogner.github.io/datenanalyse/explorative-datenanalyse.html",
+		"author": [
+			{
+				"family": "Bogner",
+				"given": "Christina"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					30
+				]
+			]
+		}
+	},
+	{
+		"id": "handl_multivariate_2017",
+		"type": "book",
+		"event-place": "Berlin, Heidelberg",
+		"ISBN": "978-3-662-54753-3",
+		"language": "de",
+		"note": "DOI: 10.1007/978-3-662-54754-0",
+		"publisher": "Springer",
+		"publisher-place": "Berlin, Heidelberg",
+		"source": "DOI.org (Crossref)",
+		"title": "Multivariate Analysemethoden",
+		"URL": "http://link.springer.com/10.1007/978-3-662-54754-0",
+		"author": [
+			{
+				"family": "Handl",
+				"given": "Andreas"
+			},
+			{
+				"family": "Kuhlenkasper",
+				"given": "Torben"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					30
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2017"
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_r_nodate",
+		"type": "webpage",
+		"title": "R for Data Science (2e)",
+		"URL": "https://r4ds.hadley.nz/",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					30
+				]
+			]
+		}
+	},
+	{
+		"id": "tukey_future_1962",
+		"type": "article-journal",
+		"container-title": "The Annals of Mathematical Statistics",
+		"DOI": "10.1214/aoms/1177704711",
+		"ISSN": "0003-4851",
+		"issue": "1",
+		"journalAbbreviation": "Ann. Math. Statist.",
+		"language": "en",
+		"page": "1-67",
+		"source": "DOI.org (Crossref)",
+		"title": "The Future of Data Analysis",
+		"URL": "http://projecteuclid.org/euclid.aoms/1177704711",
+		"volume": "33",
+		"author": [
+			{
+				"family": "Tukey",
+				"given": "John W."
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					30
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"1962",
+					3
+				]
+			]
+		}
+	},
+	{
+		"id": "wickham_r_2017",
+		"type": "book",
+		"abstract": "This book will teach you how to do data science with R: You’ll learn how to get your data into R, get it into the most useful structure, transform it, visualise it and model it. In this book, you will find a practicum of skills for data science. Just as a chemist learns how to clean test tubes and stock a lab, you’ll learn how to clean data and draw plots—and many other things besides. These are the skills that allow data science to happen, and here you will find the best practices for doing each of these things with R. You’ll learn how to use the grammar of graphics, literate programming, and reproducible research to save time. You’ll also learn how to manage cognitive resources to facilitate discoveries when wrangling, visualising, and exploring data.",
+		"edition": "First Edition",
+		"language": "en",
+		"number-of-pages": "492",
+		"publisher": "O'Reilly",
+		"source": "r4ds.had.co.nz",
+		"title": "R for Data Science. Visualize, Model, Transform, Tidy and Import Data",
+		"URL": "https://r4ds.had.co.nz/",
+		"author": [
+			{
+				"family": "Wickham",
+				"given": "Hadley"
+			},
+			{
+				"family": "Grolemund",
+				"given": "Garrett"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					5,
+					31
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2017"
+				]
+			]
+		}
+	},
+	{
+		"id": "hoffman_linear_2022",
+		"type": "book",
+		"abstract": "\"Research in the social and behavioral sciences has benefited from linear regression models (LRMs) for decades to identify and understand the associations among a set of explanatory variables and an outcome variable. Linear Regression Models: Applications in R provides you with a comprehensive treatment of these models and indispensable guidance about how to estimate them using the R software environment. After furnishing some background material, the author explains how to estimate simple and multiple LRMs in R, including how interpret their coefficients and understand their assumptions. Several chapters thoroughly describe these assumptions, and explain how to determine whether they are satisfied and how to modify the regression model if they are not. The book also includes chapters on specifying the correct model, adjusting for measurement error, understanding the effects of influential observations, and using the model with multilevel data. The concluding chapter presents an alternative model - logistic regression - designed for binary or two-category outcome variables. The book includes appendices that discuss data management and missing data, and provides simulations in R to test model assumptions\"--",
+		"call-number": "QA278.2",
+		"collection-title": "Chapman & Hall statistics in social and behavioral sciences",
+		"edition": "First edition",
+		"event-place": "Boca Raton",
+		"ISBN": "978-1-00-316223-0",
+		"number-of-pages": "1",
+		"publisher": "CRC Press",
+		"publisher-place": "Boca Raton",
+		"source": "Library of Congress ISBN",
+		"title": "Linear regression models: applications in R",
+		"title-short": "Linear regression models",
+		"author": [
+			{
+				"family": "Hoffman",
+				"given": "John P."
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2022"
+				]
+			]
+		}
+	},
+	{
+		"id": "nguyen_imputations_2023",
+		"type": "chapter",
+		"container-title": "A Guide on Data Analysis",
+		"source": "bookdown.org",
+		"title": "Imputations (Missing Data) - Assumptions",
+		"URL": "https://bookdown.org/mike/data_analysis/assumptions-1.html",
+		"author": [
+			{
+				"family": "Nguyen",
+				"given": "Mike"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					2
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2023"
+				]
+			]
+		}
+	},
+	{
+		"id": "little_missing_2021",
+		"type": "article-journal",
+		"abstract": "I review assumptions about the missing-data mechanisms that underlie methods for the statistical analysis of data with missing values. I describe Rubin's original definition of missing at random (MAR), its motivation and criticisms, and his sufficient conditions for ignoring the missingness mechanism for likelihood-based, Bayesian, and frequentist inference. Related definitions, including missing completely at random, always MAR, always missing completely at random, and partially MAR, are also covered. I present a formal argument for weakening Rubin's sufficient conditions for frequentist maximum likelihood inference with precision based on the observed information. Some simple examples of MAR are described, together with an example where the missingness mechanism can be ignored even though MAR does not hold. Alternative approaches to statistical inference based on the likelihood function are reviewed, along with non-likelihood frequentist approaches, including weighted generalized estimating equations. Connections with the causal inference literature are also discussed. Finally, alternatives to Rubin's MAR definition are discussed, including informative missingness, informative censoring, and coarsening at random. The intent is to provide a relatively nontechnical discussion, although some of the underlying issues are challenging and touch on fundamental questions of statistical inference.",
+		"container-title": "Annual Review of Statistics and Its Application",
+		"DOI": "10.1146/annurev-statistics-040720-031104",
+		"ISSN": "2326-8298, 2326-831X",
+		"issue": "1",
+		"journalAbbreviation": "Annu. Rev. Stat. Appl.",
+		"language": "en",
+		"page": "89-107",
+		"source": "DOI.org (Crossref)",
+		"title": "Missing Data Assumptions",
+		"URL": "https://www.annualreviews.org/doi/10.1146/annurev-statistics-040720-031104",
+		"volume": "8",
+		"author": [
+			{
+				"family": "Little",
+				"given": "Roderick J."
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					2
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2021",
+					3,
+					7
+				]
+			]
+		}
+	},
+	{
+		"id": "little_missing_2021-1",
+		"type": "article-journal",
+		"abstract": "I review assumptions about the missing-data mechanisms that underlie methods for the statistical analysis of data with missing values. I describe Rubin's original definition of missing at random (MAR), its motivation and criticisms, and his sufficient conditions for ignoring the missingness mechanism for likelihood-based, Bayesian, and frequentist inference. Related definitions, including missing completely at random, always MAR, always missing completely at random, and partially MAR, are also covered. I present a formal argument for weakening Rubin's sufficient conditions for frequentist maximum likelihood inference with precision based on the observed information. Some simple examples of MAR are described, together with an example where the missingness mechanism can be ignored even though MAR does not hold. Alternative approaches to statistical inference based on the likelihood function are reviewed, along with non-likelihood frequentist approaches, including weighted generalized estimating equations. Connections with the causal inference literature are also discussed. Finally, alternatives to Rubin's MAR definition are discussed, including informative missingness, informative censoring, and coarsening at random. The intent is to provide a relatively nontechnical discussion, although some of the underlying issues are challenging and touch on fundamental questions of statistical inference.",
+		"container-title": "Annual Review of Statistics and Its Application",
+		"DOI": "10.1146/annurev-statistics-040720-031104",
+		"issue": "1",
+		"note": "_eprint: https://doi.org/10.1146/annurev-statistics-040720-031104",
+		"page": "89-107",
+		"source": "Annual Reviews",
+		"title": "Missing Data Assumptions",
+		"URL": "https://doi.org/10.1146/annurev-statistics-040720-031104",
+		"volume": "8",
+		"author": [
+			{
+				"family": "Little",
+				"given": "Roderick J."
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					2
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2021"
+				]
+			]
+		}
+	},
+	{
+		"id": "qin_research_nodate-1",
+		"type": "webpage",
+		"abstract": "Fixed-effects and Random-effects",
+		"language": "en",
+		"license": "Copyright Princeton University 2023",
+		"title": "Research Guides: Panel Data Using R: Fixed-effects and Random-effects",
+		"title-short": "Research Guides",
+		"URL": "https://libguides.princeton.edu/c.php?g=1258919&p=9227112",
+		"author": [
+			{
+				"family": "Qin",
+				"given": "Yufei"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					2
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_data_nodate-5",
+		"type": "webpage",
+		"abstract": "Collection of data visualization chart choosers, reference guides, cheat sheets, websites and infographics about dataviz design best practices.",
+		"container-title": "Cool Infographics",
+		"language": "en-US",
+		"title": "Data Visualization Reference Guides",
+		"URL": "https://coolinfographics.com/dataviz-guides",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					7
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_13_nodate",
+		"type": "book",
+		"abstract": "1.3 Structure of the data | Business Statistics",
+		"source": "bookdown.org",
+		"title": "1.3 Structure of the data | Business Statistics",
+		"URL": "https://bookdown.org/jarneric/spring_school/1-3-structure-of-the-data.html",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					26
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_business_nodate-2",
+		"type": "book",
+		"abstract": "Business Statistics",
+		"source": "bookdown.org",
+		"title": "Business Statistics",
+		"URL": "https://bookdown.org/jarneric/spring_school/",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					26
+				]
+			]
+		}
+	},
+	{
+		"id": "grolemund_hands-programming_2014-1",
+		"type": "book",
+		"abstract": "This book will teach you how to program in R, with hands-on examples. I wrote it for non-programmers to provide a friendly introduction to the R language. You’ll learn how to load data, assemble and disassemble data objects, navigate R’s environment system, write your own functions, and use all of R’s programming tools. Throughout the book, you’ll use your newfound skills to solve practical data science problems.",
+		"event-place": "Sebastopol, CA",
+		"ISBN": "978-1-4493-5901-0",
+		"number-of-pages": "230",
+		"publisher": "O'Reilly",
+		"publisher-place": "Sebastopol, CA",
+		"source": "rstudio-education.github.io",
+		"title": "Hands-On Programming with R. Write Your Own Functions and Simulations",
+		"URL": "https://rstudio-education.github.io/hopr/",
+		"author": [
+			{
+				"family": "Grolemund",
+				"given": "Garrett"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					26
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2014"
+				]
+			]
+		}
+	},
+	{
+		"id": "hayashi_data_2021",
+		"type": "article-journal",
+		"abstract": "In recent years, rather than enclosing data within a single organization, exchanging and combining data from different domains has become an emerging practice. Many studies have discussed the economic and utility value of data and data exchange, but the characteristics of data that contribute to problem-solving through data combination have not been fully understood. In big data and interdisciplinary data combinations, large-scale data with many variables are expected to be used, and value is expected to be created by combining data as much as possible. In this study, we conducted three experiments to investigate the characteristics of data, focusing on the relationships between data combinations and variables in each dataset, using empirical data shared by the local government. The results indicate that even datasets that have a few variables are frequently used to propose solutions for problem-solving. Moreover, we found that even if the datasets in the solution do not have common variables, there are some well-established solutions to these problems. The findings of this study shed light on the mechanisms behind data combination for solving problems involving multiple datasets and variables.",
+		"container-title": "The Review of Socionetwork Strategies",
+		"DOI": "10.1007/s12626-021-00083-8",
+		"ISSN": "1867-3236",
+		"issue": "2",
+		"journalAbbreviation": "Rev Socionetwork Strat",
+		"language": "en",
+		"page": "521-534",
+		"source": "Springer Link",
+		"title": "Data Combination for Problem-Solving: A Case of an Open Data Exchange Platform",
+		"title-short": "Data Combination for Problem-Solving",
+		"URL": "https://doi.org/10.1007/s12626-021-00083-8",
+		"volume": "15",
+		"author": [
+			{
+				"family": "Hayashi",
+				"given": "Teruaki"
+			},
+			{
+				"family": "Sakaji",
+				"given": "Hiroki"
+			},
+			{
+				"family": "Matsushima",
+				"given": "Hiroyasu"
+			},
+			{
+				"family": "Fukami",
+				"given": "Yoshiaki"
+			},
+			{
+				"family": "Shimizu",
+				"given": "Takumi"
+			},
+			{
+				"family": "Ohsawa",
+				"given": "Yukio"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					26
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2021",
+					11,
+					1
+				]
+			]
+		}
+	},
+	{
+		"id": "hayashi_data_2020",
+		"type": "book",
+		"abstract": "In recent years, rather than enclosing data within a single organization, exchanging and combining data from different domains has become an emerging practice. Many studies have discussed the economic and utility value of data and data exchange, but the characteristics of data that contribute to problem solving through data combination have not been fully understood. In big data and interdisciplinary data combinations, large-scale data with many variables are expected to be used, and value is expected to be created by combining data as much as possible. In this study, we conduct three experiments to investigate the characteristics of data, focusing on the relationships between data combinations and variables in each dataset, using empirical data shared by the local government. The results indicate that even datasets that have a few variables are frequently used to propose solutions for problem solving. Moreover, we found that even if the datasets in the solution do not have common variables, there are some well-established solutions to the problems. The findings of this study shed light on mechanisms behind data combination for problem-solving involving multiple datasets and variables.",
+		"source": "ResearchGate",
+		"title": "Data Combination for Problem-solving: A Case of an Open Data Exchange Platform",
+		"title-short": "Data Combination for Problem-solving",
+		"author": [
+			{
+				"family": "Hayashi",
+				"given": "Teruaki"
+			},
+			{
+				"family": "Sakaji",
+				"given": "Hiroki"
+			},
+			{
+				"family": "Matsushima",
+				"given": "Hiroyasu"
+			},
+			{
+				"family": "Fukami",
+				"given": "Yoshiaki"
+			},
+			{
+				"family": "Shimizu",
+				"given": "Takumi"
+			},
+			{
+				"family": "Ohsawa",
+				"given": "Yukio"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2020",
+					12,
+					21
+				]
+			]
+		}
+	},
+	{
+		"id": "ridder_econometrics_2007",
+		"type": "chapter",
+		"abstract": "Economists who use survey or administrative data for inferences regarding a population may want to combine information obtained from two or more samples drawn from the population. This is the case if there is no single sample that contains all relevant variables. A special case occurs if longitudinal or panel data are needed but only repeated cross-sections are available. In this chapter we survey sample combination. If two (or more) samples from the same population are combined, there are variables that are unique to one of the samples and variables that are observed in each sample. What can be learned by combining such samples, depends on the nature of the samples, the assumptions that one is prepared to make, and the goal of the analysis. The most ambitious objective is the identification and estimation of the joint distribution, but often we settle for the estimation of economic models that involve these variables or a subset thereof. Sometimes the goal is to reduce biases due to mismeasured variables. We consider sample merger by matching on identifiers that may be imperfect in the case that the two samples have a substantial number of common units. For the case that the two samples are independent, we consider (conditional) bounds on the joint distribution. Exclusion restrictions will narrow these bounds. We also consider inference under the strong assumption of conditional independence.",
+		"container-title": "Handbook of Econometrics",
+		"language": "en",
+		"note": "DOI: 10.1016/S1573-4412(07)06075-8",
+		"page": "5469-5547",
+		"publisher": "Elsevier",
+		"source": "ScienceDirect",
+		"title": "The Econometrics of Data Combination",
+		"URL": "https://www.sciencedirect.com/science/article/pii/S1573441207060758",
+		"volume": "6",
+		"author": [
+			{
+				"family": "Ridder",
+				"given": "Geert"
+			},
+			{
+				"family": "Moffitt",
+				"given": "Robert"
+			}
+		],
+		"editor": [
+			{
+				"family": "Heckman",
+				"given": "James J."
+			},
+			{
+				"family": "Leamer",
+				"given": "Edward E."
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					26
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2007",
+					1,
+					1
+				]
+			]
+		}
+	},
+	{
+		"id": "unkel_computational_2020",
+		"type": "book",
+		"abstract": "Computational Methods in der politischen Kommunikationsforschung",
+		"source": "bookdown.org",
+		"title": "Computational Methods in der politischen Kommunikationsforschung",
+		"URL": "https://bookdown.org/joone/ComputationalMethods/",
+		"author": [
+			{
+				"family": "Unkel",
+				"given": "Julian"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					7,
+					29
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2020"
+				]
+			]
+		}
+	},
+	{
+		"id": "ismay_statistical_2020",
+		"type": "book",
+		"abstract": "\"Statistical Inference via Data Science: A ModernDive into R and the Tidyverse provides a pathway for learning about statistical inference using data science tools widely used in industry, academia, and government. It introduces the tidyverse suite of R packages, including the ggplot2 package for data visualization, and the dplyr package for data wrangling. After equipping readers with just enough of these data science tools to perform effective exploratory data analyses, the book covers traditional introductory statistics topics like confidence intervals, hypothesis testing, and multiple regression modeling, while focusing on visualization throughout\"--",
+		"call-number": "QA276.45.R3",
+		"collection-title": "Chapman & Hall/CRC the R Series",
+		"event-place": "Boca Raton",
+		"ISBN": "978-0-367-40991-3",
+		"publisher": "CRC Press / Taylor & Francis Group",
+		"publisher-place": "Boca Raton",
+		"source": "Library of Congress ISBN",
+		"title": "Statistical inference via data science: a ModernDive into R and the Tidyverse",
+		"title-short": "Statistical inference via data science",
+		"author": [
+			{
+				"family": "Ismay",
+				"given": "Chester"
+			},
+			{
+				"family": "Kim",
+				"given": "Albert Young-Sun"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2020"
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_correlation_nodate",
+		"type": "webpage",
+		"title": "Correlation tests, correlation matrix, and corresponding visualization methods in R",
+		"URL": "https://rstudio-pubs-static.s3.amazonaws.com/240657_5157ff98e8204c358b2118fa69162e18.html",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					8,
+					18
+				]
+			]
+		}
+	},
+	{
+		"id": "statistikokonometrie_kapitel_nodate",
+		"type": "book",
+		"abstract": "Kapitel 8 Maßzahlen des statistischen Vergleichs | Statistik I",
+		"source": "bookdown.org",
+		"title": "Kapitel 8 Maßzahlen des statistischen Vergleichs | Statistik I",
+		"URL": "https://bookdown.org/content/09b3c4df-a68c-499f-8abe-e7850eaeb1c3/Vergleichszahlen.html#Messzahl",
+		"author": [
+			{
+				"family": "Statistik/Ökonometrie",
+				"given": "Benno Hildebrandt",
+				"suffix": "Steffen Köhler, RUHR-UNIVERSITÄT BOCHUM Fakultät für Wirtschaftswissenschaft Lehrstuhl für"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					8,
+					18
+				]
+			]
+		}
+	},
+	{
+		"id": "schlegel_basic_nodate",
+		"type": "book",
+		"abstract": "A Book about Basic Statistics.",
+		"source": "ajsmit.github.io",
+		"title": "Basic Statistics",
+		"URL": "https://ajsmit.github.io/Basic_stats/index.html",
+		"author": [
+			{
+				"family": "Schlegel",
+				"given": "AJ Smit and Robert"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					8,
+					18
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_ucsd_nodate",
+		"type": "book",
+		"abstract": "This is the class website and lecture notes for psyc 201ab and CSS 205",
+		"source": "vulstats.ucsd.edu",
+		"title": "UCSD Psyc 201ab / CSS 205 / Psyc 193",
+		"URL": "https://vulstats.ucsd.edu/index.html",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					8,
+					23
+				]
+			]
+		}
+	},
+	{
+		"id": "stocker_grundlagen_2023",
+		"type": "chapter",
+		"container-title": "Methoden der empirischen Wirtschaftsforschung. Vorlesungsmanuskript",
+		"publisher": "Universität Innsbruck",
+		"title": "Grundlagen der deskriptiven Regressionsanalyse - OLS Mechanik",
+		"URL": "https://www.uibk.ac.at/econometrics/einf/kap02_ols.pdf",
+		"author": [
+			{
+				"family": "Stocker",
+				"given": "Herbert"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"2023"
+				]
+			]
+		}
+	},
+	{
+		"id": "noauthor_refresher_nodate",
+		"type": "webpage",
+		"title": "Refresher: Tidy Exploratory Data Analysis",
+		"URL": "https://stephenturner.github.io/workshops/r-refresher-tidy-eda.html",
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					8,
+					24
+				]
+			]
+		}
+	},
+	{
+		"id": "von_der_lippe_indexzahlen_1993",
+		"type": "chapter",
+		"container-title": "Deskriptive Statistik",
+		"event-place": "Stuttgart, Jena",
+		"ISBN": "3-8252-1632-2",
+		"publisher": "UTB Uni-Taschenbücher",
+		"publisher-place": "Stuttgart, Jena",
+		"title": "Indexzahlen",
+		"URL": "http://www.von-der-lippe.org/dokumente/buch/BUCH10.pdf",
+		"author": [
+			{
+				"family": "Lippe",
+				"given": "Peter",
+				"non-dropping-particle": "von der"
+			}
+		],
+		"issued": {
+			"date-parts": [
+				[
+					"1993"
+				]
+			]
+		}
+	},
+	{
+		"id": "akkerboom_wirtschaftsstatistik_2008",
+		"type": "book",
+		"event-place": "Wiesbaden",
+		"ISBN": "978-3-8349-0509-3",
+		"language": "de",
+		"note": "DOI: 10.1007/978-3-8349-9573-5",
+		"publisher": "Gabler",
+		"publisher-place": "Wiesbaden",
+		"source": "DOI.org (Crossref)",
+		"title": "Wirtschaftsstatistik im Bachelor",
+		"URL": "http://link.springer.com/10.1007/978-3-8349-9573-5",
+		"author": [
+			{
+				"family": "Akkerboom",
+				"given": "Hans"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					8,
+					28
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2008"
+				]
+			]
+		}
+	},
+	{
+		"id": "akkerboom_wirtschaftsstatistik_2012",
+		"type": "book",
+		"event-place": "Wiesbaden",
+		"ISBN": "978-3-8349-3322-5",
+		"language": "de",
+		"note": "DOI: 10.1007/978-3-8349-7126-5",
+		"publisher": "Gabler Verlag",
+		"publisher-place": "Wiesbaden",
+		"source": "DOI.org (Crossref)",
+		"title": "Wirtschaftsstatistik im Bachelor",
+		"URL": "http://link.springer.com/10.1007/978-3-8349-7126-5",
+		"author": [
+			{
+				"family": "Akkerboom",
+				"given": "Hans"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2023",
+					8,
+					28
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2012"
+				]
+			]
+		}
+	}
+]

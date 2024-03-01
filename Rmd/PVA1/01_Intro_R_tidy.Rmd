@@ -1,0 +1,516 @@
+---
+title: "Data Science and Strategy for Business"
+subtitle: "(Re-)Sampling und Hypothesentests"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS" 
+date: "`r Sys.Date()`"
+bibliography: ../../lit/my_bib.bib
+reference-section-title: Quellenverzeichnis
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+         - default
+         - ../../css/ffhs-theme_js.css
+         - xaringan-themer.css
+    includes:
+      after_body: ../../css/insert-logo.html
+    lib_dir: ../../libs
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    seal: false
+    
+
+    
+---
+class: title-slide
+
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+style_xaringan(text_color = "#d50006",inverse_text_color = "#FFFFFF",inverse_background_color = "#d50006", title_slide_background_color = "#d50006",header_background_color = "#d50006",header_color = "#FFFFFF",header_h1_font_size = "32px",
+  header_h2_font_size = "26px",link_color="#502479",
+  header_h3_font_size = "20px",text_slide_number_color = "#d50006",text_slide_number_font_size = "0.5em")
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_progress_bar(color = "#d50006", location = "bottom")
+xaringanExtra::use_xaringan_extra(c("tile_view","scribble","panelset","tachyons"))
+xaringanExtra::style_panelset_tabs(font_family = "inherit")
+#xaringanExtra::use_search(show_icon = TRUE)
+#weitere: "share_again","animate_css", "webcam","freezeframe","clipboard","fit_screen","extra-styles" 
+xaringanExtra::use_editable(expires = 1)
+xaringanExtra::use_freezeframe(trigger = "hover")
+``` 
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(latex2exp)
+library(fontawesome)
+library(emo)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           style = "markdown",
+           dashed = TRUE)
+file.name <- system.file("Bib", 
+                         "my_bib.bib", 
+                         package = "RefManageR")
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+```
+
+# ER014 - Data Science and Strategy for Business
+
+## PVA1
+
+### Kurze Einführung in R und RStudio
+
+ 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+### FS 2024
+<br>
+### Prof. Dr. Jörg Schoder
+.mycontacts[
+`r fa('github')` @FFHS-EconomicResearch
+`r fa('linkedin')` @jfschoder
+]
+
+
+---
+layout: true
+
+<div class="my-footer"></div>       
+
+<div style="position: absolute;left:400px;bottom:10px;font-size:9px">`r fa('creative-commons')``r rmarkdown::metadata$author`</div>
+
+
+---
+name: agenda
+class: left
+
+.blockquote[Agenda]
+
+## Datenprodukte - Theorie und Praxis
+
+* Motivation und Einordnung
+
+* `r fa('r-project')` Basics
+
+* RMarkdown/Quarto
+
+* R-Projekte
+
+
+
+
+---
+class: left
+
+.blockquote[Motivation und Einordnung]
+
+## Daten: vom Kostenfaktor zum Asset
+
+.panelset[
+.panel[.panel-name[Perspektiven]
+```{r}
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA3','data_in_business_(tableau)_1.PNG'))
+```
+]
+.panel[.panel-name[Bewertung]
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA3','data_in_business_(tableau)_2.PNG'))
+```
+]
+]
+.quelle[Quelle: [cloudflight.io](https://www.cloudflight.io/de/download/uncategorized-download/turn-data-into-products-vom-data-scientist-zum-data-business-owner/)]
+
+
+???
+
+* Data is Oil
+  * Quatsch, weil Daten mehr werden, Öl aber verbraucht wird.
+  * Aber: Wie beim Öl entsteht der Wert auch bei Daten erst durch die Weiterverarbeitung ("Raffinerie")
+
+
+---
+class: left
+
+.blockquote[`r fa('r-project')` Basics]
+
+## `r fa('r-project')`-chitektur
+
+.right-column[
+.blockquote[
+"[..] the ability to run fast, frugal, and scalable experiments based on high-value business hypotheses is becoming a new core competence for innovation success. As companies gather more data about their customers, channels, usage, complaints, social media, etc., we won’t just see people analyzing data with optimization in mind; we’ll be seeing machines generating “innovation hypotheses” recommending new configurations, bundles, features, pricing schemes, and business models to test."
+
+.tr[
+`r Citet(bib, "schrage_let_2014")`
+]
+]
+
+]
+.left-column[
+<br>
+```{r}
+#| echo: false
+#| out-width: '100%'
+knitr::include_graphics(xfun::from_root('img','PVA3','schrage_(amazon).jpg'))
+```
+
+]
+.quelle[Bildquelle: [amazon.de](www.amazon.de).]
+
+???
+
+
+* Insights from Data
+
+  * descriptive
+  * predictive
+  * prescriptive/actionable
+  
+* Results vs. Methods
+
+* Data-Driven vs. Data-Informed
+
+* Data Mining vs. Data Products
+
+
+
+---
+class: left
+
+.blockquote[Motivation und Einordnung]
+
+## Warum Programmierung?
+
+
+.panelset[
+.panel[.panel-name[Kompetenz]
+
+.fig.upper-right[
+```{r}
+#| echo: false
+#| out-width: '50%'
+knitr::include_graphics(xfun::from_root('img','PVA1','Programming_Thinking_(SteveJobs).PNG'))
+```
+]
+
+.fig.lower-left[
+```{r}
+#| echo: false
+#| out-width: '50%'
+knitr::include_graphics(xfun::from_root('img','PVA1','Programming_Quote_(Hawking).PNG'))
+```
+]
+
+.quellePanURL2[Bildquellen: [ilovecoding.org](https://twitter.com/ilovecodingorg/status/844202136980389888),  [imrananees.blogspot.com](https://imrananees.blogspot.com/2019/10/basic-computer-programming-essential.html).]
+
+]
+.panel[.panel-name[Benchmark]
+Beispiel: Harvard Business School
+
+* **Wahlmodule „Data Science for Managers“ (DSM)**
+.small[
+* DSM1: „Although few HBS MBA students will be actively engaged in
+coding post-graduation, the course faculty believe that having **some
+exposure to basic, hands-on coding and techniques** will allow our
+students to **more effectively manage and interact with data
+scientists**. DSM1 will not delve deeply into technical details, but will
+require students to engage with some code.“ (Hervorhebung nicht im
+Original)
+
+* DSM2: „[..] allows students to build a deeper understanding of **how
+data and analytics can complement judgment for managerial
+decision making**. The course builds on concepts learned in DSM1
+and is specifically suited for students who want to continue their
+career at companies such as technology companies, where data
+collection, aggregation, and analysis permeates the entire
+organization.“ (Hervorhebung nicht im Original)
+]
+]
+]
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Motivation und Einordnung]
+
+## Warum R?
+
+```{r}
+#| label: whyR
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','whyR.svg'))
+```
+
+.quelle[Eigene Darstellung.]
+
+???
+
+* März 2024: Platz 6 im [PYPL Popularity Ranking](https://pypl.github.io/PYPL.html)
+* Programmiersprachen. Am beliebtesten Python. Aber für statistische Anwendungen hat R, gerade im akademischen Bereich noch die Nase vorn.
+* Am Ende auch egal. Es konvergiert, bspw. in RMarkdown/Quarto kann nicht nur R-Code sondern auch Python und die aufstrebende Sprache Julia eingebettet werden.
+* somit sollte R als Einstieg gesehen werden. Je nach Anwendungsgebiet können die Sprachen dann auch kombiniert werden.
+
+
+---
+class: inverse, center, middle
+
+## `r fa('r-project')` Basics
+
+
+
+---
+class: left
+
+.blockquote[`r fa('r-project')` Basics]
+
+## `r fa('r-project')`-chitektur
+.pull-left[
+```{r}
+#| label: r-chitektur
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','R-chitektur_(Field_2012_S63).PNG'))
+```
+]
+.pull-right[
+* Base `r fa('r-project')`
+  * der "Motor" bzw. das "Betriebssystem"
+  * lokale Installation via CRAN (Comprehensive R Archive Network) oder diverse Mirrors
+* Bibliotheken (auch als Pakete bezeichnet)
+  * die "Apps"
+  * Erweiterung der Funktionalität
+]
+
+
+.quelle[Bildquelle: `r Citet(bib, "field_discovering_2012")`, S. 63.]
+
+
+---
+class: left
+
+.blockquote[`r fa('r-project')` Basics]
+
+## `r fa('r-project')` als objektorientierte Programmiersprache
+
+* Alles ist ein Objekt
+  * Daten (Vektoren, Matrizen, etc.)
+  * Funktionen
+  * Diagramme (bspw. ggplot)
+* Objekte können unterschiedlichen Objekt-Klassen zugeordnet werden
+  * bspw. `character`, `numeric`, `factor`, `tibble`, etc. 
+  * Zu welcher Klasse ein Objekt gehört kann mit dem Befehl `class()` abgefragt werden.
+* Objekte haben eine Länge 
+  * bspw. Zahl der Elemente in einem Vektor
+  * Die Objektlänge kann mit dem Befehl length() abgefragt werden.
+* Jedes Objekt wird intern durch einen Vektor repräsentiert.
+
+`r fa('circle-right')` `r fa('r-project')` ist eine Vektor-basierte Programmiersprache
+
+
+
+---
+class: left
+
+.blockquote[`r fa('r-project')` Basics]
+
+## Einstieg in `r fa('r-project')` 
+
+* **swirl**-Paket als interaktives `r fa('r-project')`-Tutorial.
+
+`install.packages(’Paketname’,dep=TRUE)`
+
+`library(Paketname)`
+
+---
+class: left
+
+.blockquote[`r fa('r-project')` Basics]
+
+## Base-`r fa('r-project')` vs. tidy-Syntax
+
+
+* Sprache vs. Dialekt
+
+
+
+
+---
+class: inverse, center, middle
+
+## RStudio und RMarkdown/Quarto
+
+---
+class: left
+
+.blockquote[RStudio und RMarkdown/Quarto]
+
+## RStudio als "Benutzeroberfläche"
+
+.panelset[
+.panel[.panel-name[R vs. RStudio]
+.small[
+* Die Benutzeroberfläche von `r fa('r-project')` ist auf das notwendigste beschränkt:
+  * beim Öffnen erscheint nur die sog. **`r fa('r-project')`-Console**. Dort können Befehle
+eingegeben werden, deren Ergebnis dann unmittelbar angezeigt wird.
+  * Statt der Eingabe in der `r fa('r-project')`-Console können Eingaben auch `r fa('r-project')`-Skript-Dateien (.R) erfolgen. In Base-`r fa('r-project')` ist nur ein sehr rudimentärer "Texteditor" zur Bearbeitung von .R-Dateien integriert.
+  
+* RStudio ist eine sog. integrierte Entwicklungsumgebung (IDE)...
+  * ...die als kostenlose Desktop-Version verfügbar ist.
+  * ...als Cloud-Version ([posit Cloud](https://posit.cloud/)) mit gewissen Einschränkungen ebenfalls kostenfrei verfügbar ist.
+  * ...und ermöglicht eine anwendungsfreundliche(re) Nutzung von `r fa('r-project')` (z.B. durch GUI, Kontextmenü, autocompletion etc.)
+  * Datenprojekte können komplett in RStudio bearbeitet werden (`r fa('r-project')` läuft nur im Hintergrund, muss aber nicht extra geöffnet werden).
+]
+]
+.panel[.panel-name[Quick Tour]
+.small[
+* RStudio hat mehrere Fenster mit zusätzlichen Reitern: Skript (zur Dokumentation), Konsole (zur direkten Befehleingabe), Environment (Daten), Pakete, Plots etc. 
+]
+<p align="center"><iframe width="650" height="350" src="https://www.youtube.com/embed/SdMPh5uphO0?si=0RqBc7jmHesShdsF" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></p>
+
+]
+]
+
+  
+
+
+
+
+
+---
+class: left
+
+.blockquote[RStudio und RMarkdown/Quarto]
+
+## Warum RMarkdown/Quarto?
+
+
+.panelset[
+.panel[.panel-name[Zweck]
+* Möglichkeit zur Integration von `r fa('r-project')`-Programmcode (statistische
+Analysen) und Text (verbale Beschreibungen/Erläuterungen) in einer
+Datei
+
+* Reproduzierbarkeit von Forschung/Analysen durch Dokumentation
+
+* Leichterer Austausch von Analyseergebnissen (inkl. Dokumentation)
+
+* Zahlreiche gängige Ausgabeformate (.docx, .pptx, .pdf, .html)
+
+* Produktivitätssteigerung bei wiederkehrenden Berichten/Updates (Automatisierung)
+]
+.panel[.panel-name[Rmd vs. qmd]
+* RMarkdown
+* Quarto
+]
+.panel[.panel-name[Praxisbeispiel Airbnb]
+.blockquote[
+"At Airbnb, all R analyses are documented in rmarkdown, where code and
+visualizations are combined within a single written report. Posts are
+carefully reviewed by experts in the content area and techniques used,
+both in terms of methodologies and code style, before publishing and
+sharing with the business partners."
+.tr[
+`r Citet(bib,"bion_how_2017")`, S. 7.
+]
+]
+```{r}
+#| label: rbnb
+#| echo: false
+#| out-width: '50%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','Rbnb.PNG'))
+```
+]
+]
+
+
+
+
+---
+class: inverse, center, middle
+
+## R-Projekte
+
+
+
+
+
+  
+  
+
+
+
+
+---
+class: inverse, center, middle
+
+## Key Take-Aways
+
+
+---
+class: left
+
+.blockquote[Key Take-Aways]
+
+## Zentrale Aspekte der Diskussion
+
+* Daten sind nur Assets, wenn sie entsprechend aufbereitet und zum Produkt entwickelt werden.
+
+* Datenprodukte vs. Daten als Produkt
+
+* Datenprodukte im Kontext von Data Mesh 
+
+* Bedeutung der Datenarchitektur für Agilität
+
+* Generelle Bedeutung der Datenqualität (GiGo) 
+
+---
+name: EndHanks
+class: center
+
+background-size: 75%
+background-image: url(https://media.giphy.com/media/KJ1f5iTl4Oo7u/giphy.gif)
+
+
+
+
+
+
+
+---
+class: left
+
+## Quellenverzeichnis
+
+.ref-slide[
+```{r, results='asis', echo=FALSE, warning=FALSE}
+PrintBibliography(bib)
+```
+]

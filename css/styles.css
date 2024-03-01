@@ -1,0 +1,60 @@
+ /* Background */ 
+.background-color {
+   color: #F2EFDE;
+}
+
+/* Boxen*/ 
+
+.box {
+  background-color: #23246180;
+  padding: 10px;
+  border: 1px solid #232461;
+  margin: 25px;
+  border-radius: 5px;
+  font-style: italic;
+  color: #232461;
+}
+
+/* Fragen-Box */ 
+.q-box {
+  background-color: #23246180;
+  padding: 10px;
+  border: 1px solid #232461;
+  margin: 25px;
+  border-radius: 5px;
+  font-style: italic;
+  color: #232461;
+}
+
+/* Definitionen */ 
+.d-box {
+  background-color: #F09C82;
+  padding: 10px;
+  border: 1px solid #d84116;
+  margin: 25px;
+  border-radius: 5px;
+  font-style: italic;
+  color: #d84116;
+}
+
+/*Example-Box */
+.e-box {
+  background-color: #7CB3A0;
+  padding: 10px;
+  border: 1px solid #5A7D71;
+  margin: 25px;
+  border-radius: 5px;
+  font-style: italic;
+  color: #5A7D71;
+}
+
+.Ivory {
+  color: #F2EFDE;
+}
+.ISBAblue {
+  color: #232461
+}
+
+.ISBAred {
+  color: #d84116;
+}

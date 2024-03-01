@@ -1,0 +1,268 @@
+
+/*  Schriften
+    =============================*/
+
+/* Positionierung Überschrift - abgestimmt auf h1-size in xaringanthemer */
+h1 {
+  font-size: 32px;
+  margin-top: -65px;
+  margin-left: -00px;
+}
+
+h2 {
+  font-size: 26px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
+.xxxlarge {
+  font-size: 28px;
+}
+
+.small {
+  font-size: 16px;
+}
+
+.tiny {
+  font-size: 10px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+/*  Layout Titelseite
+    =============================*/
+
+.title-slide {
+  background-color: #d50006;
+  border-top: 50px solid #d50006;
+}
+
+.title-slide .remark-slide-number {
+  display: none;
+}
+
+.mycontacts {
+  text-align: left;
+  padding-top: 25px;
+  margin-left: 15px;
+  line-height: 40%;
+}
+
+
+.title-slide h1  {
+  font-size: 40px;
+  text-shadow: none;
+  text-align: left;
+  margin-left: 15px;
+  padding-top: 80px;
+}
+
+.title-slide h2  {
+  margin-top: -25px;
+  padding-bottom: -20px;
+  font-size: 35px;
+  text-align: left;
+  margin-left: 15px;
+}
+.title-slide h3  {
+  text-align: left;
+  font-size: 26px;
+  margin-left: 15px;
+  margin-bottom: -30px;
+}
+
+/* Querbalken Titelseite*/
+hr, .title-slide h2::after, .mline h1::after {
+  content: '';
+  display: block;
+  border: none;
+  background-color: #ffffff;
+  color: #ffffff;
+  height: 3px;
+}
+hr, .mline h1::after {
+  margin: 1em 15px 0 15px;
+}
+
+/* falls nötig inverse title-slide */
+.title-slide .inverse .remark-slide-content {
+  background-color: #d50006;
+}
+
+
+/* inserts colored bar on top of the slide  */
+.remark-slide-content {
+  background-color: #ffffff;
+/*  border-top: 50px solid #d50006; */
+/*border-bottom: 20px solid #d50006;*/
+  font-weight: 300;
+  line-height: 1.5;
+  padding: 1em 2em 1em 2em;
+}
+
+
+
+/* Removes colored bar from top of the slide resulting in a clear slide */
+.clear{
+  border-top: 0px solid #ffffff;
+}
+
+/* Layout Quellen-Folie  */
+.ref-slide {
+  font-size: 12px;
+}
+
+
+/* Farben*/
+
+.red {
+  color: #d50006;
+}
+
+.purple {
+  color: #502479;
+}
+
+.grey {
+  color: #686868;
+}
+
+/*Farbabstimmung untergeordnete Überschriften */
+
+.remark-slide-content h2 {
+  font-size: 22px;
+  color: #000000;
+}
+
+.remark-slide-content h3 {
+  font-size: 18px;
+  color: #000000;
+}
+
+/*Text Blockquote*/
+.blockquote {
+  border-left: solid 5px #d50006;
+  padding-left: 1em;
+}
+
+
+/*Textformatierung*/
+.quelle {
+  font-size: 10px;
+  position: absolute;
+  right: 5%;
+  bottom: 5%;
+}
+
+
+.quellePan {
+  font-size: 10px;
+  position: absolute;
+  margin-bottom: 5px;
+  right: 0;
+}
+
+.quellePanURL {
+  font-size: 10px;
+  position: absolute;
+  right: 0;
+  bottom: -5px;
+}
+
+.quellePanURL2 {
+  font-size: 10px;
+  position: relative;
+  right: -550px;
+  bottom: 175px;
+}
+
+.bold-last-item > ul > li:last-of-type,
+.bold-last-item > ol > li:last-of-type {
+  font-weight: bold;
+}
+
+
+
+ /* Background */
+.background-color {
+   color: #F2EFDE;
+}
+
+
+
+
+/* Abbildungen */
+
+.fig.upper-right {
+  position: relative;
+  top: -3px;
+  right: -400px;
+}
+
+.fig.lower-left {
+  position: relative;
+  bottom: 130px;
+  left: 3px;
+}
+
+
+/* Boxen*/
+
+.box {
+  background-color: #23246180;
+  padding: 10px;
+  border: 1px solid #232461;
+  margin: 25px;
+  border-radius: 5px;
+  font-style: italic;
+  color: #232461;
+}
+
+/* Fragen-Box */
+.q-box {
+  background-color: #23246180;
+  padding: 10px;
+  border: 1px solid #232461;
+  margin: 25px;
+  border-radius: 5px;
+  font-style: italic;
+  color: #232461;
+}
+
+/* Definitionen */
+.d-box {
+  background-color: #F09C82;
+  padding: 10px;
+  border: 1px solid #d84116;
+  margin: 25px;
+  border-radius: 5px;
+  font-style: italic;
+  color: #d84116;
+}
+
+/*Example-Box */
+.e-box {
+  background-color: #7CB3A0;
+  padding: 10px;
+  border: 1px solid #5A7D71;
+  margin: 25px;
+  border-radius: 5px;
+  font-style: italic;
+  color: #5A7D71;
+}
+
+.Ivory {
+  color: #F2EFDE;
+}
+.ISBAblue {
+  color: #232461
+}
+
+.ISBAred {
+  color: #d84116;
+}
+
