@@ -1,0 +1,424 @@
+---
+title: "Grundidee Statistischer Tests"
+subtitle: "Vorläufige Version"
+author: "Prof. Dr. Jörg Schoder"
+date: "`r Sys.Date()`"
+bibliography: ../../lit/Statistics.json
+reference-section-title: Quellenverzeichnis
+lang: de #Zitation in deutscher Sprache (und statt and)
+output:
+    html_document:
+      css: ../../css/styles.css
+      code_folding: hide
+      number_section: true
+      toc: true
+      toc_float: true
+      toc_depth: 3
+---
+
+```{r, echo=FALSE}
+htmltools::img(src = knitr::image_uri(xfun::from_root('img', 'FFHS_mit_Zusatz_rgb.svg')), 
+               alt = 'logo', 
+               style = 'position:absolute; top:0; right:0; padding:10px; width:300px; height:200px')
+```
+
+```{r}
+#| label: setup
+#| include: false
+source(xfun::from_root("R/00_setup.R"))
+library(fontawesome)
+library(infer)
+data(gss) #GSS-Sample laden (integriert im infer-Paket)
+#Überblick
+#str(gss)
+#head(gss)
+```
+
+
+<!-- https://cran.r-project.org/web/packages/infer/vignettes/infer.html -->
+
+# Grundidee statistischer Tests
+
+Grundsätzlich soll mit einem statistischen Test überprüft werden, ob ein in den Daten beobachtbarer **Effekt** (bspw. ein Zusammenhang oder Unterschied) "tatsächlich" existiert oder **nur zufällig** ist. Für die verschiedenen Arten von Daten (Skalenniveaus bzw. Stetigkeit als zentrale Kriterien) wurden eine Vielzahl von Verfahren entwickelt. Welcher davon zur Anwendung kommt, ist im Einzelfall zu prüfen (vgl. Abschnitt [Traditionelle Tests]). Im folgenden soll die allen Tests zugrundeliegende Idee illustriert werden.
+
+
+Bei jedem Test werden die beobachteten Daten als Ergebnis (**Realisierung**) eines Zufallsexperiments betrachtet, die erhobenen **Merkmale** werden also **als Zufallsvariablen interpretiert**. Würden wir das Zufallsexperiment wiederholen, erhielten wir eine weitere Realisierung. Für jede Realisierung können Kennzahlen wie Lage- oder Streuungsparameter berechnet werden, sodass wir bei 100-maliger Wiederholung des Zufallsexperiment 100 Lage- und Streuungsparameter erhalten. Weil es sich um Zufallsstichproben handelt, wäre es schon sehr zufällig, wenn alle 100 Lage- und Streuungsparameter jeweils exakt übereinstimmen würden. 
+
+Bei jedem Statistischen Test wird eine sog. **Nullhypothese ($H_0$)** formuliert. Vereinfacht besagt diese, dass der in den Daten (als einmalig gezogenener Stichprobe aus der wahren Verteilung) beobachtete Effekt (z.B. die Korrelation zwischen Körpergröße und Körpergewicht) rein zufällig ist. Dieser Nullhypothese wird stets eine sog. **Alternativhypothese ($H_1$)** gegenübergestellt. Diese  behauptet, dass der in den Daten beobachtbare Effekt auch in Wahrheit existiert. Würden wir das Zufallsexperiment also nur oft genug wiederholen, wäre der Effekt so gut wie immer in den Stichprobendaten zu erkennen.
+
+Praktisch wird diese Grundidee umgesetzt, indem eine eine sog. **Teststatistik** berechnet, die den beobachteten Effekt beschreibt. Mit Hilfe der Teststatistik kann dann die Wahrscheinlichkeit bestimmt werden, dass die Daten aus einer Welt kommen, in der die Nullhypothese gilt. Diese Wahrscheinlichkeit wird als **p-Wert** bezeichnet. Ein *kleiner p-Wert* zeigt also an, dass die *konkrete Realisierung des Zufallsexperiments eher unwahrscheinlich* ist. Anders formuliert weichen die Parameterwerte (bspw. Lage oder Streuung) in den beobachteten Daten von den Parameterwerten ab, die wir bei häufiger Wiederholung des Zufallsexperiments erhalten würden (**Stichprobenverteilung**, engl. Sampling Distribution) erwarten würden - und zwar so stark, dass die Wahrscheinlichkeit gering ist aus derselben Welt zu stammen.
+
+Die Wahrscheinlichkeit, ab der wir die Gültigkeit der Nullhypothese so stark bezweifeln, dass wir sie für unwahr halten, wird als **Signifikanzniveau** bezeichnet. Das Signifikanzniveau wird meist mit $\alpha$ bezeichnet und **vor** *Beginn des Tests* klar *definiert*. Wenn der mit der Teststatistik berechnete p-Wert dann unterhalb von  $\alpha$ liegt, verwerfen wir die Nullhypothese. 
+
+# Das infer-Paket
+
+Das infer-Paket stellt eine Reihe von Funktionen zur Verfügung, um die beschriebene Grundidee statistischer Tests im Rahmen der tidyverse-Syntax umsetzen zu können:
+
+* `specify()` ermöglicht die Festlegung der Variablen oder der Beziehung zwischen Variablen, an der wir interessiert sind.
+* `hypothesize()` dient der Spezifikation der Nullhypothese.
+* `generate()` erlaubt es, Daten zu erzeugen, die aus einer Verteilung gezogen werden, für die die Nullhypothese gilt.
+* `compute()` ermöglicht die Berechnung einer **Stichprobenverteilung** (Sampling Distribution), also der Verteilung, die in der Welt resultieren würde, in der die Nullhypothese gilt.
+
+
+# Beispiel: Wochenarbeitszeit (GSS-Daten)
+
+Die General Social Survey ist eine regelmäßig durchgeführte Umfrage des Meinungsforschungsinstituts der University of Chicago. Erhoben wird eine Vielzahl für die Sozialforschung interessanter Daten. Dazu gehört unter anderem auch die Erfassung der wöchentlichen Arbeitszeit.
+
+
+
+```{r , echo=TRUE,message=FALSE}
+# Beispiel GSS Wochenarbeitszeit -----
+## Mittelwert in den Daten ----
+m_hours <- gss %>% 
+              summarise(m_hours=mean(hours))
+## Annahme zum Erwartungswert ----
+E_hours<-40 #Annahme über den Erwartungswert der wöchentl. Arbeitszeit
+```
+
+
+Die durchschnittliche Arbeitszeit beträgt `r m_hours` Stunden. Wir wollen prüfen, ob die Abweichung von `r E_hours` Stunden nur Zufall ist.
+
+
+## Nullhypothese
+
+Dazu **nehmen wir an**, dass die durchschnittliche Wochenarbeitszeit **in Wahrheit** bei `r E_hours` Stunden liegt. Wir beginnen den Arbeitsablauf mit dem Objekt **gss** (unseren **empirischen Daten**) und spezifizieren dann die betrachtete Variable, indem wir für die Option response (Antwort) in der `specify()`-Funktion die Wochenarbeitszeit (hours) angeben.
+
+Als nächsten Schritt geben wir diese Informationen via magrittr-Pipe an die `hypothesize()`-Funktion weiter. Hier definieren wir die Nullhypothese: Weil wir prüfen wollen, ob die durchschnittliche Arbeitszeit exakt bei `r E_hours` Stunden liegt , wählen wir die Option *null= "point"* (Punktschätzung) und unterstellten wahren Mittelwert *mu=`r E_hours`* (mu wie $\mu$ für den Erwartungswert).
+
+```{r}
+## Modell spezifizieren und Annahmen treffen -----
+gss %>%
+  specify(response = hours) %>% # betrachtete Variable(n) festlegen
+  hypothesize(null = "point", mu = E_hours) #Annahme treffen
+```
+
+Die Befehlskette führt zur Ausgabe eines `tibble`-Objekts mit 500 Zeilen und 1 Spalte bzw. eines Vektors mit Angaben zur wöchentlichen Arbeitszeit. Diese stimmen mit den Daten aus dem GSS *exakt* überein, wie folgende Abfrage zeigt:
+
+```{r}
+#Ausgabe des vorigen Codes stimmt überein mit:
+gss %>% 
+    select(hours)
+```
+
+Sichtbar zwar nur für die ersten 10 Zeilen, mit einer logischen Abfrage wäre aber leicht zu überprüfen, dass dies auch für die weiteren Zeilen der Fall ist.
+
+Mit anderen Worten wurde bisher nur die Hypothese formuliert, nicht jedoch die weiteren Schritte des Tests (Teststatistik und p-Wert berechnen) durchgeführt.
+
+
+
+## Zufallsdaten erzeugen
+
+Nun erzeugen wir die Zufallsdaten. Dazu bietet das **infer**-Paket innerhalb der `generate()`-Funktion drei grundlegend verschiedene Methoden als Option:
+
+* Mit der Option **bootstrap** erfolgt die *Ziehung* der Daten *aus den vorhandenen empirischen Daten mit Zurücklegen*. Gezogen wird solange, bis der Stichprobenumfang der Größe des vorhandenen Datensatzes entspricht.^[Im GSS Datensatz sind 500 Beobachtungen zur wöchentlichen Arbeitszeit enthalten, entsprechend erfolgen via bootstrap ebenfalls 500 Ziehungen (pro Replikation, s.u.).]
+
+* Mit der Option **permute** erfolgt die Ziehung der Daten ebenfalls *aus den vorhandenen empirischen Daten*, allerdings im Unterschied zu bootstrap *ohne Zurücklegen*. 
+
+* Mit der Option **draw** erfolgt die Ziehung aus der in der `hypothesize()`-Funktion unterstellten "wahren" **theoretischen Verteilung** (bspw. einer Normalverteilung). 
+
+Neben der Methode für die Stichprobenziehung ist in der `generate()`-Funktion auch die **Anzahl der wiederholten Stichprobenziehungen** (resamplings) festzulegen. Die oben erwähnten 500 Ziehungen bilden dabei eine Stichprobe. Mithin bedeutet die unten spezifizierte Option reps=1000, dass *aus den vorhandenen Daten* (!) insgesamt 1000 Stichproben im Umfang von jeweils 500 Zufallsvariablen gezogen werden.
+
+
+```{r}
+## Zufallsstichproben erzeugen -----
+set.seed(23) # für reproduzierbare Ergebnisse
+gss %>%
+  specify(response = hours) %>%
+  hypothesize(null = "point", mu = E_hours) %>%
+  generate(reps = 1000, type = "bootstrap")  # Zufallsstichproben mit bootstrap
+
+
+```
+
+Das so erzeugte `tibble`-Objekt hat also 500.000 Zeilen. Bereits die ersten 10 Zeilen zeigen, dass die Werte sich nun von der Original-Stichprobe mehr oder weniger deutlich unterscheiden.
+
+
+## Berechnung der Parameter 
+
+In den empirischen Daten beträgt die durchschnittliche Arbeitszeit wie oben ermittelt `r m_hours` Stunden. Nun berechnen wir die durchschnittliche Arbeitszeit in jeder der 1.000 Stichproben aus dem gerade durchgeführten bootstrap-Prozess.
+
+
+```{r}
+## Stichprobenverteilung -----
+### Ermittlung mit calculate -----
+set.seed(23) # für reproduzierbare Ergebnisse
+gss %>%
+  specify(response = hours) %>%
+  hypothesize(null = "point", mu = E_hours) %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "mean") # je einen Durschnittswert für die 1000 Stichproben ermitteln
+```
+
+Wir erhalten entsprechend einen Vektor der Länge 1.000, also 1.000 Mittelwerte der wöchentlichen Arbeitszeit, jeweils ermittelt als Durchschnitt der 500 Beobachtungen jedes Samples. Diese **Stichprobenverteilung (Sampling Distribution)** können wir grafisch darstellen und mit dem empirischen Wert von `r m_hours` vergleichen. Mit der visualize()-Funktion ist die grafische Darstellung besonders schnell umsetzbar. 
+
+```{r}
+### Speichern der Stichprobenverteilung ----
+set.seed(23) # für reproduzierbare Ergebnisse
+null_dist <- gss %>%  # speichern im Objekt null_dist
+  specify(response = hours) %>%
+  hypothesize(null = "point", mu = E_hours) %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+### Dataviz ----
+#### einfacher Plot ----
+null_dist %>%
+  visualize()
+```
+
+
+Weil `visualize()` im Hintergrund auf das **ggplot2**-Paket zurückgreift, können beliebig Layer hinzugefügt werden. Mit der Funktion `shade_p_value()` können wir den empirischen Mittelwert (`r m_hours`) als vertikale Linie hinzufügen, indem wir die Option *obs_stat*  entsprechend spezifizieren. Neben dieser Option bietet die `shade_p_value()`-Funktion noch die Möglichkeit, bestimmte Flächenanteile der Stichprobenverteilung zu schattieren. 
+
+Insgesamt entspricht die **schattierte Fläche** gerade dem von uns definierten **Signifikanzniveau** $\alpha$ (hier also 5% der Gesamtfläche). Hätten wir die Nullhypothese als maximale oder minimale wöchentliche Arbeitszeit (höchstens oder mindestens `r E_hours` Stunden) definiert, so würde es sich um einen sog. *einseitigen* Test handeln. Die entsprechende Fläche könnte dann mit *direction="one-sided"* schattiert werden. Weil wir jedoch die Nullhypothese *symmetrisch* definiert haben, d.h. Abweichungen vom Mittelwert der wöchentlichen Arbeitszeit (`r E_hours` Stunden) sowohl nach oben als auch nach unten in Betracht kommen, handelt es sich um einen *zweiseitigen Test*. Entsprechend wählen wir bei der Option *direction="two-sided"*. 
+
+
+```{r,message=FALSE}
+#### Schattierung Signifikanzniveau -----
+#library(plotly)
+null_dist %>%
+       visualize() +
+  #hinzufügen des Layers (ggplot-Syntax '+') mit Balken für den empirischen Mittelwert und Konfidenzintervall 
+       shade_p_value(obs_stat = m_hours, direction = "two-sided") 
+```
+
+
+Augenscheinlich lässt sich nur sagen, dass der rote Balken knapp am Rand zur schattierten Fläche liegt, die bei uns 2,5% der Gesamtfläche ausmacht (die Hälfte der dem Signifikanzniveau entsprechenden Fläche $\alpha$). Die Grafik zeigt damit, dass es somit in einer Welt mit einem wahren Durchschnitt von `r E_hours` Wochenstunden **eher unwahrscheinlich** ist, eine Stichprobe zu ziehen, in der die durchschnittliche Wochenarbeitszeit bei mehr als `r m_hours` Stunden liegt bzw. um mehr als `r m_hours-E_hours` Stunden vom Mittelwert gemäß Nullhypothese (hier `r E_hours`) abweicht. Die Darstellung in absoluten Abweichungen vom Mittel.
+
+
+Eine genauere Aussage ist auf Basis der Grafik nicht möglich. Jedoch besteht die Möglichkeit, die schattierte Fläche auch als Wert auszugeben, um diesen dann mit $\alpha$ zu vergleichen. Dieser Wert wird als p-Wert bezeichnet und ist offensichtlich namensgebend für die `shade_p_value()`-Funktion.
+
+## Berechnung und Interpretation des p-Werts
+
+Im infer-Paket kann dieser p-Wert mit der `get_p_value()`-Funktion berechnet werden. Wir wählen in diesem Fall dieselbe Spezifikation, wie im Fall der `shade_p_value()`-Funktion.
+
+```{r}
+## p-Wert ermitteln -----
+p_value <- null_dist %>%
+                get_p_value(obs_stat = m_hours, direction = "two-sided")
+
+p_value
+p_value_percent <- glue(100*as.numeric(p_value),"%")
+```
+
+
+Der ermittelte p-Wert von `r p_value` besagt nun, dass in einer Welt, in der die durchschnittlichte Wochenarbeitszeit `r E_hours` Stunden beträgt, nur mit einer Wahrscheinlichkeit von `r p_value_percent` eine Abweichung von mehr als `r E_hours-m_hours` Stunden zu beobachten wäre. Ob wir dies als "zu unwahrscheinlich" oder für "noch wahrscheinlich genug" halten, ist nun davon abhängig, welches Signifikanzniveau $\alpha$ wir **vor dem Test festgelegt** haben.
+
+Hätten wir $\alpha=0.05$ bzw. 5% gewählt, so würden wir schlussfolgern, dass die durchschnittliche Wochenarbeitszeit von `r m_hours` zu unwahrscheinlich ist bzw. die Abweichung von `r m_hours-E_hours` Stunden **signifikant** vom wahren Mittelwert (`r E_hours`) abweicht. Mithin würden wir das Vertrauen in unsere Annahme verlieren, dass die von uns genutzte Stichprobe mit Mittelwert `r m_hours` Stunden tatsächlich aus der Welt mit einem wahren Durchschnitt von `r E_hours` Stunden stammt. Mithin *würden wir die Nullhypothese verwerfen*. **Allgemein gilt:** Verwerfe $H_0$, wenn $p<\alpha$. 
+
+Hätten wir das Signifikanzniveau hingegen (vor Durchführung des Tests!) auf $\alpha=0.01$ festgelegt, so würde sich zwar am p-Wert (`r p_value_percent` Wahrscheinlichkeit) nichts ändern, jedoch würden wir es nicht für unwahrscheinlich genug halten, dass die Stichprobe mit Mittelwert `r m_hours` Stunden aus einer Welt mit einem wahren Mittelwert von `r E_hours` Stunden stammt. Entsprechend würden wir *noch bei unserer Nullhypothese bleiben*. 
+
+
+## Fehler 1. Art vs. Fehler 2. Art
+
+
+Die Wahl des Signifikanzniveaus $\alpha$ gibt also letztlich unsere Bereitschaft an, eine wahre Nullhypothese irrtümlich zu verwerfen. Je kleiner das Signifikanzniveau, umso länger bleiben wir bei der Nullhypothese, gehen aber umgekehrt das Risiko ein, dann eine falsche Nullhypothese erst vergleichsweise spät zu verwerfen . 
+
+```{r, echo=FALSE,fig.align='center',out.width="100%",fig.cap=paste("Fehler 1. Art vs. Fehler 2. Art. Quelle: [albany.edu (2021)](https://shiny.rit.albany.edu/stat/betaprob/)")}
+knitr::include_url('https://shiny.rit.albany.edu/stat/betaprob/',height="450px")
+```
+<!--Alternativ gab es eine coole App von Tupper https://bookdown.org/llt1/202s21_notes/images/alphabeta.png -->
+
+Der Fehler, eine wahre Nullhypothse zu verwerfen, wird auch als **Fehler 1. Art** (oder naheliegend als $\alpha$-Fehler) bezeichnet (vgl. Abbildung). Ist die Nullhypothese hingegen falsch und wird irrtümlich beibehalten, so handelt es sich um einen **Fehler 2. Art** (oder $\beta$-Fehler). 
+
+<br>
+
+<div align="center">
+
+<table border="2" cellspacing="20" cellpadding="20">
+        <!-- <caption>Klassifikation wirtschaftlicher Güter</caption> -->
+        <thead>
+            <tr>
+                <th colspan="2" rowspan="2">  </th>
+                <th colspan="2">Wahrheit/Realität</th>
+            </tr>
+            <tr>
+                <th>$H_0$ korrekt</th>
+                <th>$H_0$ falsch</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th rowspan="2">Entscheidung</th>
+                <th>$H_0$ beibehalten</th>
+                <td>richtige Entscheidung</td>
+                <td>Fehler 2. Art ($\beta$-Fehler)</td>
+            </tr>
+            <tr>
+                <th>$H_0$ verwerfen</th>
+                <td>Fehler 1. Art ($\alpha$-Fehler)</td>
+                <td>richtig Entscheidung</td>
+            </tr>
+      </tbody>
+    </table>
+
+</div>
+
+
+<!-- <div align="center"> -->
+
+<!-- | |$H_0$ ist wahr | $H_0$ ist falsch |  -->
+<!-- |:--- |:---- |:----:|  -->
+<!-- | $H_0$ beibehalten| korrekte Entscheidung   | Fehler 2. Art ($\beta$-Fehler)     | -->
+<!-- | $H_0$ verwerfen  | Fehler 1. Art ($\alpha$-Fehler)| korrekte Entscheidung | -->
+
+<!-- </div> -->
+
+<br>
+
+In der Abbildung ist noch ein weiteres Konzept zu erkennen, das direkt mit dem $\beta$-Fehler verbunden ist. Das Risiko eines $\beta$-Fehlers nimmt mit zunehmendem Stichprobenumfang und abnehmender Streuung (Varianz) ab. Der $\beta$-Fehler hängt dabei direkt mit der sog. **Teststärke ($1-\beta$)** zusammen (vgl. Abbildung). Diese gibt die Wahrscheinlichkeit an, mit der ein statistischer Test zur Annahme einer wahren Alternativhypothese $H_1$ führt.
+
+
+
+## Konfidenzintervall
+
+
+```{r}
+## Konfidenzintervall -----
+### Bootstrapping-Verteilung erzeugen -----
+# Im Unterschied zur Null-Verteilung wird hier auf die Annahme (Nullhypothese) verzichtet!
+boot_dist <- gss %>%
+                specify(response = hours) %>% #Obs! hypothesize() fehlt
+                generate(reps = 1000, type = "bootstrap") %>%
+                calculate(stat = "mean")
+### Konfidenzintervall berechnen -----
+
+ci <- boot_dist %>% # Ausgangspunkt bootstrap-Verteilung
+        
+          get_confidence_interval(point_estimate = m_hours,# Berechnung des KI um den Mittelwert der GSS-Daten (Stichprobenmittelwert)
+                          level = .95,# Festlegung: 95% Konfidenzniveau
+                          type = "se") # Methode: Standardfehler (standard error)
+ci
+```
+
+
+Grafisch
+
+```{r}
+### Dataviz-----
+boot_dist %>%
+  visualize() +
+  shade_confidence_interval(endpoints = ci)
+```
+
+# Traditionelle Tests 
+
+Die obigen Ausführungen zum **Arbeitsablauf des infer-Pakets** (`specify()` - `hypothesize()` - `generate()` - `calculate()` - `visualize()`) beschreiben ein einheitliches Verfahren zur Überprüfung von Hypothesen mittels Inferenz. Der Arbeitsablauf **verdeutlicht die gemeinsame Grundidee aller statistischen Testverfahren**.
+
+Im Beispiel der wöchentlichen Arbeitszeit erfolgte die Stichprobenziehung mit der `generate()`-Funktion aus den **vorhandenen Daten (Resampling)**.
+Diese Methode wurde erst durch leistungsfähige Computer möglich.
+
+Traditionelle (sog. **parametrische**) Tests *unterstellen eine bestimmte Verteilung in der Grundgesamtheit* und berechnen die Teststatistik unter der entsprechend getroffenen **Verteilungsannahme**. Statt aus den vorhandenen Daten wird also *aus einer theoretischen Verteilung* gezogen.
+
+Je nach Skalenniveau und Problemstellung (Mittelwert, Anteile etc.) sind dabei verschiedene Verteilungsannahmen angemessen, was zu einer Vielzahl von Tests führt. Eine Übersicht, welcher Test in welcher Situation geeignet ist, bietet bspw. [Soetewey (2021)](https://statsandr.com/blog/files/overview-statistical-tests-statsandr.pdf).
+
+Letztlich folgen aber alle Tests ein und derselben Grundidee, die zu einer stets identischen Abfolge von Arbeitsschritten führt:
+
+1. Formulierung einer Nullhypothese $(H_0)$ und einer Alternativhypothese $(H_1)$.
+2. Berechnung einer Teststatistik und ihrer Verteilung
+3. Aufstellen einer Entscheidungsregel
+4. Entscheidung auf Basis der berechneten Teststatistik
+
+
+
+Ähnlich [Soetewey (2021)](https://statsandr.com/blog/files/overview-statistical-tests-statsandr.pdf) bieten auch @ismay_statistical_2023 eine Übersicht über die unterschiedlichen Problemstellungen und -konfigurationen. Sie verlinken auf charakteristische Beispiele, für die jeweils die Resampling-Methode und die (angemessene) traditionelle Methode gegenübergestellt werden.
+
+
+```{r,echo=FALSE,out.width="100%",fig.cap=paste("Tests in Abhängigkeit von Anzahl und Skalenniveau der Variablen. Quelle: [@ismay_statistical_2023](https://moderndive.com/B-appendixB.html)")}
+knitr::include_url("https://coggle.it/diagram/Vxlydu1akQFeqo6-/t/inference",height = "500px")
+```
+
+
+## Beispiel t-Test
+
+Im obigen Beispiel zur Wochenarbeitszeit im GSS haben wir die in der Stichprobe ermittelte durchschnittliche Arbeitszeit mit einer Annahme (40 Stunden) verglichen. Auf Basis der Bootstrapping-Methode (ziehen von Stichproben **aus den Daten**), sind wir zu dem Ergebnis gekommen, dass auf dem 5%-Signifikanzniveau die Wochenarbeitszeit nicht bei 40 Stunden liegt.
+
+Statt der Bootstrapping-Methode, könnten wir unsere Hypothesen ($H_0$: $AZ=40$; $H_1$: $AZ\neq 40$) auch mit einem traditionellen **parametrischen** Test untersuchen. Für Mittelwertvergleiche wird der sog. t-Test herangezogen. während beim Einstichproben-t-Test ein Mittelwert mit einem angenommenen Wert verglichen werden kann (wie in unserem GSS-Beispiel), ermöglicht ein Zweistichproben-t-Test den Vergleich zweier Mittelwerte aus unterschiedlichen Gruppen/Stichproben (z.B. Wochenarbeitszeit nach Geschlecht).
+
+Mit dem t-Test wird letztlich geprüft, ob die **Abweichung** des beobachteten Mittelwerts (hier: `r m_hours`) vom angenommenen Mittelwert (hier: `r E_hours`) mehr oder weniger wahrscheinlich ist. Dazu wird die Abweichung mit der wahren Standardabweichung ($\sigma$)  **normiert**. Diese normierte Abweichung wird dann mit der Abweichung verglichen, die bei einer **Normalverteilung** der wöchentlichen Arbeitsstunden zu erwarten wäre. 
+
+Obs! Die Annahme der Normalverteilung ist der Grund, warum wir von einem **parametrischen** Test sprechen.
+
+Wäre die wahre Standardabweichung bekannt, so wäre die normierte Abweichung des Mittelwerts unter der Annahme der Normalverteilung von X ebenfalls normalverteilt:
+$$Z=\frac{\bar{X}-\mu_0}{\sigma}\sim N$$  
+Weil jedoch in der Regel die wahre Standardabweichung unbekannt ist, liegt es nahe, diese mit der empirischen Standardabweichung $s$ zu *schätzen*. Die entsprechende standardisierte Schätzfunktion des Stichproben-Mittelwerts normalverteilter Daten ist dann jedoch nicht mehr normalverteilt, sondern t-verteilt:
+
+
+$$T=\frac{\bar{X}-\mu_0}{s}$$
+### R als Taschenrechner
+
+Ermittlung der T-Statistik:
+
+```{r}
+# Traditionelle Tests-----
+## t-Test -----
+### Teststatistik ermitteln ----
+#### R als Taschenrechner -----
+gss %>% 
+  summarise(t=(mean(hours)-40)/(sd(hours)/sqrt(n())))
+```
+### Nutzung der t_test()-Funktion
+
+```{r}
+#### t_test()-Funktion
+gss %>% 
+    t_test(response=hours, mu=40) %>% 
+    kable() %>% 
+    kable_styling()
+```
+
+
+### Teststatistik mit infer-Workflow ermitteln
+
+
+```{r}
+#| warning: false
+#| message: false
+#### infer-Workflow----
+Teststatistik <- gss %>% 
+                    specify(response = hours) %>%
+                    hypothesize(null = "point", mu = 40) %>%
+                    calculate(stat = "t") 
+  
+Teststatistik
+dplyr::pull(Teststatistik)
+pt(dplyr::pull(Teststatistik), df = nrow(gss) - 1, lower.tail = FALSE)*2
+
+```
+
+
+
+```{r}
+#| warning: false
+#| message: false
+### Dataviz ----
+set.seed(22)
+gss %>%
+  specify(response = hours) %>%
+  hypothesize(null = "point", mu = 40) %>%
+  generate(reps = 1000) %>%
+  calculate(stat = "t")%>% 
+  visualize(method = "both") + 
+  shade_p_value(obs_stat = Teststatistik, direction = "two-sided")
+```
+
+<!-- TODO -->
+
+<!-- ```{r} -->
+<!-- gss %>% -->
+<!--   specify(response = sex, success = "female") %>% -->
+<!--   hypothesize(null = "point", p = .5) %>% -->
+<!--   generate(reps = 1000, type = "draw") %>% -->
+<!--   calculate(stat = "z") -->
+<!-- ``` -->
+
+<!-- assume vgl. [tidyverse.org](https://www.tidyverse.org/blog/2021/08/infer-1-0-0/#alignment-of-theory-based-methods) -->
+
+<!-- ```{r} -->
+<!-- gss %>% -->
+<!--   specify(response = hours) %>% -->
+<!--   hypothesize(null = "point", mu = 40) %>% -->
+<!--   assume(distribution = "t") -->
+<!-- ``` -->
+
+
+
+

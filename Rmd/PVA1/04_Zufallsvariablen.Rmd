@@ -1,0 +1,1430 @@
+---
+title: "Wahrscheinlichkeitstheorie & Zufallsvariablen"
+author: "Prof. Dr. Jörg Schoder"
+date: "`r Sys.Date()`"
+bibliography: ../../lit/Statistics.json
+reference-section-title: Quellenverzeichnis
+output:
+    html_document:
+      css: ../../css/styles.css
+      code_folding: hide
+      number_section: true
+      toc: true
+      toc_float: true
+      toc_depth: 3
+---
+
+```{r}
+#| label: setup
+#| include: false
+# Wahrscheinlichkeitstheorie und Zufallsvariablen ----
+## Setup ----
+source(xfun::from_root("R/00_setup.R"))
+library(fontawesome)
+```
+
+# Einordnung: Deskriptive vs. induktive Statistik
+
+Die Aussagen/Ergebnisse der **deskriptiven Statistik** gelten nur für die jeweils zugrundeliegende Menge an Beobachtungswerten/Daten. Mithin können **keine Aussagen darüber** gemacht werden, **ob die Ergebnisse auf andere statistische Massen übertragbar** sind. Bei Vorliegen einer Stichprobe ist damit die deskriptive Statistik allein nur wenig hilfreich für die Beantwortung von Fragen, welche sich auf eine übergeordnete Grundgesamtheit beziehen. 
+
+Die Verfahren der **induktiven/schließenden Statistik** adressieren genau dieses Problem der **Verallgemeinerung von Ergebnissen auf Basis von Stichprobendaten**. Statt Daten einer Stichprobe lediglich zu beschreiben, versucht die induktive Statistik von den für eine Stichprobe gemessenen Ergebnissen auf die Grundgesamtheit zu schließen. Solche Schlüsse sind mit mehr oder weniger Unsicherheit verbunden, weshalb das Konzept der  **Wahrscheinlichkeit** eine elementare Grundlage für diese "schließenden Verfahren" ist.
+
+`r fa('circle-right')` Kurz: Die induktive Statistik erlaubt die Übertragung von Stichprobenergebnissen auf übergeordnete Grundgesamtheiten in Form von Wahrscheinlichkeitsaussagen.
+
+## Alltagsbeispiel: Wettervorhersage
+
+```{r}
+#| label: Wetter
+#| echo: false
+#| warning: false
+#| message: false
+#| fig-align: 'center'
+#| fig-cap: 'Wettervorhersagen'
+library(cowplot)
+## Beispiele Wetter -----
+ggdraw() + 
+  draw_image(xfun::from_root("img","PVA1","regenwahrscheinlichkeit.png"), width = 0.5) + 
+  draw_image(xfun::from_root("img","PVA1","weisse_weihnacht_(daserste(dot)de).png"), width = 0.5, x = 0.5)
+
+#knitr::include_graphics(xfun::from_root("img","regenwahrscheinlichkeit.png")#)
+#knitr::include_graphics(xfun::from_root("img","weisse_weihnacht_(daserste(do#t)de).png"))
+
+```
+
+
+## Bedeutung der Stichprobenwahl
+
+### Beispiel: Umfragen
+
+```{r}
+#| label: Bsp-Bias
+#| echo: false
+#| fig-align: 'center'
+#| fig-cap: 'Verzerrungen durch Stichprobenwahl'
+#| out-width: '70%'
+
+knitr::include_graphics(xfun::from_root("img","PVA1","Zeitumstellung_EU_(Spiegelonline_2018).png"))
+```
+
+
+### Beispiel Bundesliga
+
+#### Grundgesamtheit "Erstligaprofis"
+
+```{r}
+#| echo: true
+#| warning: false
+#| message: false
+## Beispiel Bundesliga ----
+### get data ----
+#library(worldfootballR)
+#df_player_mv <- tm_player_market_values(
+#                  country_name = c("Germany"),
+#                  start_year = 2022
+#                 )
+### save data ----
+#### create filename ----
+#date <- Sys.Date()  #oder fix: '2023-09-06' 
+#my_out_file<-glue('buli_raw_{date}.rds')
+
+#### save data ----
+#write_rds(df_player_mv,file = xfun::from_root("data","raw",my_out_file))
+
+### load data -----
+date <- '2023-09-06' #oder: Sys.Date()
+my_in_file<-glue('buli_raw_{date}.rds')
+df_player_mv <- read_rds(file = xfun::from_root("data","raw",my_in_file))
+
+### Data Wrangling ----
+tbl_buli <- df_player_mv %>% 
+                  mutate(age=lubridate::year(Sys.Date())-lubridate::year(player_dob)) %>% 
+                  rename(name=player_name,mv=player_market_value_euro) %>% 
+                  select(name,age,mv)
+options(scipen=999) # Darstellung Marktwerte nicht im wiss. Format
+
+### quick view ----
+head(tbl_buli)
+
+### Grundgesamtheit (Saison 2022-23) -----
+
+#### plot ----
+tbl_buli %>% 
+    ggplot(aes(x=age,y=mv)) +
+    geom_point() + 
+    geom_smooth(method = "lm", se = FALSE)
+#### Regressionskoeffizienten -----
+lm_full <- tbl_buli %>%  lm(mv ~ age, data=.)
+lm_full$coefficients
+```
+
+
+
+#### Stichprobe: Top 20 
+
+```{r}
+#| label: Buli-Top20
+#| echo: true
+#| warning: false
+#| message: false
+### Auswahl Top 20 ----
+#### plot ----
+tbl_buli %>% 
+      slice_max(order_by = mv,n=20) %>% 
+      ggplot(aes(x=age,y=mv)) +
+        geom_point() + 
+        geom_smooth(method = "lm", se = FALSE)
+#### Regressionskoeffizienten -----
+lm_top20 <- tbl_buli %>% 
+              slice_max(order_by = mv,n=20) %>%
+              lm(mv ~ age, data=.)
+lm_top20$coefficients
+
+```
+
+
+#### Zufalls-Stichprobe
+
+
+* Stichprobe 1
+
+```{r}
+#| label: Buli-random20-1
+#| echo: true
+#| warning: false
+#| message: false
+### Zufallsauswahl -----
+
+#### Ziehung Stichprobe 1 ------
+set.seed(23) # Reproduzierbarkeit: Initialisierung Pseudozufallszahlen
+buli_sample1 <- tbl_buli %>% 
+                    slice_sample(n=20) 
+#### Plot Stichprobe 1 ----
+buli_sample1 %>% 
+      ggplot(aes(x=age,y=mv)) +
+        geom_point() + 
+        geom_smooth(method = "lm", se = FALSE)
+
+#### Regressionskoeffizienten Stichprobe 1 ----
+lm_sample <- buli_sample1  %>%
+              lm(mv ~ age, data=.)
+lm_sample$coefficients
+
+```
+
+* Stichprobe 2
+
+```{r}
+#| label: Buli-random20-2
+#| echo: true
+#| warning: false
+#| message: false
+#### Ziehung Stichprobe 2 ------
+set.seed(7) # Reproduzierbarkeit: Initialisierung Pseudozufallszahlen
+buli_sample2 <- tbl_buli %>% 
+                    slice_sample(n=20) 
+#### Plot Stichprobe 1 ----
+buli_sample2 %>% 
+      ggplot(aes(x=age,y=mv)) +
+        geom_point() + 
+        geom_smooth(method = "lm", se = FALSE)
+
+#### Regressionskoeffizienten Stichprobe 2 ----
+lm_sample <- buli_sample2  %>%
+              lm(mv ~ age, data=.)
+lm_sample$coefficients
+
+```
+
+
+# Grundlagen der Wahrscheinlichkeitstheorie
+
+## Zufallsexperiment
+
+:::d-box
+`r fa('tag')` Ein **Zufallsvorgang** ist ein Geschehen, bei dem sich aus einer Ausgangssituation mindestens zwei sich gegenseitig ausschließende
+Folgesituationen ergeben können. Es ist im Voraus nicht eindeutig zu bestimmen, welche konkrete Folgesituation eintreten wird (Unsicherheit).
+:::
+
+
+:::q-box
+`r fa('question-circle')` Nenne Beispiele für einen Zufallsvorgang.
+:::
+
+Beispiele:
+
+* Wurf einer Münze
+
+* Wurf eines Würfels
+
+
+:::d-box
+`r fa('tag')` Ein **Zufallsexperiment** ist dadurch gekennzeichnet, dass ein Zufallsvorgang:
+
+* nach einer exakt bestimmten Vorschrift durchgeführt wird und
+
+* unter identischen Bedingungen beliebig oft wiederholbar ist.
+
+:::
+
+
+## Ereignis, Elementarereignis und Ereignisraum
+
+:::d-box
+`r fa('tag')` Ein Ereignis ist ein mögliches Ergebnis eines Zufallsexperiments.
+:::
+
+:::q-box
+`r fa('question-circle')` Nenne zwei Ereignisse für den Zufallsvorgang "Würfeln".
+:::
+
+Beispiele für Ereignisse beim Würfeln:
+
+* "gerade Augenzahl"
+
+* "Augenzahl 3"
+
+:::d-box
+`r fa('tag')` Die einzelnen nicht mehr weiter zerlegbaren und sich gegenseitig ausschließenden Ereignisse eines Zufallsexperiments heißen **Elementarereignisse** und werden mit $\omega_1,\omega_2,\dots,\omega_n$ bezeichnet.
+:::
+
+:::q-box
+`r fa('question-circle')` Nenne die Elementarereignisse für den Zufallsvorgang "Würfeln".
+:::
+
+Elementarereignisse beim Würfeln:
+$\omega_1=1, \omega_2=2,\omega_3=3,\dots,\omega_6=6$.
+
+:::d-box
+`r fa('tag')` Die Menge $\Omega$ aller (höchstens abzählbar unendlich vielen) Elementareignisse eines Zufallsexperiments heißt **Ereignisraum** $\Omega$:
+$$\Omega=\{\omega_1,\omega_2,\dots,\omega_n\}$$
+:::
+
+
+:::d-box
+`r fa('tag')` Die Anzahl der Elementarereignisse eines Ereignisraums wird als **Mächtigkeit** $\sharp$ bezeichnet.
+:::
+
+:::q-box
+`r fa('question-circle')` Welche Mächtigkeit hat der Ereignisraum des Zufallsvorgangs "Würfeln" mit einem Würfel?
+:::
+
+$\Omega=\{\omega_1=1, \omega_2=2,\omega_3=3,\dots,\omega_6=6\}$ `r fa('circle-right')`  $\sharp(\Omega)=2$
+
+Beispiele für Ereignisräume beim Münzwurf:
+
+* endlicher Ereignisraum: Zufallsexperiment "Werfe eine Münze" mit $\Omega=\{K,Z\}$ und $\sharp(\Omega)=2$
+* abzählbar unendlicher Ereignisraum: Zufallsexperiment "Werfe eine Münze solange, bis Kopf erscheint" mit $\Omega=\{K,ZK,ZZK,ZZZK,\dots\}$  und $\sharp(\Omega)=\infty$
+
+
+## Zufallsexperimente in R
+
+In `r fa('r-project')` können Zufallsexperimente mit der `sample()`-Funktion durchgeführt werden. Als Argumente müssen in der `sample()`-Funktion die Elementarereignisse und die Anzahl der Wiederholungen des Zufallsexperiments (Option: *size=*) eingetragen werde. 
+
+**Standardmäßig** wird von einem Experiment **ohne Zurücklegen** ausgegangen.
+
+### Beispiel Münzwurf
+
+```{r, echo=TRUE}
+## Zufallsexperimente in R -----
+### Beispiel Münzwurf -----
+
+#### Elementarereignisse definieren ----
+muenze <- c("Kopf","Zahl")
+
+#### Zufallsexperiment: einmaliger Münzwurf ----
+sample(muenze,size=1)
+#### Zufallsexperiment: zweimaliger Münzwurf ----
+# Obs! Da standardmäßig die Option replace=FALSE gewählt wird, ist das Ergebnis
+# des zweiten Münzwurfs immer vollständig durch das Ergebnis des ersten Münzwurfs determiniert.
+sample(muenze,size=2)
+
+#### Zufallsexperiment: dreimaliger Münzwurf -----
+#sample(muenze,size=3) erzeugt eine Fehlermeldung, weil standardmäßig ohne Zurücklegen 
+#daher Änderung der Option replace notwendig
+sample(muenze,size=3,replace=TRUE)
+```
+
+Weil *Computer* nicht in der Lage sind echte Zufallszahlen zu berechnen, werden mit der sample()-Funktion sogenannte *Pseudozufallszahlen* erzeugt. Dabei wird der Generator für Pseudozufallszahlen mit einer ganzen Zahl initialisiert auf deren Basis dann eine scheinbar zufällige (tatsächlich aber deterministische) Abfolge von Pseudozufallszahlen. 
+
+Damit Zufallsexperimente repliziert werden können, sollte die Zahl, mit der die Erzeugung der Pseudozufallszahlen initialisiert wird, kontrolliert werden. Dies ist in R mit der `set.seed()`-Funktion möglich. Hier kann ein beliebiger Wert eingetragen werden, der dann auch im Fall der Replikation zu übernehmen ist. So kann die **Reproduzierbarkeit von Ergebnissen sichergestellt** werden.
+
+
+### Beispiel Würfel
+
+```{r, echo=TRUE}
+### Beispiel Würfel -----
+
+#### Elementarereignisse definieren ----
+wuerfel <- c(1:6)
+
+#### Zufallsexperiment -----
+set.seed(23) #why 23? see https://www.youtube.com/watch?v=N_8nlOvfCJU
+
+##### ohne Zurücklegen -----
+sample(wuerfel,size=6) 
+##### mit Zurücklegen ----
+sample(wuerfel,size=6,replace=TRUE) 
+
+```
+
+
+## Wahrscheinlichkeitsbegriff
+
+Heute liegt der Wahrscheinlichkeitsrechnung fast ausnahmslos eine axiomatische Definition der Wahrscheinlichkeit zugrunde, die auf A.N. @kolmogorov_foundations_1933 zurückgeht. Ausgangspunkt für die axiomatische Definition ist der Ereignisraum $\Omega$. <!--Für die Untersuchung von Zufallsexperimenten müssen jedoch nicht immer sämtliche Elementarereignisse betrachtet werden. -->
+
+### Axiomatische Wahrscheinlichkeitsdefinition
+
+
+:::d-box
+`r fa('tag')` Eine Funktion $P$, die einem Ereignis $A$ eine Wahrscheinlichkeit $P(A)$ zuordnet, heißt **Wahrscheinlichkeitsfunktion**, wenn sie die drei Axiome nach Kolmogorov erfüllt:
+<!--	%Obs! Axiome sind Grundannahmen, die nicht bewiesen werden müssen.-->
+
+* **P1:** Für die Wahrscheinlichkeit jedes zufälligen Ereignisses $A\subset\Omega$ muss gelten:
+
+$$0\leq P(A)\leq 1$$
+
+* **P2:** Die Wahrscheinlichkeit für das sichere Eintreten eines Ereignisses $A=\Omega$ ist Eins: 
+
+$$P(\Omega)=1$$
+
+* **P3:** Für disjunkte Ereignisse A und B gilt die Additionsregel: 
+
+$$P(A\cup B)=P(A)+P(B),~\mbox{für} A\cap B=\emptyset$$
+:::
+
+
+Die **Axiome P1-P3** legen formale Eigenschaften von Wahrscheinlichkeiten fest und **erlauben** so das **ableiten von Rechenregeln**, wie bspw.
+
+* Wahrscheinlichkeit **komplementärer** Ereignisse
+
+$$P(\bar{A})=1-P(A)$$
+
+* Wahrscheinlichkeit des **unmöglichen** Ereignisses: 
+
+$$P(\emptyset)=0$$
+
+Wahrscheinlichkeit einer **Differenz**
+
+$$A\backslash B: P(A\backslash B)=P(A)-P(A\cap B)$$
+	
+* **Additionssatz** für *beliebige* Ereignisse: 
+		
+$$P(A\cup B)=P(A)+P(B)-P(A\cap B)$$
+
+* **Monotonieeigenschaft** des Wahrscheinlichkeitsmaßes:
+
+$$A\subset B \implies P(A)\leq P(B)$$
+
+### Messung von Wahrscheinlichkeit
+
+Die Axiome P1-P3 erlauben zwar die Ableitung der o.a. Rechnregeln, sie leisten allerdings keinen Beitrag zur **Ermittlung des konkreten Werts von P(A)**. Wie können diese Werte für Wahrscheinlichkeit bestimmt werden?
+
+Grundsätzlich soll die Wahrscheinlichkeit ein Maß für die "'Chance' des Eintretens eines Ereignisses sein" (@schwarze_grundlagen_2013-1[S. 12]).
+Diese Chance kann nun unterschiedlich quantifiziert werden. 
+
+
+Zu den beiden wichtigsten Definitionen von Wahrscheinlichkeit
+gehören...
+
+* ...die klassische Definition von **Laplace** und die ...
+* ...**statistische** Definition von Mises (engl. frequentist approach).
+
+In den vergangenen Jahren hat zudem die Definition nach **Bayes** an Bedeutung gewonnen. @auer_statistik_2015[S. 165ff] stellen noch
+eine Definition "subjektiver Wahrscheinlichkeiten" vor (z.B. Wettquoten).
+
+:::d-box
+`r fa('tag')` Die **Laplace-Wahrscheinlichkeit** wird vor dem Hintergrund eines Laplace-Experiments definiert, bei dem alle Elementarereignisse die gleiche Wahrscheinlichkeit (*Gleichwahrscheinlichkeit*) hat, einzutreten.
+$$P(A)=\frac{\mbox{Anzahl der für A günstigen Elementarereignisse}}{\mbox{Anzahl aller möglichen Elementarereignisse}}$$
+:::
+
+Neben der Gleichwahrscheinlichkeit setzt die Definition von Laplace dabei voraus, dass die Anzahl der Ereignisse endlich ist. In der Praxis ist die Definition von Laplace aufgrund der Forderung nach Gleichwahrscheinlichkeit primär im Kontext von Glücksspielen anwendbar.
+
+
+Die **Statistische Definition** basiert auf der u.a. auf *Mises* zurückgehenden **Grundidee, dass sich die relativen Häufigkeiten stabilisieren**, je häufiger ein Zufallsexperiment wiederholt wird. Die relativen Häufigkeiten streben gegen einen Grenzwert, der als Wahrscheinlichkeit für das Auftreten des betrachteten Ereignisses interpretiert wird.
+
+:::d-box
+`r fa('tag')` Gegeben sei ein beliebig oft identisch wiederholbares Zufallsexperiment und ein Ereignis $A$. Es sei $f_n(A)$ die relative Häufigkeit für das Auftreten von A nach n-maliger Wiederholdung des Zufallsexperiments. Dann gilt für die Wahrscheinlichkeit $P(A)$ von $A$:
+$$P(A)=\lim_{n\to\infty}f_n(A)$$
+:::
+
+Der Zusammenhang zwischen Wahrscheinlichkeiten und relativen Häufigkeiten wurde von J. Bernoulli durch das "Gesetz der großen Zahl" präzisiert" (@auer_statistik_2015[S. 165]).
+
+:::d-box
+`r fa('tag')` Das **Gesetz der großen Zahl** besagt nach Bernouilli^[Neben der Version von Bernouilli gibt noch weitere Formulierungen von Gesetzen der großen Zahl.], dass die Wahrscheinlichkeit $P(A)$ dafür, dass die relativen Häufigkeiten $f_n(A)$ eines identisch wiederholbaren Zufallsexperiments mindestens um einen positiven Betrag $\varepsilon$ abweicht, mit wachsendem n gegen Null konvergiert:
+$$\lim_{n\to\infty}P(|f_n(A)-P(A)|\geq\varepsilon)=0$$
+:::
+
+`r fa('circle-right')` Damit können in der Praxis die (unbekannten) **Wahrscheinlichkeiten durch relative Häufigkeiten angenähert/geschätzt** werden:
+
+$$\hat{P}(A)=f_n(A)$$.
+ 
+:::d-box
+`r fa('tag')` Der Wert, bei dem sich $f_n(A)$ stabilisiert, wird als *empirische/statistische Wahrscheinlichkeit(en)* bezeichnet.
+:::
+
+
+### Gesetz der Großen Zahl in `r fa('r-project')`
+
+Die `sample()`-Funktion nimmt **standardmäßig** die **Gleichwahrscheinlichkeit der Elementarereignisse** an. Mit der **Option** *prob* kann die Wahrscheinlichkeit aber angepasst werden, bspw. an die beobachteten relativen Häufigkeiten.
+
+:::e-box
+Bspw. kann das Experiment des Münzwurfs mit einer **gezinkten** (nicht fairen) Münze (80% Wahrscheinlichkeit für Zahl) wie folgt simuliert werden:
+
+```{r, echo=TRUE}
+## Gesetz der großen Zahl ----
+### Zufallsexperiment mit unfairer Münze ----
+set.seed(24)
+p_kopf <- .2
+
+### 5 Würfe -----
+n<-5
+sample(muenze,size=n,replace=TRUE,prob=c(p_kopf,(1-p_kopf))) 
+
+```
+:::
+
+Im vorliegenden Fall stimmt das Ergebnis des Zufallsexperiments nicht mit den vorgegebenen Wahrscheinlichkeiten (P(Kopf)=`r p_kopf`, P(Zahl)=1-P(Kopf)=`r 1-p_kopf`) überein. Bei `r n` Würfen, wäre nur `r (1-p_kopf)*n`-mal Zahl zu erwarten. 
+
+Wenn wir das Experiment öfter wiederholen, ist nach dem Gesetz der großen Zahl aber zu erwarten, dass sich die Verteilung den Wahrscheinlichkeiten annhähert. Dies können wir in R wie folgt darstellen:
+
+```{r, echo=TRUE,warning=TRUE,out.width="50%",fig.align='center'}
+### 700 Würfe ----
+set.seed(24)
+n_flips<-700
+flips<-sample(muenze,size=n_flips,replace=TRUE,prob=c(.2,.8)) 
+f_Kopf <- cumsum(flips == 'Kopf') / 1:n_flips
+
+### Diagramm ----
+f_Kopf %>% 
+      enframe(name = "n", value = "f") %>% 
+                        ggplot(aes(n,f)) +
+                        geom_hline(yintercept = p_kopf) +
+                        geom_line(linewidth=.7,color='red') +
+                        labs(x = "Zahl der Würfe",
+                             y = "relative Häufigkeit") +
+                        theme_light()
+```
+
+
+
+# Zufallsvariablen
+
+
+Während die Elementarereignisse beim Wurf eines Würfels aus diskreten Zahlen besteht, haben sie im Fall des Münzwurfs mit "Kopf" und "Zahl" nicht den Charakter von Zahlen. Wenn die **Elementarereignissen** eines Zufallsexperiments **reellwertig** sind (bspw. Augenzahl , Aktienrenditen) können diese "direkt" als Zufallsvariable interpretiert werden. 
+
+Nehmen die **Elementareignisse keine reellen Zahlenwerte** an, so müssen sie entsprechend *(re)codiert* werden. Im Fall des Münzwurfs könnten die Elementarereignisse bspw. wie folgt recodiert werden: "0" für "Kopf" und "1" für "Zahl".
+
+:::d-box
+`r fa('tag')` Eine Zufallsvariable (engl. random variable) ist eine messbare Funktion $X$, die jedem Elementarereignis $\omega\in\Omega$ eine reelle Zahl $X(\omega)$ zuordnet. Formal: 
+$$X : \omega \to X(\omega) \in \mathbb{R}.$$
+:::
+
+
+:::e-box
+Das Zufallsexperiment "Zweimaliger Münzwurf" hat die Elementarereignisse $\omega_1=KZ, \omega_2=ZZ, \omega_3=KK ~\mbox{und}~\omega_4=ZK$. Wenn die Reihenfolge keine Rolle spielt, sind $\omega_1$ und $\omega_4$ gleichwertig. In diesem Fall könnte die Zufallsvariable zum Experiment wie folgt definiert werden:
+
+* $X(\omega_1)=X(\omega_4)=x_1=1$
+* $X(\omega_2)=x_2=2$
+* $X(\omega_3)=x_3=3$
+
+:::
+
+## Diskrete Zufallsvariablen
+
+:::d-box
+`r fa('tag')` **Diskrete** Zufallsvariablen können nur **endlich viele (abzählbare) Werte** annehmen. Sie sind  häufig das Ergebnis eines Zählvorgangs (ganzzahlige Ereignisse).
+:::
+
+
+Die Wahrscheinlichkeit $P(X=x_i)$, dass eine Zufallsvariable $X$ mit endlich vielen möglichen Werten/Ausprägungen $(x_1,x_2,\dots ,x_n)$ eine spezielle Ausprägung $x_i$ annimmt, ergibt sich durch Addition der Wahrscheinlichkeiten der Elementarereignisse $\omega_i$, denen die Realisation $x_i$ zugeordnet ist: 
+
+$$P(X=X_i)=\sum_{X(\omega_i)}P(\omega_i).$$
+
+:::q-box
+`r fa('question-circle')` Wie hoch ist die Wahrscheinlichkeit, dass beim Experiment "Zweimaliger Münzwurf" (s.o.) zwei verschiedene Seiten geworfen werden?
+:::
+
+`r fa('circle-right')` $P(X=X(\omega_1)\lor X(\omega_4))=0,5$
+
+
+### Wahrscheinlichkeits- und Verteilungsfunktion
+
+:::d-box
+`r fa('tag')` Die **Wahrscheinlichkeitsfunktion** $f(x)$ jeder reellen Zahl $x$ die Wahrscheinlichkeit zu, mit der sie bei dieser Zufallsvariable auftritt:
+
+$$f(x)=\begin{cases}
+				P(X=x_i) & ~,\forall x=x_i\\
+				0 & ~,\mbox{sonst}\\
+\end{cases}$$
+
+:::
+
+Die **Eigenschaften der Wahrscheinlichkeitsfunktion** entsprechen den Eigenschaften der relativen Häufigkeiten im Fall der deskriptiven Statistik:
+
+* $0\leq f(x_i)\leq 1,~\forall i=1,2\dots$
+* $\sum_i f(x_i)=1,~\forall i=1,2\dots$
+
+```{r}
+#| echo: true
+#| fig-cap: 'Wahrscheinlichkeitsfunktion'
+#| fig-align: 'center'
+#| out-width: '50%'
+## Zufallsvariablen -----
+### diskrete Zufallsvariablen ----
+#### Beispiel Würfel -----
+p_wuerfel <- rep(1/6, 6) 
+
+df_wuerfel <- tibble(wuerfel,p_wuerfel) %>% 
+                      rename(E=wuerfel,P=p_wuerfel)
+#### Plot Wahrscheinlichkeitsfunktion ----
+df_wuerfel %>% 
+      ggplot(aes(x=as.factor(E),y=P)) +
+      geom_point(size=3,color='red') +
+      #ggplot(aes(x=as.factor(E))+geom_bar(aes(y=P),stat='identity') +
+      scale_y_continuous(limits = c(0, 1)) +
+      labs(x = "Ereignis (Augenzahl)",
+           y = "Wahrscheinlichkeit") +
+      theme_light()
+```
+
+
+
+Die **Verteilungsfunktion** $F(x)$ der Zufallsvariablen X mit der Wahrscheinlichkeitsfunktion $f(x)$ gibt die Wahrscheinlichkeit dafür an, dass eine Zufallsvariable *höchstens* den Wert x annimmt. Formal:
+		$$F(x)=P(X\leq x)=\sum_{x_i\leq x}f(x_i).$$
+```{r, echo=TRUE,fig.cap="Verteilungsfunktion",fig.align='center',out.width="50%"}
+#### Berechnung Verteilungsfunktion -----
+df_wuerfel <- df_wuerfel %>% 
+                  mutate(cum_P=cumsum(P))
+
+#### Plot Verteilungsfunktion -----
+df_wuerfel %>% 
+      ggplot(aes(as.factor(E),cum_P)) +
+      geom_point(size=3,color='red') +
+      labs(x = "Ereignis (Augenzahl)",y = "Wahrscheinlichkeit") +
+      theme_light()
+```
+
+
+### Verteilungsparameter
+
+**Erwartungswert**
+
+:::d-box
+`r fa('tag')` Der Erwartungswert E(X) einer diskreten Zufallsvariablen $X$ ist wie folgt definiert:
+$$E(X)=\sum_{i}x_if(x_i):=\mu$$
+:::
+
+Der Erwartungswert kann *analog zum arithmetischen Mittelwert* einer (empirischen) Häufigkeitsverteilung berechnet werden.
+
+```{r, echo=TRUE,fig.cap="Verteilungsfunktion der Binomialverteilung",fig.align='center',out.width="50%"}
+#### Verteilungsparameter ----
+##### Erwartungswert ----
+mean(wuerfel)
+```
+
+Interpretation des Erwartungswerts **als Durchschnitt einer Zufallsvariable bei unendlich vielen Durchführungen eines Zufallsexperiments**. Beim Würfel würden wir entsprechend eine durchschnittliche Augenzahl von `r mean(wuerfel)` erwarten.
+
+
+```{r, echo=TRUE,fig.cap="Verteilungsfunktion der Binomialverteilung",fig.align='center',out.width="50%"}
+#### Erwartungswert und Konvergenz -----
+set.seed(24)
+##### dreimaliges Würfeln -----
+sample(1:6, 3, replace = T)
+```
+
+Bei dreimaligem Würfeln können offenbar deutliche Abweichungen vom Erwartungswert auftreten. Bei häufiger Wiederholung **konvergiert** das Ergebnis gegen den theoretischen Erwartungswert:
+
+```{r, echo=TRUE,fig.cap="Verteilungsfunktion der Binomialverteilung",fig.align='center',out.width="50%"}
+set.seed(24)
+
+##### 10000 Ziehungen -----
+mean(sample(1:6, 10000, replace = T))
+```
+
+**Varianz**
+
+Die Varianz misst die Streuung der Verteilung einer Zufallsvariable $X$ um ihren Mittelwert (Erwartungswert) als quadrierte Abweichungen vom
+Erwartungswert:
+$$\sigma^2=\sum_{i}[x_i-E(X)]^2\cdot f(x_i)=\sum_{i}x_i^2f(x_i)-[E(X)]^2$$
+```{r, echo=TRUE}
+#### Varianz -----
+var(1:6)
+```
+
+Die mit der var()-Funktion berechnete Stichprobenvarianz ist als Schätzung für die Varianz der Grundgesamtheit zu interpretieren.
+
+```{r, echo=TRUE}
+##### Populationsvarianz-----
+var(1:6)*(length(wuerfel)-1)/length(wuerfel)
+```
+
+
+
+## Stetige Zufallsvariablen
+
+:::d-box
+`r fa('tag')` Stetige Zufallsvariablen können alle möglichen reellen Zahlen als Wert annehmen (überabzählbar viele Werte).
+:::
+
+Stetige Zufallsvariablen sind häufig das Ergebnis von Messprozessen (es sind Nachkommastellen vorhanden). 
+
+Im Fall stetiger Zufallsvariablen können Wahrscheinlichkeiten nicht wie bei diskreten Zufallsvariablen als Funktionswert der Wahrscheinlichkeitsfunktion angegeben werden. Stattdessen werden Wahrscheinlichkeiten als Integral der **Dichtefunktion** $(f)$ berechnet. 
+
+### Dichte- und Verteilungsfunktion
+
+:::d-box
+`r fa('tag')` Die **Dichtefunktion** $f(x)$ einer stetigen Zufallsvariablen $X$ ist eine (intervallweise) stetige Funktion mit den **Eigenschaften**:
+
+* $\int_{-\infty}^{\infty}f(x)=1$
+* $f(x)\geq 0$.
+
+:::
+
+Die Aufsummierung von Wahrscheinlichkeiten im diskreten Fall hat ihre Entsprechung in der Berechnung von Wahrscheinlichkeiten mittels Integration im Fall stetiger Zufallsvariablen. Die **Wahrscheinlichkeit**, dass eine Zufallsvariable $X$ einen Wert $x$ im Intervall $a<x\leq b$ annimmt, kann **als Fläche unter der Dichtefunktion** bestimmt werden:
+$$P(a<x\leq b)=\int_{a}^{b}f(x)dx$$
+
+:::e-box
+Beispiel: $$f_X(x)=\frac{3}{x^4},~\forall x>1$$
+
+```{r, echo=TRUE}
+f <- function(x) 3 / x^4
+integrate(f, 
+          lower = 1, 
+          upper = Inf)$value
+
+```
+
+:::
+
+:::d-box
+`r fa('tag')` Die **Verteilungsfunktion** einer stetigen Zufallsvariable entspricht einer Stammfunktion $(F)$ der Dichtefunktion bzw.
+$$F(x)=P(X\leq x)=\int_{-\infty}^{x}f(t)dt$$
+:::
+
+
+### Verteilungsparameter
+
+**Erwartungswert**
+
+:::d-box
+`r fa('tag')` Der Erwartungswert E(X) einer stetigen Zufallsvariablen $X$ ist wie folgt definiert:
+$$E(X)=\int_{-\infty}^{+\infty}xf(x)dx:=\mu$$
+
+:::
+
+Der Erwartungswert kann als Durchschnitt interpretiert werden, den eine Zufallsvariable bei unendlich vielen Durchführungen eines Zufallsexperiments annimmt. 
+
+:::e-box
+Beispiel: Erwartungswert der Dichtefunktion 
+$$f_X(x)=\frac{3}{x^4},~\forall x>1$$
+
+```{r, echo=TRUE}
+g <- function(x) x * f(x)
+E_X <- integrate(g, 
+          lower = 1, 
+          upper = Inf)$value
+E_X
+```
+:::
+
+
+**Varianz**
+
+:::d-box
+`r fa('tag')` Die **Varianz** misst die Streuung der Verteilung einer Zufallsvariable $X$ um ihren Mittelwert (Erwartungswert) als quadrierte Abweichungen vom
+Erwartungswert:
+$$\sigma^2=\int_{-\infty}^{\infty}[x-E(X)]^2\cdot f(x)dx=\int_{-\infty}^{\infty}x^2\cdot 	f(x)dx-[E(X)]^2.$$
+:::
+
+:::e-box
+Beispiel: Varianz der Dichtefunktion 
+
+$$f_X(x)=\frac{3}{x^4},~\forall x>1$$
+
+
+
+```{r, echo=TRUE}
+h <- function(x) x^2 * f(x)
+integrate(h, 
+          lower = 1, 
+          upper = Inf)$value - E_X^2
+
+```
+
+:::
+
+
+
+## Theoretische Verteilungen diskreter Zufallsvariablen
+
+Für unterchiedliche Eigenschaften von Zufallsvariablen bzw. abhängig vom zugrundeliegenden Zufallsprozess werden u.a. die folgenden theoretischen Verteilungen unterschieden:
+
+* Gleichverteilung
+* Binomialverteilung
+* Hypergeometrische Verteilung
+* Geometrische Verteilung
+* Poisson-Verteilung
+
+Alle theoretischen Verteilungen repräsentieren jeweils eine Schar von unendlich vielen Einzelverteilungen.
+Festlegung einer konkreten Verteilung durch Parametrisierung
+
+
+Diese theoretische Verteilungen dienen...
+
+* ...als Referenz für empirisch beobachtete Häufigkeitsverteilungen sowie
+* ...zur Bestimmung von Wahrscheinlichkeiten für bestimmte Ereignisse A.
+
+
+### Bernoulli-Experiment {#BernExp}
+
+:::d-box
+`r fa('tag')` Ein **Bernoulli-Experiment** ist ein Zufallsexperiment mit folgenden Eigenschaften:
+
+* Für jeden Versuch gibt es nur **zwei mögliche Ausgänge** (Ereignisse): $A$ und $\bar{A}$ mit der \emph{Erfolgswahrscheinlichkeit} $P(A)=p$ und der Wahrscheinlichkeit des Gegenereignisses (Gegenwahrscheinlichkeit) $P(\bar{A})=1-p$, mit $0\leq p\leq 1$.
+
+* das Zufallsexperiment wird **$n$-mal wiederholt**,
+* die Versuche sind dabei voneinander **unabhängig** (d.h. Ziehen *mit Zurücklegen*). 
+* dies impliziert, dass die Wahrscheinlichkeiten $p$ bzw. $1-p$ konstant sind.
+
+:::
+
+:::d-box
+`r fa('tag')` Die Zufallsvariable $X$, welche die Anzahl der Ereignisse $A$ aus einem Bernoulli-Experiment angibt, folgt einer **Binomialverteilung $X\sim B(n,p)$** mit der Wahrscheinlichkeitsfunktion:
+$$f(x=X)=\begin{cases}
+			{n \choose x} \cdot p^x\cdot(1-p)^{n-x} & ,~x=0,1,2,\dots, n\\
+			0& ,~\mbox{sonst}\\
+			\end{cases}$$
+			
+
+
+Dabei steht $n \choose x$ für den Binomialkoeffizienten. 
+:::
+
+### Binomialverteilung {#BinomV}
+
+Der Binomialverteilung liegt ein [Bernoulli-Experiment](#BernExp) zugrunde. Die Zufallsvariable ist somit dichotom (2 Elementarereignisse) und die Versuche sind voneinander unabhängig (Ziehen mit Zurücklegen). Letzteres impliziert konstante Wahrscheinlichkeiten p des Eintritts der Elementarereignisse.
+
+
+In `r fa('r-project')` können die Werte der Wahrscheinlichkeitsfunktion mit der `dbinom()`-Funktion, jene der Verteilungsfunktion mit der `pbinom()`-Funktion berechnet werden.
+
+:::e-box
+Beispiel Münzwurf mit fairer Münze: Berechnung der Wahrscheinlichkeit für fünfmal Kopf bei 10 Würfen: 
+
+$$P(k)=P(k=5|n=10,p=0,5)$$
+
+
+```{r, echo=TRUE}
+## Theoretische Verteilungen ----
+### Diskrete ZV ----
+#### Binomialverteilung ----
+##### Beispiel Münzwurf ----
+dbinom(x = 5,
+       size = 10,
+       prob = 0.5) 
+```
+
+
+
+Die Wahrscheinlichkeit $P(k=5|n=10,p=0,5)$ beträgt also rund `r prettyNum(round(dbinom(x = 5,size = 10,prob = 0.5)*100,2),big.mark = ".",decimal.mark = ",")`%.
+:::
+
+:::e-box
+Beispiel "Mensch ärgere Dich nicht": Wahrscheinlichkeit der Augenzahl "6" bei einmaligem Wurf: 1/6. Mehrmaliges Würfeln als Bernouilli-Experiment. Wie wahrscheinlich ist es, bei 4 Würfen, nur einmal die Augenzahl "6" zu würfeln?
+
+```{r, echo=TRUE}
+##### Beispiel "Mensch ärgere Dich nicht" ----
+###### Wahrscheinlichkeit von einmalig Augenzahl 6 bei 4 Würfen? -----
+dbinom(x = 1,
+       size = 4,
+       prob = 1/6) 
+```
+
+Die Wahrscheinlichkeit $P(k=1|n=4,p=\frac{1}{6})$ beträgt also rund `r prettyNum(round(dbinom(x = 1,size = 4,prob = 1/6)*100,2),big.mark = ".",decimal.mark = ",")`%.
+:::
+
+Um die Wahrscheinlichkeit $P(4\leq k\leq 7)$ zu besimmen, können entweder die mit der dbinom()-Funktion bestimmten Wahrscheinlichkeiten $P(4), P(5),P(6),P(7)$ aufsummiert werden:
+
+```{r, echo=TRUE}
+###### Wahrscheinlichkeit zwischen 4 und 7 bei 10 Würfen? ----
+####### Variante 1 -----
+sum(dbinom(x = 4:7, size = 10, prob = 0.5))
+```
+
+Alternativ kann von der kumulierten Wahrscheinlichkeit $P(k\leq 7)$ die kumulierte Wahrscheinlichkeit $P(k\leq 4)$ abgezogen werden. Die kumulierten Wahrscheinlichkeiten bzw. die Verteilungsfunktion ist in R mit der `pbinom()`-Funktion zu bestimmen:
+
+```{r, echo=TRUE}
+####### Variante 2 -----
+pbinom(size = 10, prob = 0.5, q = 7) - pbinom(size = 10, prob = 0.5, q = 3) 
+```
+
+
+
+Grafisch kann die Binomialverteilung wie folgt veranschaulicht werden:
+
+
+```{r, echo=FALSE,fig.cap="Wahrscheinlichkeitsfunktion der Binomialverteilung",fig.align='center',out.width="50%"}
+##### Plots Binomialverteilung Würfelbeispiel -----
+k <- 0:10
+probability <- dbinom(x = k,
+                      size = 10, 
+                      prob = 0.5)
+df_plot <- probability %>% 
+                  enframe(name = "k", value = "f") %>% 
+                  mutate(k=k-1)
+
+####### Dichtefunktion -----
+# plot the outcomes against their probabilities
+Binom_dens <-  df_plot %>% 
+                  ggplot(aes(x=as.factor(k),y=f)) +
+                      geom_point() +
+                      geom_point(size=3,color='red') +
+                      labs(x = "Ereignis (Anzahl Kopf)",y = "Wahrscheinlichkeit") +
+                      theme_light()
+#Base-R-Plot
+#plot(x = k, 
+#     y = probability)
+```
+
+
+
+
+```{r, echo=FALSE}
+####### Verteilungsfunktion -----
+prob <- pbinom(q = k, 
+               size = 10, 
+               prob = 0.5)
+Binom_cum <- prob %>% 
+           enframe(name = "k", value = "F") %>% 
+           mutate(k=k-1) %>% 
+           ggplot(aes(x=as.factor(k),y=F)) +
+             geom_point() +
+              geom_point(size=3,color='red') +
+              labs(x = "Ereignis (Anzahl Kopf)",y = "Wahrscheinlichkeit") +
+              theme_light()
+```
+
+
+```{r, echo=FALSE,message=FALSE,fig.cap="Dichte- und Verteilungsfunktion der Binomialverteilung",fig.align='center',out.width="100%"}
+###### Plots gemeinsam auf grid abbilden -----
+library(gridExtra)
+grid.arrange(Binom_dens, Binom_cum, ncol=2)  
+```
+
+
+Der **Erwartungswert** einer $B(n,p)$-verteilten Zufallsvariablen $X$ ergibt sich als Produkt der Wiederholungen mit der Erfolgswahrscheinlichkeit: $E(X)=n\cdot p$. Die **Varianz** einer $B(n,p)$-verteilten Zufallsvariablen $X$ berechnet sich nach: $\sigma^2(X)=np(1-p)$. 
+
+Wenn die beiden Zufallsvariablen $X\sim B(n,p)$ und $Y\sim B(m,p$) **unabhängig** voneinander sind, dann gilt für die Zufallsvariable $Z=X+Y$: $Z\sim B(n+m,p)$ (**Reproduktivität**seigenschaft). Für $np(1-p)>9$ ist eine B(n,p)-verteilte Zufallsvariable **näherungsweise normalverteilt** $N(np,\sqrt{np(1-p)})$.
+
+
+### Hypergeometrische Verteilung
+
+Der hypergeometrischen Verteilung liegt wie der Binomialverteilung eine **dichotome Zufallsvariable** zugrunde. Allerdings sind die **Eintrittswahrscheinlichkeiten** anders als im Fall des Bernoulli-Experiments **nicht konstant** (Ziehen ohne Zurücklegen). 
+
+
+Betrachtet werde das folgende *Urnenmodell*: In einer Urne mit $m+n$ Kugeln besitzen $m$ Kugeln die Eigenschaft $A$ (bspw. weiß) und $n$ Kugeln besitzen diese Eigenschaft nicht (sind bspw. schwarz). Im Fall einer zufälligen Entnahme von $k$ Kugeln  **ohne** Zurücklegen ist die Zufallsvariable $X$ hypergeometrisch verteilt:
+
+$$X\sim H(m,n,k)$$
+
+Die Wahrscheinlichkeit, dass von den $k$ zufällig entnommenen Kugeln genau $x$ Kugeln, die Eigenschaft $A$ besitzen (weiß sind), ergibt sich dann als:
+
+$$f_X(x)=\frac{{m\choose x}{n\choose k-x}}{m+n\choose k}$$
+
+In `r fa('r-project')` können hypergeometrische Verteilungswerte mit der `dyhper()`- bzw. der `phyper()`-Funktion berechnet werden.
+
+```{r, echo=FALSE}
+#### Hypergeometrische Verteilung ----
+m <- 50
+n <- 15
+k <- 30
+x <- 0:(k+1)
+
+df_hyper <- dhyper(x, m, n, k) %>% 
+                         enframe(name = "k", value = "f")
+  
+df_hyper <- df_hyper %>% 
+                mutate(F=phyper(x, m, n, k))
+  
+##### Dichtefunktion ----
+# plot the outcomes against their probabilities
+hyper_dens <-  df_hyper %>% 
+                  ggplot(aes(x=as.factor(k),y=f)) +
+                      geom_point(size=3,color='red') +
+                      scale_x_discrete(guide = guide_axis(angle = 45)) + 
+                      labs(x = "Ereignis (Anzahl Kopf)",y = "Wahrscheinlichkeit") +
+                      theme_light()
+
+##### Verteilungsfunktion ----
+hyper_cum <-  df_hyper %>% 
+                  ggplot(aes(x=as.factor(k),y=F)) +
+                      geom_point(size=3,color='red') +
+                      scale_x_discrete(guide = guide_axis(angle = 45)) +
+                      labs(x = "Ereignis (Anzahl Kopf)",y = "Wahrscheinlichkeit") +
+                      theme_light()
+
+#Base-R-Plot
+
+#plot(x = k, 
+#     y = probability)
+```
+
+
+```{r, echo=FALSE,message=FALSE,fig.cap="Dichte- und Verteilungsfunktion der Hypergeometrischen Verteilung",fig.align='center',out.width="100%"}
+#grid.arrange(hyper_dens, hyper_cum, ncol=2)  
+```
+
+:::e-box
+Beispiel: Beim **Lottospiel "6 aus 49"** werden wöchentlich sechs Zahlen aus einer Urne mit 49 Zahlen ohne Zurücklegen gezogen. Wie hoch ist die Wahrscheinlichkeit für...
+
+1) ...3 Richtige
+2) ...6 Richtige
+
+```{r, echo=TRUE}
+##### Beispiel Lotto -----
+m<-6  #6 Zahlen gewinnen (Ereignis A)
+n<-43 #Insgesamt 49 Zahlen, entsprechend bilden 43 Zahlen das Komplementärereignis (nicht gewinnen)
+k<-6  #gezogen wird 6 mal - Zusatzzahl/Superzahl wird nicht berücksichtigt
+x_1 <-3 #3 Richtige
+dhyper(x_1,m,n,k)
+x_2 <- 6 # 6 Richtige
+dhyper(x_2,m,n,k)
+```
+:::
+
+
+:::e-box
+Beispiel "Qualitätskontrolle": Ein Smartphone-Hersteller versendet 16 Top-Modelle an einen Händler. Der Hersteller weiß, dass fünf einen Wackelkontakt haben. Der Händler prüft die Qualität der Smartphones mit einer Stichprobe von vier zufällig ausgewählten Geräten. Wie hoch ist die Wahrscheinlichkeit, dass der Händler...
+
+1) ...kein defektes Smartphone entdeckt.
+2) ...höchstens ein defektes Smartphone findet.
+3) ...mindestens 2 defekte Geräte herausfiltert.
+
+```{r, echo=TRUE}
+##### Beispiel Qualitätskontrolle -----
+m<-5 # Ereignis A: fünf Smartphones haben einen Wackelkontakt
+n<-11 #Komplementärereignis: 11 Smartphones funktionieren einwandfrei
+k<-4  #der Händler testet 4 Geräte
+x_1<-0
+dhyper(x_1,m,n,k) #genau ein defektes Gerät - mit dhyper
+x_2<-1  
+phyper(x_2,m,n,k)  #höchstens 2 defekte Geräte - direkt mit phyper
+x_3<-1             #mindestens 2 defekte Geräte impliziert höchstens 1 funktionsfähiges Gerät
+1-phyper(x_3,m,n,k) #Berechnung als Gegenwahrscheinlichkeit mit phyper
+```
+
+:::
+
+
+:::e-box
+Beispiel "Innovation": Auf einem Markt von 100 Unternehmen befinden sich 10 innovative Unternehmen. Wie groß ist die Wahrscheinlichkeit, dass in einem Kartell von 4 Unternehmen mindestens die Hälfte der Unternehmer innovativ sind?
+
+Da ein Unternehmen, das dem Kartell beigetreten ist, nicht nochmals für einen Beitritt in Betracht kommt, liegt das Auswahlmodell "Ziehen ohne Zurücklegen" vor. Die Zufallsvariable $X$ gibt die Anzahl der innovativen Unternehmer (das interessierende Ereignis A) im Kartell an. Die gesuchte Wahrscheinlichkeit $P(x=2)$ lässt sich mit der hypergeometrischen Verteilung bestimmen.
+
+```{r, echo=TRUE}
+##### Beispiel Innovation ----
+m<-90
+n<-10
+k<-4
+phyper(2,m,n,k)
+
+sum(dhyper(0:2,m,n,k))
+```
+
+
+Weil der Auswahlsatz $\frac{n}{N}=\frac{4}{100}=0,04$ kleiner als 0,05 ist, kann die gesuchte Wahrscheinlichkeit näherungsweise mit der Binomialverteilung bestimmt werden. 
+
+```{r, echo=TRUE}
+pbinom(size = 4, prob = 0.1, q = 4) -pbinom(size = 4, prob = 0.1, q = 1) 
+sum(dbinom(x=2:4,size=4,prob=.1))
+```
+
+Mit zunehmender Zahl der konkurrierenden Unternehmen wird die Approximation 
+der hypergeometrischen Verteilung durch die Binomialverteilung genauer. 
+:::
+
+
+### Geometrische Verteilung
+
+Die geometrische Verteilungentspricht einem Bernoulli-Prozess, wobei die Zufallsvariable X die Anzahl der Misserfolge misst. 
+
+
+:::e-box
+**Beispiel Liefertreue**: Der Controller einer Firma hat ermittelt, dass die Lieferanten die vereinbarten Lieferfristen im Mittel in 85 % der Bestellungen einhalten. Die Firma hat mit einem neuen Lieferanten laufende Teillieferungen von Halbfertigerzeugnissen für die Herstellung eines Produktes vereinbart. Nachdem der Lieferant dreimal fristgerecht geliefert hat, ist er bei der vierten Teillieferung in Verzug geraten. 
+
+```{r,echo=TRUE}
+#### Geometrische Verteilung ----
+##### Definition Wahrscheinlichkeit Liefertreue ----
+prob <- .85
+```
+
+Mit welcher Wahrscheinlichkeit ist ein solches Verhalten des Lieferanten zu erwarten? Die Zufallsvariable $X$ misst die Anzahl der Misserfolge, die hier der Anzahl der fristgerechten Lieferungen entspricht. Eine Lieferung der Firma ist mit einer Wahrscheinlichkeit von `r prob*100`% fristgerecht (Ereignis $\bar{A}$). Daher ist die Wahrscheinlichkeit $p$ für eine nicht fristgerechte Lieferung (das interessierende Ereignis A) gleich $p=$ `r prettyNum((1-prob),big.mark = ".",decimal.mark = ",")`.
+
+Gesucht ist damit die Wahrscheinlichkeit, dass die geometrisch verteilte Zufallsvariable $X$ den Wert $x=3$ annimmt:
+$$P(x=3)=f(3)=(1-p)^x\cdot p$$
+
+```{r, echo=TRUE}
+##### Berechnung der Wahrscheinlichkeit -----
+x <- 3
+f <- prob^x*(1-prob)
+```
+
+Die Wahrscheinlichkeit, dass ein Lieferant erst bei der vierten Teillieferung in Verzug gerät, beträgt `r prettyNum(round(f*100,2),big.mark = ".",decimal.mark = ",")`%. 
+:::
+
+### Poisson-Verteilung
+
+Bei Bernoulli-Experimenten mit einer sehr geringen Wahrscheinlichkeit $p$ des Ereignisses A (auch: geringe Erfolgswahrscheinlichkeit) bei gleichzeitig großer Anzahl von Wiederholungen $n$ des Zufallsexperiments kann die Binomialverteilung durch die Verteilung approxomiert werden, die sich für $p\to 0$ und $n\to\infty$ ergibt, wenn zudem der Erwartungswert $\mu = n\cdot p \to \lambda = \mbox{konst.}$ im Grenzwert konstant ist.
+
+:::d-box
+`r fa('tag')` Die Wahrscheinlichkeit $P(x|\lambda)$ einer diskreten poissonverteilten Zufallsvariable $X\sim Ps(\lambda)$ kann mit der Wahrscheinlichkeitsfunktion
+$$f_X(x) = \frac{\lambda^x}{x!}\cdot e^{-\lambda},~\forall x=0,1,2,\dots$$
+:::
+
+Aufgrund der sehr kleinen Erfolgswahrscheinlichkeit bei großer Anzahl an Wiederholungen kann die Poisson-Verteilung bspw. im Qualitätsmanagement eingesetzt werden. In R kann die Wahrscheinlichkeit von $x$ Erfolgen bei erwarteter Anzahl von Ereignissen A $(\lambda)$ mit der *dpois*-Funktion berechnet werden. Für kumulierte Wahrscheinlichkeit von höchstens $q$ Erfolgen steht die *ppois()*-Funktion zur Verfügung. In der ppois()-Funktion kann die Option *lower.tail* gewählt werden (*lower.tail = TRUE* für den linken Rand, *lower.tail = FALSE* für den rechten Rand).
+
+:::e-box
+**Beispiel Qualitätskontrolle:** Ein Fahrradhersteller möchte die Qualität seiner E-Bikes kontrollieren. Aus Erfahrung weiß er, dass ein Mangel bei einem von 100 E-bikes zu erwarten ist $(\lambda=1)$. Wie hoch ist die Wahrscheinlichkeit, höchstens zwei (also zwei oder weniger) Mängel pro 100 E-bikes zu finden: $P(X \leq 2)$?
+
+```{r, echo=TRUE}
+#### Poisson-Verteilung -----
+
+# Beispiel Qualitätskontrolle
+lambda <- 1
+
+#R als Taschenrechner
+((lambda^2)/2)*exp(1)^(-1*lambda)+((lambda^1)/1)*exp(1)^(-1*lambda)+((lambda^0)/1)*exp(1)^(-1*lambda)
+#Mittels Dichtefunktion
+sum(dpois(0:2,1))
+#Mittels Verteilungsfunktion
+ppois(2,1)
+
+```
+:::
+
+
+### Zusammenfassender Überblick
+
+
+```{r,echo=FALSE}
+#### Überblick Verteilungen diskreter ZV -----
+knitr::include_url("http://www.darktiger.org/home/files/share/Maik/Diskrete_Verteilungen.pdf")
+```
+
+
+## Theoretische Verteilungen stetiger Zufallsvariablen
+
+Bei Zufallsexperimenten mit sehr vielen Beobachtungen ist nicht jede mögliche Ausprägung darstellbar. Daher werden wie im
+Fall der relativen Häufigkeiten Klassen gebildet. Mit zunehmender Anzahl an Klassen wird die Darstellung immer stetiger (bei unendlich hoher Klassenanzahl und unendlich kleiner Klassenbreite wäre die Funktion perfekt stetig).
+
+Nach Normierung der relativen Häufigkeit mit der Klassenbreite, kann aus der Fläche der Klassen die Wahrscheinlichkeit der jeweiligen
+Klasse berechnet werden. Es ist nicht möglich, Punktwahrscheinlichkeiten zu berechnen, da die Fläche über einem spezifischen Punkt per Definition Null ist: $P(X = a) = 0$.
+
+Zu den Wichtigsten stetigen Verteilungen gehören:
+
+* die Gleichverteilung
+* die (Standard-)Normalverteilung 
+* die Exponentialverteilung
+* die Testverteilungen
+    * $\chi^2$-Verteilung
+    * Student-Verteilung
+    * F-Verteilung
+
+
+### (Standard-)Normalverteilung
+
+Die Standardnormalverteilung (auch Gauss-Verteilung) ist die wichtigste Verteilung zur Modellierung von Zufallsvorgängen. Sie spielt bei nahezu allen Anwendungen der Statistik eine Rolle. Wählen wir beliebig oft statistische Einheiten aus einer Verteilungsfunktion $(n\to\infty)$, so konvergiert die Verteilung gegen eine Normalverteilung.
+
+Beispiele: Messabweichungen, Produktionsfehler von Maschinen, die Brown’sche Molekularbewegung aber auch Naturkatastrophen folgen
+der Normalverteilung mit unterschiedlichen Lageparametern und Streuungsmaßen.
+
+:::d-box
+`r fa('tag')` Eine stetige Zufallsvariable $X$ heißt normalverteilt mit den Parametern $\mu$  und $\sigma$ , wenn Ihre Dichtefunktion gegeben ist durch:
+$$f(x)=\frac{1}{\sigma\cdot \sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$$
+:::
+
+Die Zufallsvariable $X$ heißt dann auch $N(\mu,\sigma)$-verteilt. Die Normalverteilung ist entsprechend **durch die beiden Parameter Erwartungswert $(\mu)$ und Standardabweichung $(\sigma)$ vollständig determiniert**. Der Erwartungswert ist zugleich die globale Maximalstelle der Dichtefunktion, $\mu-\sigma$ und $\mu+\sigma$ sind die Wendestellen der Dichtefunktion.
+
+
+Ist eine Zufallsvariable $X$ mit Erwartungswert $\mu$ und Varianz $\sigma^2$ normalverteilt, so ist die **z-standardisierte Zufallsvariable** $Z=\frac{X-\mu}{\sigma}$ standard-normalverteilt:
+$$Z\sim N(0,1)$$
+
+
+```{r, echo=TRUE,fig.align='center'}
+### Stetige ZV ----
+#### Normalverteilung -----
+##### Dichtefunktion -----
+ggplot(data = tibble(x = c(-4, 4)), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 0, sd = 1)) +
+  labs(x="z-Wert",y="Dichte") +
+  theme_light()
+
+# draw a plot of the N(0,1) PDF
+#curve(dnorm(x),
+#      xlim = c(-3.5, 3.5),
+#      ylab = "Dichte", 
+#      main = "Standardnormalverteilung") 
+```
+
+
+Mit Bereichen
+
+```{r, echo=FALSE}
+##### Bereiche -----
+ISBAblue<-"#232461"
+mu<-0
+sigma<-1
+x <- seq(from = mu - 4*sigma, to = mu + 4*sigma, by = .01)
+df_norm <- tibble(x = x, y = dnorm(x, mean = mu, sd = sigma))
+
+shade_curve <- function(df_norm, zstart, zend, fill = "red", alpha = .5){
+  geom_area(data = subset(df_norm, x >= mu + zstart*sigma
+                          & x < mu + zend*sigma),
+            aes(y=y), fill = fill, color = NA, alpha = alpha)
+}
+
+df_norm %>% 
+    ggplot(aes(x = x, y = y)) + geom_line() +
+      shade_curve(df_norm =df_norm, zstart = -1, zend = 1, fill = ISBAblue, alpha = .7) +
+      shade_curve(df_norm = df_norm, zstart = 1, zend = 2, fill = ISBAblue, alpha = .5) +
+      shade_curve(df_norm = df_norm, zstart = -2, zend = -1, fill = ISBAblue, alpha = .5) +
+      shade_curve(df_norm = df_norm, zstart = 2, zend = 3, fill = ISBAblue, alpha = .3) +
+      shade_curve(df_norm = df_norm, zstart = -3, zend = -2, fill = ISBAblue, alpha = .3)+
+      labs(x="z-Wert",y="Dichte") +
+      theme_light()
+
+```
+
+Die Verteilungsfunktion der Standardnormalverteilung kann grafisch wie folgt dargestellt werden:
+
+
+```{r, echo=TRUE,fig.align='center'}
+##### Verteilungsfunktion ------
+ggplot(data = tibble(x = c(-4, 4)), aes(x)) +
+  stat_function(fun = ~ pnorm(q = ., 
+                              mean = 0, 
+                              sd = 1)) +
+  labs(x="z-Wert",y="kumulierte Wahrscheinlichkeit") +
+  theme_light()
+```
+
+### Exponentialverteilung
+
+Die Exponentialverteilung ist eine stetige Wahrscheinlichkeitsverteilung, die zur Modellierung der Dauer von kontinuierlichen Vorgängen wie Wartezeiten, Lebensdauern und Ausfallzeiten von Relevanz ist:
+
+* Wartezeit eines Kunden an einem Schalter,
+* Lebensdauer eines Produkts wie z.B. Akku, Maschinen
+* Dauer eines Telefongesprächs,
+* Ausfallzeit eines Pkws nach einem Unfall z.B. für die Kraftfahrzeug-Haftpflicht
+
+:::d-box
+`r fa('tag')` Die Exponentialverteilung kann als das kontinuierliche Pendant der Poissonverteilung angesehen werden. Der Parameter $\lambda$ der einparametrischen Verteilung ist ein Maß für die durchschnittliche Zeit zwischen zwei Ereignissen. Eine Zufallsvariable $X$ folgt einer Exponentialverteilung mit dem Parameter $\lambda$, wenn die Dichtefunktion von $X$ durch
+
+$$f(x)=\begin{cases}
+		\lambda\cdot e^{-\lambda x} & ~,\forall x\geq 0,~\lambda>0\\
+		0 & ~,\mbox{sonst}\\
+\end{cases}$$
+
+Für die Verteilungsfunktion einer exponentialverteilten Zufallsvariable $X$ mit dem Parameter $\lambda$ gilt:
+
+$$F(x)=\begin{cases}
+      0 & ~,\forall x<0\\
+		1-\lambda\cdot e^{-\lambda x} & ~,\forall x\geq 0,~\lambda>0\\
+\end{cases}$$
+
+:::
+
+Erwartungswert und Varianz sind gegeben durch:
+* $E(X)=\frac{1}{\lambda}$
+* $\sigma(X)=\frac{1}{\lambda^2}$
+
+
+:::e-box
+**Beispiel:** Die Lebensdauer (= Wartezeit bis zum Ausfall) von Glühbirnen des Typs A ist exponentialverteilt mit dem Erwartungswert 10 (1.000 Stunden) 
+Wie groß ist die Wahrscheinlichkeit, dass eine Glühbirne mehr als 12 (1.000 Stunden) intakt ist?
+
+Berechnung mit der Dichtefunktion:
+
+```{r,echo=TRUE}
+#### Exponentialverteilung ----
+X<-12
+E_X<-10
+lambda<-1/E_X
+f<-function(x) lambda*exp(1)^(-lambda*x)
+1-integrate(f, 
+          lower = 0, 
+          upper = X)$value
+
+```
+Berechnung mit der Verteilungsfunktion:	
+
+```{r,echo=TRUE}
+X<-12
+E_X<-10
+lambda<-1/E_X
+F<-function(x) 1-exp(1)^(-lambda*x)
+1-F(X)
+
+```
+:::
+
+### $\chi^2$-Verteilung
+
+Die $\chi^2$-Verteilung **gehört** wie die Student [t-Verteilung](Student-Verteilung) und die [F-Verteilung](F-Verteilung) **zu den am häufigsten verwendeten sog. Test-Verteilungen**, die im Rahmen von *Hypothesentests* Anwendung finden.
+
+:::d-box 
+`r fa('tag')` Sind $Z_1,Z_2,\dots,Z_\nu$ unabhängig standardnormalverteilte Zufallsvariablen, dann folgt die Summe der quadrierten Zufallsvariablen
+$$\chi^2=Z_1^2+Z_2^2+\dots Z_\nu^2$$
+einer $\chi^2$-Verteilung mit $\nu$ Freiheitsgraden (Anzahl der unabhängigen Zufallsvariablen).
+:::
+
+
+Der **Erwartungswert** einer $\chi^2$-verteilten Zufallsvariable entspricht den Freiheitgraden:
+$$E(\chi^2)=\nu$$
+
+Für die **Varianz** gilt: 
+$$\sigma^2(\chi^2)=2\nu$$
+
+Die **Dichte einer $\chi^2$-verteilten Zufallsvariable $Y$** wird durch folgende Funktion abgebildet.
+
+$$f_Y(y)=\begin{cases}
+			\frac{1}{2^{\frac{\nu}{2}}\Gamma(\frac{\nu}{2})}y^{\frac{\nu-2}{2}}e^{-\frac{y}{2}} &;~ y>0\\
+			0& ;~\mbox{sonst}\\
+			\end{cases}$$
+
+
+Dabei steht $\Gamma(x)$ für die *Euler*sche Gammafunktion: $$\Gamma(x)=\int_0^\infty t^{x-1}e^{-t} dt,~x>0.$$
+
+
+Grafisch zeigt sich, dass die Dichtefunktion einer $\chi^2$-verteilten Zufallsvariable für kleine $\nu$ deutlich linkssteil. Für $\nu \geq 30$ nähert sich die Größe $\sqrt{\chi^2}$ immer mehr einer Normalverteilung mit $\mu=\sqrt{2\nu-1}$ und $\sigma^2=1$ an. Mithin ist die z-standardisierte Größe
+$$Z=\sqrt{2\chi^2}-\sqrt{2\nu-1}$$ näherungsweise *standardnormalverteilt*.
+
+```{r chisq,echo=FALSE}
+#### Chi^2-Verteilung -----
+#Dichtefunktion 
+legend_title <- "Freiheitsgrade"
+tibble(chisq = 0:7000 / 100) %>% 
+           mutate(df_5 = dchisq(x = chisq, df = 5),
+                  df_15 = dchisq(x = chisq, df = 15),
+                  df_30 = dchisq(x = chisq, df = 30)) %>%
+  gather(key = "df", value = "density", -chisq) %>%
+ggplot() +
+  geom_line(aes(x = chisq, y = density, color = df)) +
+  scale_color_discrete(legend_title,labels=c(expression(nu*"=0"),expression(nu*"=15"),expression(nu*"=30"))) + 
+  labs(x = expression(chi^2),
+       y = "Dichte") +
+  theme_light()  
+  
+```
+
+Für $\nu\geq=100$ ist Z näherungsweise $N(\nu;\sqrt{2\nu})$-verteilt.
+
+
+
+### Student-Verteilung
+
+:::d-box
+`r fa('tag')` Das Verhältnis einer standardnormalverteilten Zufallsvariable $Z\sim N(0;1)$ und einer $\chi^2$-verteilten Zufallsvariable $Y\sim\chi^2(\nu)$ folgt einer t-Verteilung (auch: Student-Verteilung):
+
+$$T=\frac{Z}{\sqrt{\frac{\chi^2}{\nu}}}$$
+:::
+
+Der **Erwartungswert** einer t-verteilten Zufallsvariable ist für $\nu=0$ nicht existent. Für alle $\nu>1$ entspricht der Erwartungswert der t-verteilten Zufallsvariable dem Erwartungswert der Standardnormalverteilung:
+$$E(T)=0$$
+Die **Varianz** einer t-verteilten Zufallsvariable exisitiert für $\nu>2$ und ist wie folgt definiert:
+$$\sigma^2(T)=\frac{\nu}{\nu-2}$$
+
+Mithin nähert sich die Varianz der t-verteilten Zufallsvariable für $\nu\to\infty$ der Varianz einer standardnormalverteilten Zufallsvariable an.
+
+
+Die **Dichtefunktion** der t-Verteilung enthält wie jene der $\chi^2$-Verteilung die *Euler*sche Gammafunktion:
+
+$$f_T(t)=\frac{\Gamma(\frac{\nu+1}{2})}{\sqrt{\nu\pi}\Gamma(\frac{\nu}{2})}\frac{1}{(1+\frac{t^2}{\nu})^\frac{\nu+1}{2}}$$
+Grafisch zeichnet sich die Dichtefunktion der t-Verteilung durch eine symmetrische Glockenform aus, deren Wölbung von der Zahl der Freiheitsgrade abhängt. Für kleinere $\nu$ ist sie schwächer gewölbt als die Standardnormalverteilung - dies zeigt sich in den höheren Dichtewerten an den Rändern der Verteilung (dickere/höhere Enden, englisch: heavy tail distribution).
+
+
+```{r t-Vert,echo=FALSE}
+#### t-Verteilung ------
+#Dichtefunktion
+legend_title <- "Freiheitsgrade"
+tibble(t = -350:350 / 100) %>%
+           mutate(df_5 = dt(x = t, df = 5),
+                  df_15 = dt(x = t, df = 15),
+                  df_30 = dt(x = t, df = 30)) %>%
+  gather(key = "df", value = "density", -t) %>%
+ggplot() +
+  geom_line(aes(x = t, y = density, color = df)) +
+  scale_color_discrete(legend_title,labels=c(expression(nu*"=0"),expression(nu*"=15"),expression(nu*"=30"))) + 
+  labs(x = "T",
+       y = "Dichte") +
+  theme_light() #+
+# stat_function(fun = dnorm, n = 101, args = list(mean=0,
+#                                                sd = 1))
+```
+
+
+Die Ausführungen zu Erwartungswert und Varianz t-verteilter Zufallsvariablen lassen die enge Beziehung zur Standardnormalverteilung bereits erkennen. Tatsächlich geht die t-Verteilung für $\nu\to\infty$ in die Standardnormalverteilung über. Die Grafik der t-Verteilung für unterschiedliche Freiheitsgrade zeigt, dass die t-Verteilung bereits für $\nu>30$ durch die Standardnormalverteilung approximiert werden kann.
+
+### F-Verteilung
+
+Während die t-Verteilung das Verhältnis von einer standardnormalverteilten und einer $\chi^2$-verteilten Zufallsvariable abbildet, folgt das Verhältnis zweier unabhängiger, $\chi^2$-verteilter Zufallsvariablen einer F-Verteilung.
+
+:::d-box
+`r fa('tag')` Der Quotient zweier Zufallsvariablen $Y_1\sim\chi^2(r_1)$ und $Y_2\sim\chi^2(r_2)$ ist **F-verteilt** mit $r_1$ und $r_2$ Freiheitsgraden:
+
+$$X=\frac{\frac{Y_1}{r_1}}{\frac{Y_2}{r_2}}\sim F(r_1,r_2).$$
+:::
+
+
+
+Der **Erwartungswert** einer $F(r_1,r_2)$-verteilten Zufallsvariable $Y_1$ hängt allein vom Freiheitsgrad der Zufallsvariable $Y_2$ ab:
+$$E(X)=\frac{r_2}{r_2-2}, ~r_2>2$$ 
+
+Die **Varianz** einer F-verteilten Zufallsvariable ist durch folgende Gleichung bestimmt:
+
+$$Var(Y_1)=\frac{2r_2^2(r_1+r_2-2)}{r_1(r_2-2)^2(r_2-4)}, ~r_2>4$$
+Mit zunehmendem Freiheitsgrad konvergiert der Erwartungswert  $(r_2\to\infty)$ gegen Eins, die Varianz konvergiert mit zunehmenden Freiheitsgraden $(r_1, r_2\to\infty)$ gegen Null.
+
+Eine f-verteilte Zufallsvariable wird durch die Dichtefunktion $f(x,r_1,r_2)$  beschrieben:
+$$f(x,r_1,r_2)=(r_1)^\frac{r_1}{2}(r_2)^\frac{r_2}{2}\cdot\frac{\Gamma(\frac{r_1}{2}+\frac{r_2}{2})}{\Gamma(\frac{r_1}{2})\Gamma(\frac{r_2}{2})}\frac{x^{\frac{r_1}{2}-1}}{(r_1x_1+r_2)^{\frac{r_1+r_2}{2}}};~r_1,r_2>0$$
+Auch im Fall der F-Verteilung hängt die Gestalt der Dichtefunktion von den Freiheitsgraden ($r_1$ bzw. $r_2$) ab. Für kleine Freiheitsgrade ist die F-Verteilung deutlich rechtsschief.
+
+```{r F-Vert,echo=FALSE}
+#### F-Verteilung ------
+#Dichtefunktion
+legend_title <- "Freiheitsgrade"
+tibble(f = 0:1000 / 100) %>% 
+           mutate(df_10_05 = df(x = f, df1 = 10, df2 = 05),
+                  df_15_20 = df(x = f, df1 = 15, df2 = 20)) %>%
+          gather(key = "df", value = "density", -f) %>%
+  ggplot() +
+    geom_line(aes(x = f, y = density, color = df)) +
+    labs(x = "F",y = "Dichte") +
+  scale_color_discrete(legend_title,labels=c(expression(r[1]*"=10, "*r[2]*"=5"),expression(r[1]*"=15, "*r[2]*"=20"))) + 
+  theme_light() #+
+  #stat_function(fun = dnorm, n = 101, args = list(mean=0,
+  #                                                sd = 1))
+```
+
+Für zunehmende Freiheitsgrade kann die F-Verteilung durch die Standardnormalverteilung bzw. durch die $\chi^2$-Verteilung angenähert werden:
+
+* $r_1=1\land r_2\geq 30$: $X\sim N(0,1)$
+* $r_1=\nu\land r_2\geq 200$: $X\sim \chi^2(\nu)$
+
+Zudem gelten für die F-verteilte Zufallsvariable folgende Beziehungen:
+
+* $X\sim F(r_1,r_2) \iff r_1=1$: $X\sim t(r_2)$.
+* $X\sim F(r_1,r_2) \iff \frac{1}{X}\sim F(r_2,r_1)$.
+
+
+<!-- ### Zusammenfassender Überblick -->
+
+
+<!-- ```{r,echo=FALSE} -->
+<!-- knitr::include_url("http://www.darktiger.org/home/files/share/Maik/Diskrete_Verteilungen.pdf") -->
+<!-- ``` -->
+
+
+
+# Grenzwertsätze und die Bedeutung der Normalverteilung
+
+Im Zusammenhang mit der Charakterisierung verschiedener theoretischer Verteilungen wurde bereits darauf hingewiesen, dass diese Verteilung für hinreichend große Freiheitsgrade gegen eine Normalverteilung konvergieren.
+
+Vielfach werden in der anwendungsbezogenen Statistik Kennzahlen betrachtet, die eine additive Verknüpfung einer großen Anzahl von (zumindest näherungsweise) identisch-verteilten und unabhängigen Zufallsvariablen darstellen. Nach dem **zentralen Grenzwertsatz** kann für derartige Größen eine näherungsweise Normalverteilung unterstellt werden.
+
+## Zentraler Grenzwertsatz
+
+In der Praxis ist die tatsächliche Wahrscheinlichkeitsverteilung einer Zufallsvariable häufig nicht bekannt. Der zentrale Grenzwertsatz (englisch: Central Limit Theorem) zeigt, unter welchen Bedingungen Wahrscheinlichkeiten dann näherungsweise mit Hilfe der Normalverteilung berechnet werden können.
+
+:::d-box
+`r fa('tag')` **Satz**
+
+Für identisch verteilte und unabhängige (diskrete oder stetige!) Zufallsvariablen $X_1,X_2,\dots X_n$ mit Erwartungswert $E(X_i)=\mu$ und Varianz $\sigma^2$ ist die standardisierte Zufallsvariable $$Z_n=\frac{\sum_{i=1}^{n}X_i-n\mu}{\sigma\sqrt{n}}=\frac{n\cdot\bar{X}-n\mu}{\sqrt{n}\sigma}=\frac{\bar{X_n}-\mu}{\frac{\sigma}{\sqrt{n}}}$$
+
+näherungsweise $N(0;1)$-verteilt.
+:::
+
+Der zentrale Grenzwertsatz besagt somit, dass die [**Stichprobenverteilung**]() (englisch: Sampling Distribution) des Mittelwerts einer unabhängigen Zufallsvariablen - *unabhängig von der zugrunde liegenden Verteilung* - normal bzw. annähernd normal ist. Wenn also wiederholt (n-mal) eine zufällige Stichprobe gezogen und für jede Ziehung der jeweilige Mittelwert berechnet wird, dann ist die Verteilung der n Mittelwerte annhähernd normalverteilt.
+
+Für **praktische Anwendungen** wird die Approximation stetiger Verteilungen durch die Standardnormalverteilung für **$n>30$ als hinreichend genau** angesehen. Dies kann am Beispiel der t-Verteilung grafisch dargestellt werden:
+
+```{r CLT,echo=FALSE}
+## Zentraler Grenzwertsatz -----
+legend_title <- "Dichtefunktion"
+tibble(t = -350:350 / 100) %>%
+           mutate(df_5 = dt(x = t, df = 5),
+                  df_15 = dt(x = t, df = 15),
+                  df_30 = dt(x = t, df = 30)) %>%
+  gather(key = "df", value = "density", -t) %>%
+ggplot() +
+  geom_line(aes(x = t, y = density, color = df)) +
+  
+  labs(x = "T",
+       y = "Dichte") +
+  theme_light() +
+  stat_function(fun = dnorm, aes(color="black"),n = 101, args = list(mean=0,sd = 1),show.legend = TRUE) + 
+  scale_color_manual(legend_title,values=c("black","red","green","blue"),labels=c(expression("N("*mu*"=0,"*sigma^2*"=1)"),expression("t("*nu*"=0)"),expression("t("*nu*"=15)"),expression("t("*nu*"=30)")))
+```
+
+## Weitere Grenzwertsätze
+
+Der *Zentrale Grenzwertsatz* bezieht sich auf die Konvergenz gegen die Normalverteilung. Weitere Grenzwertsätze betrachten andere Grenzverteilungen. Beispielsweise konvergiert die Hypergeometrische Verteilung gegen die Binomialverteilung. Die Binomialverteilung wiederum konvergiert gegen die Poisson-Verteilung (vgl. dazu bspw. @schwarze_grundlagen_2013-1[S. 86ff]).
+
