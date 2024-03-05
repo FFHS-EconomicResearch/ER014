@@ -107,7 +107,9 @@ Ein und dieselben Daten können in unterschiedlicher Weise tabellarisch dargeste
 ### Beispiel
 
 :::e-box
-```{r,echo=FALSE}
+```{r}
+#| echo: false
+#| warning: false
 #Daten laden
 my_in_file <- "Kundenbefragung_BABC.xlsx"
 tbl_messy <- readxl::read_xlsx(xfun::from_root("data","raw",my_in_file))
@@ -189,7 +191,7 @@ Das **dplyr**-Paket stellt für die gebräuchlichsten Datenverarbeitungsaufgaben
   * `select()` zur Auswahl von Spalten bzw. Variablen auf Basis von Variablennamen.
   * `rename()` zur Änderung der Variablennamen.
   * `mutate()` zur spaltenweisen Transformation von Werten und Erstellung neuer Spalten.
-relocate() ändert die Reihenfolge der Spalten.
+  * `relocate()` ändert die Reihenfolge der Spalten.
 3. Gruppen von Zeilen:
   * `summarise()` für die Zusammenfassung einer Gruppe zu einer einzigen Zeile ("collapse").
   * `group_by()` für die Zusammenfassung von Zeilen nach Merkmalsausprägungen (z.B. nach dem Geschlecht) 

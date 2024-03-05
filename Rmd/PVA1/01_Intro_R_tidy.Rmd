@@ -100,7 +100,7 @@ class: left
 
 .blockquote[Agenda]
 
-## Datenprodukte - Theorie und Praxis
+## Einführung R und RStudio
 
 * Motivation und Einordnung
 
@@ -108,8 +108,7 @@ class: left
 
 * RMarkdown/Quarto
 
-* R-Projekte
-
+* Datenprojekte in `r fa('r-project')`
 
 
 
@@ -342,21 +341,24 @@ class: left
 
 ## Einstieg in `r fa('r-project')` 
 
+* Kursmaterialien ER014
+
 * **swirl**-Paket als interaktives `r fa('r-project')`-Tutorial.
 
-`install.packages(’Paketname’,dep=TRUE)`
+  * `install.packages(’Paketname’,dep=TRUE)`
+  * `library(Paketname)`
 
-`library(Paketname)`
+* [RStudio Education](https://education.rstudio.com/learn/beginner/)
 
----
-class: left
+* Diverse Tutorials bei [datacamp.com](https://www.datacamp.com/tutorial/category/r-programming)
 
-.blockquote[`r fa('r-project')` Basics]
-
-## Base-`r fa('r-project')` vs. tidy-Syntax
+* Wickham et al. (2023): [R for Data Science (2. Aufl.)](https://r4ds.hadley.nz/)
 
 
-* Sprache vs. Dialekt
+???
+
+* FFHS Moodle-Kurs (zu erstellen)
+
 
 
 
@@ -426,8 +428,10 @@ Datei
 * Produktivitätssteigerung bei wiederkehrenden Berichten/Updates (Automatisierung)
 ]
 .panel[.panel-name[Rmd vs. qmd]
-* RMarkdown
-* Quarto
+```{r}
+#| echo: false
+knitr::include_url('https://quarto.org/docs/faq/rmarkdown.html',height = '400px')
+```
 ]
 .panel[.panel-name[Praxisbeispiel Airbnb]
 .blockquote[
@@ -452,44 +456,203 @@ knitr::include_graphics(xfun::from_root('img','PVA1','Rbnb.PNG'))
 
 
 
-
 ---
 class: inverse, center, middle
 
-## R-Projekte
+## Datenprojekte in `r fa('r-project')`
 
 
+.blockquote[tidyverse]
+
+.blockquote[R-Projekte]
 
 
-
-  
-  
-
-
-
-
----
-class: inverse, center, middle
-
-## Key Take-Aways
 
 
 ---
 class: left
 
-.blockquote[Key Take-Aways]
 
-## Zentrale Aspekte der Diskussion
+.blockquote[tidyverse]
 
-* Daten sind nur Assets, wenn sie entsprechend aufbereitet und zum Produkt entwickelt werden.
 
-* Datenprodukte vs. Daten als Produkt
+## Phasen und Ablauf von Datenprojekten
 
-* Datenprodukte im Kontext von Data Mesh 
+```{r, echo=FALSE}
+knitr::include_graphics(xfun::from_root('img','PVA1','DataScience_Workflow.PNG'))
+```
 
-* Bedeutung der Datenarchitektur für Agilität
+.quelle[Eigene Darstellung.]
 
-* Generelle Bedeutung der Datenqualität (GiGo) 
+---
+class: left
+
+.blockquote[tidyverse]
+
+## Datenprojekte im `r fa('r-project')`-tidyverse
+
+.panelset[
+.panel[.panel-name[Workflow]
+```{r,echo=FALSE}
+knitr::include_graphics(xfun::from_root('img','PVA1','tidyverse_(storybench).png'))
+```
+.quellePanURL[Bildquelle: [storybench.org](https://www.storybench.org/getting-started-with-tidyverse-in-r/).]
+]
+.panel[.panel-name[tidyverse]
+*  [tidyverse](https://www.tidyverse.org/) als Sammlung von `r fa('r-project')`-Paketen mit einer "gemeinsamen und v.a. **intuitiven** Grundlogik" (Syntax) 
+
+* Vorstellung: `r fa('r-project')` als Sprache, *tidyverse* als Dialekt.
+
+* **Kernphilosophie:** Effizientiere, konsistentere und **intuitivere** Gestaltung von Datenanalysen durch...
+
+  * ...Organisation von Daten in **"tidy"**-Form
+
+  * ...klarere und kompaktere **Code-Struktur**
+  
+]
+]
+
+???
+
+* **tidyverse**-Bibliothek als "Metapaket": Mit `library(tidyverse)` werden automatisch die wichtigsten tidyverse-Pakete geladen:
+
+* Das **tibble**-Paket - stellt  via `tibble()`-Funktion eine Datenstruktur bereit
+* Das **readr**-Paket - stellt diverse Funktionen wie bspw. `read_csv()` zum Einlesen rechteckiger Daten aus durch Trennzeichen getrennten Dateien (.csv,.tsv, etc.) zur Verfügung.
+* Das **tidyr**- und das **dplyr**-Paket zur Datentransformation und -modifikation
+* Das **stringr**-, das **forcats**- und das **lubridate**-Paket für die Arbeit mit speziellen Objekttypen:
+  * **stringr** für die Arbeit mit Textobjekten
+  * **forcats** für die Arbeit mit Faktoren
+  * **lubridate** für die Arbeit mit Zeitdaten
+* das **purrr**-Pakete für funktionelles Programmieren
+* das **ggplot**-Paket für die Datenvisualierung
+
+Neben dem **purrr**-Paket spielt für die Praxis in Sachen Programmierung noch das **glue**-Paket eine Rolle, das (als Alternative zur paste()-Funktion) die Möglichkeit bietet Daten/Zahlen und strings zu verbinden.
+
+  
+---
+class: left
+
+.blockquote[tidyverse]
+
+## Kernelemente des tidyverse
+
+.panelset[
+.panel[.panel-name[tidy Daten]
+```{r}
+#| label: img-tidy-format
+#| echo: false
+#| fig.align: center
+#| out.width: '70%'
+knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/6f1ddb544fc5c69a2478e444ab8112fb0eea23f8/91adc/images/tidy-1.png')
+```
+.quellePanURL[Bildquelle: [Wickham et al.](https://r4ds.had.co.nz/tidy-data.html)]
+`r NoCite(bib,"grolemund_tidy_2017")`
+]
+.panel[.panel-name[Verben]
+Anwendungsspezifische Funktionen (sog. "Verben"):
+.small[
+1. Zeilen: 
+  * `filter()` 
+  * `slice()` 
+  * `arrange()` 
+2. Spalten:
+  * `select()` 
+  * `rename()` 
+  * `mutate()` 
+3. Gruppen von Zeilen:
+  * `summarise()` 
+  * `group_by()`
+]
+]
+.panel[.panel-name[Pipes]
+
+* Pipes erhöhen die Lesbarkeit des Codes:
+```{r, echo=FALSE}
+knitr::include_graphics('https://sandbox.dodona.be/en/activities/2127610019/description/xmzzEmCJNMmtBVVj/media/dplyr_pipe.png')
+```
+.quellePanURL[Bildquelle: [Dodona](https://dodona.be/en/activities/2127610019/)]
+
+`r fa('circle-right')` Output einer Funktion als Input für die nächste Funktion
+
+* **magrittr**-Pipe (`%>%`) vs. native Pipe **native Pipe** (`|>`, ab R 4.1.0)
+
+* Konvention für ER014: magrittr-Pipe (Shortcut Strg/Cmd + Shift + M)
+
+]
+]
+
+???
+
+* Die “tidy”-Form von Daten ist dadurch gekennzeichnet, dass
+  * jede Variable eine Spalte darstellt,
+  * jeder Fall eine Zeile und
+  * jeder Wert einer Beobachtung entspricht.
+  
+* ...Einsatz funktionaler Programmierung und anwendungsspezifischer Funktionen (sog. "Verben" wie `filter()`, `mutate()`, `select()` usw.) anstelle komplexer Schleifen.
+* Spezielle Funktionen zur Erzeugung und Transformation von "tidy"-Daten stellt die **tidyr**-Bibliothek bereit.
+  * Besonders häufig werden wir die Funktionen `pivot_wider()` und `pivot_longer()` einsetzen, um Daten zwischen dem wide-Format und dem long-Format (bspw. von Tabelle 2 zu 3 bzw. von Tabelle 3 zu 2) zu transformieren.
+  * Wenn messy-Daten in der Form vorliegen, dass mehrere Werte in einer Spalte gespeichert wurden (so wie in der Urliste von Hagen), erweist sich die `separate()`-Funktion als hilfreich.
+
+* ...Pipes (`%>%`), um den Output einer Funktion direkt als Input für die nächste Funktion zu verwenden.
+   
+**Kurz:** Klare und intuitive Syntax mit intuitiven Funktionsnamen ("Verben")
+
+* In Base-`r fa('r-project')` wurde mit Version 4.1.0 eine **native Pipe** (`|>`) implementiert
+
+
+---
+class: left
+
+.blockquote[tidyverse]
+
+## Beispiel: Lesbarkeit durch Pipes
+.small[
+* Schwer lesbarer Code in Base-`r fa('r-project')`
+```{r}
+#| label: baseR nested
+# Initialisierung Vektor x
+x <- c(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907)
+
+# Berechne den Logarithmus von x, gib die entsprechend verzögerten und iterierten Differenzen zurück. Berechne die Exponentialfunktion und runde das schließlich das Ergebnis 
+round(exp(diff(log(x))), 1)
+```
+* Intuitive Erfassung von workflows mittels Pipe 
+```{r pipe,message=FALSE}
+# Laden der magrittr-Bibliothek
+library(magrittr) #
+x %>% log() %>%
+      diff() %>%
+      exp() %>%
+      round(1)
+```
+]
+
+
+
+---
+class: left
+
+.blockquote[R-Projekte]
+
+## Reproduzierbarkeit mit R-Projekten
+
+* Projektordner mit einheitlicher Struktur: Ordner für 
+    * Daten
+    * R-Skripte
+    * Rmd/qmd
+    * Abbildungen
+    * ...
+* Dokumentation mit README.md auf jeder Ordnerebene
+
+* Ein Projekt ist erst angelegt, wenn die .Rproj-Datei im Wurzelverzeichnis erzeugt wurde.
+
+* "Navigation" mittels `xfun::from_root()`
+
+* Vorlage im FFHS-Moodle-Kurs: `R-Projektvorlage.zip`
+
+
+
+
 
 ---
 name: EndHanks
