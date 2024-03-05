@@ -1,0 +1,213 @@
+---
+title: "ER014 Session 1"
+output: html_document
+date: "2023-02-23"
+author: "Anastasija Tetereva, PhD & Prof. Dr. Jörg Schoder"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+```
+
+## Vergleich zweier (unabhängiger) Populationsmittelwerte
+### ZixIt Corp. gegen Visa USA Inc.
+
+Das National Law Journal (26. August bis 2. September 2002) berichtete über ein interessantes Gerichtsverfahren, an dem die ZixIt Corp. beteiligt war, ein neu gegründetes Internet-Kreditkartenabrechnungszentrum. ZixIt behauptete, dass sein neues Online-Kreditkartenverarbeitungssystem es Internetkäufern ermöglichen würde 
+Einkäufe zu tätigen, ohne ihre Kreditkartennummern preiszugeben. Diese Behauptung verstieß gegen die etablierten Protokolle der meisten großen Kreditkartenunternehmen, einschließlich Visa. Ohne Wissen des Unternehmens begann ein Visa-Vizepräsident für technologische Forschung und Entwicklung, E-Mails und Website-Postings auf einem Yahoo!-Nachrichtenbrett für ZixIt-Investoren zu verfassen, in denen er die Behauptung von ZixIt anzweifelte und die Investoren aufforderte, ihre ZixIt-Aktien zu verkaufen. Die Visa-Führungskraft veröffentlichte mehr als 400 E-Mails und Notizen, bevor sie erwischt wurde. Als sich herausstellte, dass eine Visa-Führungskraft für die Postings verantwortlich war, reichte ZixIt eine Klage gegen die Visa Corp. ein und behauptete, dass Visa - mit Hilfe der Führungskraft als Agent - ein "bösartiges zweiteiliges Schema zur Verunglimpfung und Beeinträchtigung von ZixIt" und dessen Bemühungen um die Vermarktung des neuen Online-Kreditkartenabwicklungssystems betrieben habe. In der Verleumdungsklage forderte ZixIt 699 Millionen Schadenersatz. Die Dallas-Anwälte Jeff Tillotson und Mike Lynn von der Anwaltskanzlei Lynn, Tillotson & Pinker wurden mit der Verteidigung von Visa in dem Prozess beauftragt. Die Anwälte wiederum beauftragten Dr. James McClave als Statistikexperten. McClave sagte vor Gericht über eine von ihm durchgeführte "Ereignisstudie" aus, in der er die E-Mail-Postings der Visa-Führungskraft mit der Entwicklung des Aktienkurses von ZixIt am nächsten Arbeitstag verglich. McClaves Aussage, die zeigte, dass der Aktienkurs an gleich vielen Tagen nach einem Posting stieg wie fiel, half den Visa-Anwälten, sich in dem Fall durchzusetzen.
+Das National Law Journal berichtete, dass die Geschworenen nach zweieinhalbtägigen Beratungen zu dem Schluss kamen, dass [der Visa-Manager] nicht im Rahmen seines Arbeitsverhältnisses gehandelt hatte und dass Visa ZixIt nicht verleumdet oder in dessen Geschäft eingegriffen hatte.
+
+Die Daten wurden täglich vom 1. September bis zum 30. Dezember 1999 (ein Zeitraum von 83 Tagen) erhoben und sind in der Datei `ZIXVSA.txt` verfügbar. Neben dem täglichen Schlusskurs (in Dollar) der ZixIt-Aktie enthält die Datei eine Variable, die angibt, ob die Visa-Führungskraft eine E-Mail versandt hat oder nicht, sowie die Kursänderung der Aktie am folgenden Arbeitstag. Während des 83-tägigen Zeitraums hat die Führungskraft an 43 Tagen eine E-Mail gepostet und an 40 Tagen keine Postings getätigt.
+
+Wenn sich die täglichen Postings der Visa-Führungskraft negativ auf die ZixIt-Aktie auswirkten, müsste die durchschnittliche Kursänderung nach den Tagen, an denen keine Postings erfolgten, die durchschnittliche Kursänderung nach den Tagen mit Postings übersteigen. Eine Möglichkeit, die Daten zu analysieren, besteht daher darin 
+einen Vergleich zweier Mittelwerte der Grundgesamtheit entweder durch ein Konfidenzintervall oder einen Hypothesentest durchzuführen. Dabei soll $\mu_1$ die mittlere Kursveränderung der ZixIt-Aktie nach allen Tagen **ohne** Email-Versand und $\mu_2$ die mittlere Kursveränderung der ZixIt-Aktie nach Tagen **mit** Email-Versand darstellen. Wenn die von ZixIt erhobenen Vorwürfe tatsächlich zutreffen, dann ist m1 größer als m2. Wenn die Daten jedoch die Behauptung von ZixIt nicht stützen, dann können wir die Nullhypothese $H_0: \mu_1-\mu_2 = 0$ nicht zugunsten von $H_1 zurückweisen: \mu_1 - \mu_2 >0$. Ähnlich verhält es sich, wenn ein Konfidenzintervall für $\mu_1-\mu_2$ den Wert 0 abdeckt, dann gibt es keinen Beweis für die Behauptung von ZixIt. Da beide Stichprobengrößen ($n_1 = 40$ und $n_2 = 43$) groß sind, können wir den $z$-Test für große Stichproben oder das Verfahren für große Konfidenzintervalle für unabhängige Stichproben anwenden.
+
+```{r}
+my_in_file <- "ZIXVSA.txt"
+visa.data <- read.delim(xfun::from_root('data','raw',my_in_file))
+
+summary(visa.data)
+#install.packages("psych"); 
+library(psych)
+describe(visa.data)
+```
+```{r}
+describeBy(visa.data$Change, visa.data$Posting)
+```
+```{r}
+visa.data %>% ggplot(aes(x = Change, fill = Posting)) + geom_histogram(bins = 50)
+```
+
+```{r}
+visa.data %>% ggplot(aes(x = Change, y = Posting)) + 
+  geom_boxplot()
+```
+```{r}
+t.test(Change ~ Posting, data = visa.data, alternative = "greater")
+```
+
+Das Ergebnis weist sowohl das 95%-Konfidenzintervall als auch der $p$-Wert für einen zweiseitigen Hypothesentest aus. Weil das 95 %-Konfidenzintervall (-0,13, 0,06) den Wert 0 umfasst bzw. der $p$-Wert mit 0,6166 oberhalt des Signifikanzniveaus von 5% liegt, kann gefolgert werden, dass sich die beiden Mittelwerte der Grundgesamtheit nicht signifikant voneinander unterscheiden. Interessant ist dabei, dass der Stichprobenmittelwert der Preisänderung nach Tagen **mit** Email-Versand ($\overline{x}_1$ = 0,06) klein und positiv ist, während der Stichprobenmittelwert der Preisänderung nach Tagen **ohne** Email-Versand ($\overline{x}_1$ = - 0,13) klein und negativ ist, was der Behauptung von ZixIt ohnehin völlig widerspricht. Der Statistikexperte der Verteidigung legte diese Ergebnisse den Geschworenen vor und argumentierte, dass die "durchschnittliche Preisänderung nach Tagen **mit** Email-Versand gering und ähnlich wie die durchschnittliche Preisänderung nach Tagen **ohne** Email-Versand" sei und "der Unterschied in den Mittelwerten statistisch nicht signifikant ist".
+
+### Nonparametric test for comparing two population means (bootstrap)
+```{r}
+
+Boot.runs <- 20000 # number of Bootstrap runs
+
+visa.data.with.post <- visa.data  %>%
+                       filter(Posting == "POST")
+                   
+visa.data.without.post <- visa.data  %>%
+                          filter(Posting == "NO")
+
+n.yes <- length(visa.data.with.post) 
+n.no <- length(visa.data.without.post) 
+
+boot.samples.yes = matrix(sample(visa.data.with.post$Change, size = Boot.runs * n.yes, 
+                              replace = TRUE),
+                              Boot.runs, n.yes)
+boot.samples.no = matrix(sample(visa.data.without.post$Change, size = Boot.runs * n.no, 
+                              replace = TRUE),
+                              Boot.runs, n.no)
+
+test.statistics <- apply(boot.samples.no,1,mean) - apply(boot.samples.yes,1,mean)
+
+hist(test.statistics, main = "Bootstrap Distribution", xlab = "")
+quantile(test.statistics, c(0.025, 0.975))
+```
+### Nichtparametrischer Test für den Vergleich zweier Populationsmittelwerte (Permutationstest)
+original <- diff(tapply(outcome, treatment, mean))
+Mittelwert(Ergebnis[Behandlung==1])-Mittelwert(Ergebnis[Behandlung==0])
+
+#Permutationstest
+Um Ergebnisse in Experimenten zu vergleichen, wird häufig der Student's $t$-Test verwendet. Er setzt voraus, dass die Daten zufällig aus der Grundgesamtheit ausgewählt wurden, in großen Stichproben (>30) vorliegen oder normalverteilt sind und die Varianzen zwischen den Gruppen gleich sind. Wenn diese Annahmen nicht erfüllt sind, können wir einen der Simulationstests verwenden. Zum Beispiel den Permutationstest.
+
+Anstatt eine zugrundeliegende Verteilung anzunehmen, baut der Permutationstest seine eigene Verteilung auf, indem er die Assoziationen zwischen oder unter den Gruppen aufbricht. Oft sind wir an der Differenz der Mittelwerte oder Mediane zwischen den Gruppen interessiert, und die Nullhypothese lautet, dass es hier keinen Unterschied gibt. Wir können uns die Frage stellen: Wie extrem würden unsere Daten unter allen möglichen Permutationen aussehen? Alle möglichen Permutationen würden eine theoretische Verteilung darstellen. In der Praxis ist es nicht notwendig, ALLE Permutationen durchzuführen, um die theoretische Verteilung zu erstellen, sondern eine angemessene Anzahl von Simulationen durchzuführen, um eine Stichprobe aus dieser Verteilung zu ziehen. 
+
+
+Der Permutationstest ist ein leistungsfähiges Instrument zur Messung von Effekten in Experimenten. Er ist einfach zu implementieren und beruht nicht auf vielen Annahmen wie andere Tests. Er war nicht sehr beliebt, bis die Simulation auf Computern routinemäßig eingeführt wurde.
+
+Er ist eng mit einem anderen Simulationstest verwandt: dem Bootstrapping-Hypothesentest, bei dem die Stichproben mit Ersatz gezogen werden.
+
+
+```{r}
+permutation.test <- function(treatment, outcome, n){
+  data <- na.omit(data.frame(treatment, outcome))
+  treatment <- data[,1]
+  outcome <- data[,2]
+  distribution=c()
+  result=0
+  for(i in 1:n){
+    
+    distribution[i]= diff(by(outcome, sample(treatment, length(treatment), FALSE), mean))
+  }
+  original <- diff(by(outcome, treatment, mean))
+  return(list(distribution, original))
+}
+
+treatment <- visa.data$Posting
+outcome <-  visa.data$Change
+test.statistics.permut <- permutation.test(visa.data$Posting, visa.data$Change, 10000)
+hist(test.statistics.permut[[1]], breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=test.statistics.permut[[2]], lwd=3, col="red")
+quantile(test.statistics.permut[[1]], c(0.025, 0.975))
+```
+Wir führen eine Simulation durch, bei der 10k Shaffles ohne Ersatz gezogen werden, und zeichnen die Differenz der Mittelwerte für jede Permutation auf. Dann konstruieren wir Konfidenzintervalle für den Mittelwertunterschied unter der Nullhypothese, dass es keinen Unterschied im Mittelwert der Veränderung gibt. Wenn wir die Verteilung aufzeichnen, können wir feststellen, dass unsere ursprüngliche Differenz nicht besonders extrem ist, mit einem exakten $p$-Wert von ? (wir haben uns die Konfidenzintervalle angesehen, versuchen Sie jetzt, den $p$-Wert zu berechnen). Wenn wir diesen $p$-Wert mit dem des $t$-Tests vergleichen, was stellen wir dann fest?
+```{r}
+#install.packages("coin")
+library(coin)
+visa.data$Posting = as.factor(visa.data$Posting )
+oneway_test(Change~Posting,data=visa.data,distribution="exact")
+```
+### Ermittlung eines geeigneten Stichprobenumfangs
+
+Sie können den geeigneten Stichprobenumfang ermitteln, um die Differenz zwischen einem Paar von 
+Parametern mit einem bestimmten Stichprobenfehler (SE) und Zuverlässigkeitsgrad zu schätzen. Zur Schätzung der Differenz zwischen einem Paar von 
+Parameter mit dem gegebenen Konfidenzniveau innerhalb der SE-Einheiten zu korrigieren.
+
+Betrachten Sie das folgende Problem. Neue Düngemittel werden oft mit dem Versprechen höherer Ernteerträge beworben. 
+Ernteerträgen beworben. Angenommen, wir wollen den mittleren Ertrag $m_1$ von Weizen bei Verwendung eines neuen Düngemittels mit dem mittleren Ertrag $m_2$ bei Verwendung eines herkömmlichen Düngemittels vergleichen. Die Schätzung des 
+Unterschieds im mittleren Ertrag pro Acker soll mit einer Genauigkeit von $.25$ Scheffel bei einem Konfidenz 
+Vertrauenskoeffizient von $.95$. Wenn die Stichprobengrößen gleich sein sollen, bestimmen Sie $n_1 = n_2 = n$, die Anzahl der 
+1-Hektar-Weizenparzellen, die jedem Dünger zugeordnet sind.
+
+Um das Problem zu lösen, müssen Sie etwas über die Variation in 
+des Scheffelertrags pro Hektar wissen. Angenommen, Sie wissen aus früheren Aufzeichnungen, dass die Erträge von Weizen 
+eine Schwankungsbreite von etwa 10 Scheffel pro Hektar aufweisen. Dann könnte man folgende Näherung aufstellen 
+$\sigma_1 = \sigma_2 = \sigma$, indem man die Spanne gleich $4 \sigma$ lässt. Wir wissen, dass $z_{\alpha/2}\sigma_{\overline{x}_1-\overline{x}_2} = SE$ ist. Auf diese Weise wird $z_{\alpha/2}\sqrt{\frac{\sigma_1^2}{n_1} +\frac{\sigma_2^2}{n_2}} = SE$ und $1.96 \sqrt{\frac{2 (2.5)^2}{n}} = 0.25$ und $n = 769$.
+
+### Vergleich zweier Bevölkerungsanteile
+
+Wir haben gezeigt, wie der Statistikexperte einen Vergleich von zwei 
+Mittelwerten verwendet, um Visa in einem Verleumdungsfall zu verteidigen. Wir erinnern uns, dass ZixIt behauptete, dass die 
+E-Mail-Postings eines Visa-Managers einen negativen Einfluss auf den Versuch von ZixIt gehabt hätten, ein neues Online-Kreditkartenverarbeitungssystem zu entwickeln. 
+Kreditkartenabwicklungssystem zu entwickeln. Hier zeigen wir eine andere Art der Datenanalyse, die von dem Statistiker erfolgreich vor Gericht präsentiert wurde.
+Neben dem täglichen Schlusskurs und dem Handelsvolumen der ZixIt-Aktie enthält die Datei `ZIXVSA.txt` 
+auch eine qualitative Variable, die angibt, ob der Aktienkurs an einem Tag gestiegen ist oder nicht 
+(gesunken oder gleich geblieben) am Folgetag ist. Diese Variable wurde vom Statistiker erstellt, um den Anteil der Tage zu vergleichen, an denen die ZixIt-Aktie an Tagen **mit** bzw. **ohne** Email-Versand gestiegen ist. $p_1$ sei der Anteil der Tage, an denen der Kurs der ZixIt-Aktie nach allen Tagen **ohne** Email-Versand gestiegen ist, und $p_2$ sei der Anteil der Tage, an denen der Kurs der ZixIt 
+Aktienkurs nach Tagen **mit** Email-Versand gestiegen ist. Wenn die von ZixIt erhobenen Vorwürfe wahr wären 
+(d.h., dass die Email-Postings einen negativen Einfluss auf die ZixIt-Aktie hatten), wird $p_1$ größer sein als $p_2$. Daher ist ein Vergleich von zwei Populationsanteilen angebracht. Erinnern wir uns, dass während des 83-Tage-Zeitraums 
+an 43 Tagen E-Mails versendet und an 40 Tagen keine Emails versendet wurden. Nochmals, 
+beide Stichprobenumfänge ($n_1 = 40$ und $n_2 = 43$) sind groß, so dass wir den $z$-Test für große Stichproben anwenden können 
+oder das Verfahren des großen Konfidenzintervalls für unabhängige Stichproben anwenden.
+```{r}
+#table(visa.data$Up.Down,visa.data$Posting)
+prop.test(length(visa.data$Up.Down[visa.data$Up.Down=="UP"]), nrow(visa.data), p = 0.5, alternative = "two.sided")
+```
+
+Die Ergebnisse zeigen, dass nach den .. Tagen **ohne** Email-Versand der Kurs 
+an ... Tagen gestiegen ist; nach den ... Tagen **mit** Email-Versand ist der Aktienkurs an ... Tagen gestiegen. 
+Die Proportionen der Stichprobe sind also $p_1 = $ und $p_2 = $. Sind diese 
+Proportionen der Stichprobe so unterschiedlich, dass wir daraus schließen können, dass die Proportionen der Grundgesamtheit 
+unterschiedlich sind und die Behauptung von ZixIt wahr ist? Nach der statistischen Analyse nicht. 
+Man beachte, dass das 95%-Konfidenzintervall $(0,34, 0,56)$ den Wert 
+0.5, und der $p$-Wert für den zweiseitigen Test von $H_0: p_1 = 0.5$ ist $0.445$, überschreitet, 
+sagen wir, $\alpha = 0,05$. Beides bedeutet, dass die beiden Bevölkerungsanteile nicht signifikant unterschiedlich sind.
+
+
+## Vergleich zweier abhängiger Populationsmittelwerte
+
+Angenommen, Sie möchten die mittleren Tagesumsätze zweier Restaurants in derselben Stadt vergleichen.  Wenn Sie den Gesamtumsatz der Restaurants für jeden der 12 zufällig ausgewählten Tage 
+während eines Zeitraums von 6 Monaten aufzeichnen, könnten die Ergebnisse wie in der Datei `restaurants.txt` aussehen. 
+
+Weisen diese Daten auf einen Unterschied zwischen den durchschnittlichen Tagesumsätzen der beiden 
+Restaurants? Wir wollen die Nullhypothese testen, dass die mittleren Tagesumsätze $\mu_1$ und $\mu_2$ für die beiden 
+Restaurants gleich sind, gegen die Alternativhypothese, dass sie unterschiedlich sind, testen, d. h,
+$H_0: \mu_1-\mu_2 = 0$
+$H_a: \mu_1-\mu_2 \neq 0$
+Viele Forscher verwenden fälschlicherweise die $t$-Statistik für zwei unabhängige Stichproben, um diesen Test durchzuführen. t = .38 ist auf dem Ausdruck hervorgehoben, ebenso wie der $p$-Wert des Tests. Bei $\alpha = .10$ übersteigt der $p$-Wert $\alpha$. Aus dieser Analyse könnte man also schließen, dass nicht genügend Beweise vorhanden sind, um auf einen Unterschied im durchschnittlichen Tagesumsatz der beiden Restaurants zu schließen. 
+Tagesumsatzes zwischen den beiden Restaurants gibt.
+Wenn Sie die Daten jedoch genau untersuchen, werden Sie feststellen, dass diese Schlussfolgerung schwer zu akzeptieren ist. Der Umsatz von Restaurant 1 übersteigt den von Restaurant 2 an jedem der 12 zufällig ausgewählten Tage. Dies ist an sich schon ein starkes Indiz dafür, dass 
+$\mu_1$ sich von $\mu_2$ unterscheidet, und wir werden diese Tatsache später bestätigen. Warum aber konnte der $t$-Test 
+nicht in der Lage, diesen Unterschied festzustellen? Die Antwort ist, dass der $t$-Test für unabhängige Stichproben kein 
+Verfahren für diesen Datensatz nicht geeignet ist.
+Der $t$-Test ist ungeeignet, weil die Annahme von unabhängigen Stichproben 
+ungültig ist. Wir haben die Tage nach dem Zufallsprinzip ausgewählt; sobald wir also die Stichprobe von 
+Tage für Restaurant 1 ausgewählt haben, haben wir die Stichprobe der Tage für Restaurant 2 nicht unabhängig ausgewählt. Die Abhängigkeit zwischen den Beobachtungen innerhalb der Tage wird deutlich, wenn man die Paare der Tagesumsätze betrachtet, die von Tag zu Tag zusammen steigen und fallen. 
+zu Tag. Dieses Muster ist ein deutlicher visueller Hinweis auf eine Verletzung der Unabhängigkeitsannahme 
+der Unabhängigkeit, die für den $t$-Test mit zwei Stichproben erforderlich ist. Außerdem gibt es eine große Variation innerhalb der Stichproben im 
+im Vergleich zu der relativ geringen Differenz zwischen den Stichprobenmittelwerten. Da die Abweichung
+so groß ist, ist der $t$-Test nicht in der Lage, einen möglichen Unterschied zwischen $\mu_1$ und $\mu_2$ zu erkennen.
+
+Wir betrachten nun eine gültige Methode zur Analyse der Daten. Wir fügen die Spalte der Differenzen zwischen den täglichen Umsätzen der beiden Restaurants hinzu, $x_d = x_1 - x_2$. Wir können diese täglichen Umsatzdifferenzen als eine Zufallsstichprobe 
+Stichprobe aller täglichen Differenzen in der Vergangenheit und Gegenwart betrachten. Anhand dieser Stichprobe können wir dann 
+Rückschlüsse auf den Mittelwert der Grundgesamtheit der Differenzen ziehen, der gleich der 
+Differenz $\mu_1-\mu_2$, d. h. der Mittelwert der Grundgesamtheit (und der Stichprobe) der Differenzen ist gleich der Differenz zwischen den Mittelwerten der Grundgesamtheit (und der Stichprobe).
+
+```{r}
+library("readxl")
+my_in_file <- "SALES2.xlsx"
+data.rest <- read_excel(xfun::from_root('data','raw',my_in_file))
+head(data.rest)
+```
+Nun werden wir zwei Versionen des $t$-Tests durchführen. Zunächst führen wir einen $t$-Test für die Differenz zwischen den Umsätzen zweier Restaurants durch, mit der Nullhypothese, dass die Differenz gleich Null ist, und der Alternative, dass sie größer als Null ist.
+```{r}
+t.test(data.rest$SALES1-data.rest$SALES2, mu = 0, alternative = "greater")
+```
+Zweitens führen wir einen $t$-Test für gepaarte Stichproben durch mit der Nullhypothese, dass beide Restaurants den gleichen Umsatz haben, und der Alternative, dass der Umsatz des ersten Restaurants größer ist. Vergleichen Sie die Ergebnisse der beiden Tests.
+
+```{r}
+t.test(data.rest$SALES1, data.rest$SALES2, paired = TRUE, alternative = "greater")
+```
+
+Als erfahrener *Data Scientist*, möchten Sie vielleicht Ihre asymptotischen Ergebnisse mit denen von Bootstrap und Permutationstest vergleichen. Bitte tun Sie das.

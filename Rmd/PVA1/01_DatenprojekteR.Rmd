@@ -1,0 +1,1123 @@
+---
+title: "Datenprojekte im R tidyverse"
+author: "Prof. Dr. Jörg Schoder"
+date: "2023-07-28"
+bibliography: ../../lit/Statistics.json
+reference-section-title: Quellenverzeichnis
+output:
+    html_document:
+      css: ../../css/styles.css
+      code_folding: hide
+      number_section: true
+      toc: true
+      toc_float: true
+      toc_depth: 3
+---
+
+
+```{r, echo=FALSE}
+htmltools::img(src = knitr::image_uri(xfun::from_root('img', 'FFHS_mit_Zusatz_rgb.svg')), 
+               alt = 'logo', 
+               style = 'position:absolute; top:0; right:0; padding:10px; width:300px; height:200px')
+```
+
+```{r setup, echo=FALSE,message=FALSE,warning=FALSE}
+source(xfun::from_root('R','00_setup.R'))
+library(fontawesome)
+```
+
+
+
+# Überblick Datenprojekte
+
+* Datenprojekte...
+
+  * ...sind Projekte, bei denen Daten gesammelt, analysiert und interpretiert werden, um bestimmte Ziele zu erreichen.
+  * ... können verschiedene Formen annehmen, darunter wissenschaftliche Forschungsstudien, Marktanalysen, Geschäftsdatenanalysen und vieles mehr.
+  * durchlaufen typischerweise verschiedene Phasen (s.u.).
+
+* Für Unternehmen und Organisationen spielen Datenprojekte eine immer wichtigere Rolle, weil sie 
+für fundierte Entscheidungen und Einblicke in komplexe Fragestellungen zunehmend auf Daten angewiesen sind.
+
+* Statistik und Software sind für erfolgreiche Datenprojekte unverzichtbar
+  * Mit Hilfe statistischer Verfahren können in den gesammelten Daten sinnvolle Muster und Trends erkannt werden.
+  * Software ist Voraussetzung für eine effiziente (ggf. sogar automatisierte) des gesamten Datenprojekts (s.u.).
+
+
+
+## Phasen und Ablauf von Datenprojekten
+
+```{r, echo=FALSE,fig.cap='Data Science Workflow. Eigene Darstellung.'}
+knitr::include_graphics(xfun::from_root('img','PVA1','DataScience_Workflow.PNG'))
+```
+
+
+## Datenprojekte im `r fa('r-project')`-tidyverse
+
+### Grundidee des "tidyverse"
+
+* Hadley Wickham und anderen Entwickler haben eine Sammlung von `r fa('r-project')`-Paketen mit einer "gemeinsamen und v.a. **intuitiven** Grundlogik" (Syntax) als [tidyverse](https://www.tidyverse.org/) etabliert. 
+
+* Vorstellung: `r fa('r-project')` als Sprache, *tidyverse* als Dialekt.
+
+* **Kernphilosophie:** Effizientiere, konsistentere und **intuitivere** Gestaltung von Datenanalysen durch...
+  * ...Organisation von Daten in **"tidy"**-Form
+  * ...klarere und kompaktere Code-Struktur. Diese wird ermöglicht durch...
+    * ...Einsatz funktionaler Programmierung und anwendungsspezifischer Funktionen (sogenannten "Verben" wie filter(), mutate(), select() usw.) anstelle von komplexen Schleifen.
+   * ...Pipes (`%>%`), um den Output einer Funktion direkt als Input für die nächste Funktion zu verwenden.
+   
+**Kurz:** Klare und intuitive Syntax mit intuitiven Funktionsnamen ("Verben").
+
+<!-- , statt der auf umständlichen Datenstrukturen basierenden traditionellen Ansätze. Diese konsistente Struktur... -->
+<!--   * ...erleichtert die Datenarbeit und Anwendung von Funktionen ... -->
+<!--   * ...und hat das Potenzial zur Steigerung der Produktivität und Reproduzierbeit von Datenanalysen. -->
+
+
+
+### tidyverse-Pakete im Verlauf eines Datenprojekts
+
+* Überblick über tidyverse-kompatible Pakete, die in den verschiedenen Phasen eines Datenprojekts hilfreich sind
+
+```{r,echo=FALSE,fig.cap='Überblick R tidyverse. Quelle: [storybench.org](https://www.storybench.org/getting-started-with-tidyverse-in-r/).',fig.subcap='Quelle: [storybench.org](https://www.storybench.org/getting-started-with-tidyverse-in-r/)'}
+knitr::include_graphics(xfun::from_root('img','PVA1','tidyverse_(storybench).png'))
+```
+
+* **tidyverse**-Bibliothek als "Metapaket": Mit `library(tidyverse)` werden automatisch die wichtigsten tidyverse-Pakete geladen:
+
+* Das **tibble**-Paket - stellt  via `tibble()`-Funktion eine Datenstruktur bereit
+* Das **readr**-Paket - stellt diverse Funktionen wie bspw. `read_csv()` zum Einlesen rechteckiger Daten aus durch Trennzeichen getrennten Dateien (.csv,.tsv, etc.) zur Verfügung.
+* Das **tidyr**- und das **dplyr**-Paket zur Datentransformation und -modifikation
+* Das **stringr**-, das **forcats**- und das **lubridate**-Paket für die Arbeit mit speziellen Objekttypen:
+  * **stringr** für die Arbeit mit Textobjekten
+  * **forcats** für die Arbeit mit Faktoren
+  * **lubridate** für die Arbeit mit Zeitdaten
+* das **purrr**-Pakete für funktionelles Programmieren
+* das **ggplot**-Paket für die Datenvisualierung
+
+Neben dem **purrr**-Paket spielt für die Praxis in Sachen Programmierung noch das **glue**-Paket eine Rolle, das (als Alternative zur paste()-Funktion) die Möglichkeit bietet Daten/Zahlen und strings zu verbinden.
+
+# Kernelemente des tidyverse
+
+Hier sollen nur die wichtigsten Grundlagen vermittelt werden, um möglichst schnell Erfolgserlebnisse bei der praktischen Umsetzung von Datenprojekten zu ermöglichen. Detailliertere Hinweise zum tidyverse finden sich bspw. im Klassiker von [Wickham et al.](https://r4ds.hadley.nz/) oder [Modern R with the tidyverse](http://modern-rstats.eu/).
+
+## "tidy" Daten
+
+Ein und dieselben Daten können in unterschiedlicher Weise tabellarisch dargestellt werden. 
+
+### Beispiel
+
+:::e-box
+```{r,echo=FALSE}
+#Daten laden
+my_in_file <- "Kundenbefragung_BABC.xlsx"
+tbl_messy <- readxl::read_xlsx(xfun::from_root("data","raw",my_in_file))
+tbl_wide <- tbl_messy %>% separate(Gericht, into = c("Gericht","Beilage")) %>% 
+              select(Kunde, Gericht, Beilage, Zufriedenheit)
+tbl_long <- tbl_wide %>%
+                pivot_longer(-Kunde,names_to = 'Merkmal')
+#str_extract_all(messy$Gericht, "\\d+")
+```
+Ausgewählte Variablen aus der BABC-Kundenbefragung:
+
+* Tabelle 1
+
+```{r,echo=FALSE}
+tbl_messy %>% 
+  select(Kunde, Gericht, Zufriedenheit)
+```
+
+* Tabelle 2
+
+```{r,echo=FALSE}
+tbl_wide
+```
+
+* Tabelle 3
+
+```{r,echo=FALSE}
+tbl_long
+```
+:::
+
+### "tidy" Datenstruktur
+
+:::d-box
+`r fa('tag')`
+Die **"tidy"**-Form von Daten ist dadurch gekennzeichnet, dass
+
+* jede Variable eine Spalte darstellt,
+* jeder Fall eine Zeile und
+* jeder Wert einer Beobachtung entspricht.
+:::
+
+```{r}
+#| label: img-tidy-format
+#| echo: false
+#| fig.align: center
+#| out.width: '70%'
+#| fig.cap: 'tidy Format (Quelle: Wickham et al.)'
+knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/6f1ddb544fc5c69a2478e444ab8112fb0eea23f8/91adc/images/tidy-1.png')
+```
+
+:::q-box
+`r fa('question-circle')` Welche der Tabellen 1-3 haben das tidy-Format?
+:::
+
+
+
+
+### Vorteile von "tidy" Daten
+
+* Eine einheitliche Art der Datenspeicherung ist vorteilhaft, genügt es, eine vergleichsweise geringe Zahl an Werkzeugen und Verfahren zu lernen, die für eine bestimmte Struktur von Daten funktionieren. 
+
+* Für tidy Daten stehen die verschiedene tidyverse-Bibliotheken zur Verfügung, die grundsätzlich alle notwendigen Schritte eines Datenprojekts abdecken und für die Verwendung von tidy Daten konzipiert/optimiert wurden.
+
+* Wenn Variablen den Spalten einer Tabelle zugeordnet werden, hat dies den Vorteil, dass dadurch die vektorisierte Natur von `r fa('r-project')` zur Geltung kommt.
+
+
+
+
+## Funktionen
+
+Das **dplyr**-Paket stellt für die gebräuchlichsten Datenverarbeitungsaufgaben Funktionen bereit. Die Funktionen sind inuitiv nach ihren Einsatzbereichen benannt, die in drei Kategorien unterteilt werden können: 
+
+1. Zeilen:
+  * `filter()` zur Auswahl von Zeilen (Beobachtungen) anhand von Spaltenwerten.
+  * `slice()` zur Auswahl von Zeilen (Beobachtungen) auf Basis der Position.
+  * `arrange()` zur Änderung der Reihenfolge der Zeilen (bspw. aufsteigend).
+2. Spalten:
+  * `select()` zur Auswahl von Spalten bzw. Variablen auf Basis von Variablennamen.
+  * `rename()` zur Änderung der Variablennamen.
+  * `mutate()` zur spaltenweisen Transformation von Werten und Erstellung neuer Spalten.
+relocate() ändert die Reihenfolge der Spalten.
+3. Gruppen von Zeilen:
+  * `summarise()` für die Zusammenfassung einer Gruppe zu einer einzigen Zeile ("collapse").
+  * `group_by()` für die Zusammenfassung von Zeilen nach Merkmalsausprägungen (z.B. nach dem Geschlecht) 
+
+
+Spezielle Funktionen zur Erzeugung und Transformation von "tidy"-Daten stellt die **tidyr**-Bibliothek bereit.
+
+  * Besonders häufig werden wir die Funktionen `pivot_wider()` und `pivot_longer()` einsetzen, um Daten zwischen dem wide-Format und dem long-Format (bspw. von Tabelle 2 zu 3 bzw. von Tabelle 3 zu 2) zu transformieren.
+  * Wenn messy-Daten in der Form vorliegen, dass mehrere Werte in einer Spalte gespeichert wurden (so wie in der Urliste von Hagen), erweist sich die `separate()`-Funktion als hilfreich.
+
+
+
+## Pipes
+
+* Die "Pipe" gehört zu den markantesten Eigenschaften von tidyverse/dplyr-Code.
+
+* In Base-`r fa('r-project')` führte die Anwendung mehrerer Funktionen auf ein Datenobjekt traditionell meist zu schwer lesbarem, weil verschachteltem, Code.
+
+Beispiel:
+```{r baseR-nested,code-hiding: false}
+# Initialisierung Vektor x
+x <- c(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907)
+
+# Berechne den Logarithmus von x, gib die entsprechend verzögerten und iterierten Differenzen zurück. Berechne die Exponentialfunktion und runde das schließlich das Ergebnis 
+round(exp(diff(log(x))), 1)
+```
+
+### magrittr/dplyr-Pipe
+
+<!-- Andere Programmiersprachen hatten schon länger Pipes -->
+
+<!-- in Anlehnung an [WeAreRLadies](https://twitter.com/WeAreRLadies/status/1172576445794803713?s=20) -->
+
+<!-- > aufstehen %>% duschen %>% anziehen %>%  kaffee %>% arbeiten -->
+
+
+* Mit dem **magrittr**-Paket wurde 2013 die Idee der "Pipe" in `r fa('r-project')` implementiert:
+
+```{r pipe,message=FALSE}
+# Laden der magrittr-Bibliothek
+library(magrittr)
+
+# Durchführung der Berechnung - Pipe ermöglicht dies inuitiv "Schritt-für-Schritt"
+x %>% log() %>%
+      diff() %>%
+      exp() %>%
+      round(1)
+```
+
+* Der Pipe-Operator `%>%` ermöglicht es, auf einfache Weise eine Reihe von Berechnungen zu verketten.^[Für weitere Erläuterungen und Beispiele vgl. bspw. [@unkel_computational_2020](https://bookdown.org/joone/ComputationalMethods/der-pipe-operator.html)]
+
+* Seit 2014 ist der **magrittr**-Operator `%>%` im **dplyr**-Paket implementiert und kann mit Laden des **tidyverse**-Metapakets direkt genutzt werden.
+
+* Die **magrittr**-Pipe besteht aus drei Zeichen. Diese müssen nicht separat eingegeben werden. Stattdessen kann die Pipe mit der Tastenkombination Strg/Cmd + Shift + M in den Code eingefügt werden.
+
+### Base-`r fa('r-project')`-Pipe
+
+* Aufgrund des großen Erfolgs des tidyverse-Metapakets wurde mit Version 4.1.0 auch in Base-`r fa('r-project')` eine Pipe implementiert. 
+
+* Als Operator für die sog. **native Pipe** dient dient die Zeichenfolge `|>`
+
+* Für Nutzer von dplyr/tidyverse sind die beiden Pipes (`|>` bzw. `%>%`) für einfache Anwendungsfälle mehr oder weniger austauschbar.
+
+* Bei großen Datensätzen kann die native Pipe einen Geschwindigkeitsvorteil bringen.
+
+### Vergleich und Festlegung
+
+* Die **magrittr**-Pipe fügt grundsätzlich das mit der Funktion auf der linken Seite (oder in unserem Fall von oben) ermittelte Ergebnis in die Funktion auf der rechten Seite (oder in unserem Fall in den folgenden Code) ein. Das Ergebnis wird dabei *standardmäßig* an der **ersten Stelle** der Funktion eingefügt.
+
+```{r, echo=FALSE}
+knitr::include_graphics('https://sandbox.dodona.be/en/activities/2127610019/description/xmzzEmCJNMmtBVVj/media/dplyr_pipe.png')
+```
+Quelle: [Dodona](https://dodona.be/en/activities/2127610019/)
+
+* Auch die **native pipe** setzt die Ergebnisse an die erste Stelle der Funktion auf der rechten Seite (bzw. unten) ein.
+
+* Während die **dplyr**-Funktionen so organisiert sind, dass eine Verkettung auf diese Weise möglich ist, gilt dies für andere Funktionen (bspw. aus Base `r fa('r-project')`) nicht immer, weil bspw. ein Ergebnis an der zweiten, dritten oder einer anderen Stelle eingefügt werden muss.
+
+* Der Vorteil der **magrittr**-Pipe ist in diesen Fällen, dass ein `.` als "Platzhalter" genutzt werden kann. D.h. das Ergebnis der linken Seite wird einfach an der Stelle der Funktion eingefügt, an der sich der "Platzhalter" `.` befindet.
+
+* In Base-`r fa('r-project')` wird noch an einem geeigneten Verfahren für "Platzhalter" gearbeitet. Bis eine Implementierung in Base-`r fa('r-project')` erfolgt ist und um Verwirrungen durch verschiedene Pipe-Operatoren vorzubeugen, wird im Rahmen der Vorlesung bis auf weiteres der **magrittr**-Operator `%>%` verwendet.
+
+
+
+
+# Dateneingabe in `r fa('r-project')`
+
+* Die Eingabe der **Urliste** kann in `r fa('r-project')` über die Konsole oder in einer .R-Skript-Datei erfolgen. 
+
+* Dafür gibt es grundsätzlich 2 Varianten: 
+  1. Erzeugung von Vektoren für jedes Merkmal und Zusammenführung der Vektoren in einer "Tabelle"
+  2. Direkte Erzeugung einer Tabelle
+  
+* Zur Speicherung von "Tabellen" gibt es in `r fa('r-project')` verschiedene Möglichkeiten, darunter:
+  * `data.frame` (traditionelle Variante) 
+  * `tibble` (moderne/tidyverse Variante)
+  * `data.table` ([leistungsstärkste Variante](https://towardsdatascience.com/data-table-rs-best-data-object-c95b7d5f0104) für den Einsatz von goßen Datensätzen (**Big Data**))
+
+* Wir werden fast ausschließlich mit `tibble`-Objekten arbeiten (s.u.), das spezfisch auf die **tidyverse**-Syntax abgestimmt ist.^[Für weitere Hinweise zu tibbles sowie einem Vergleich mit traditionellen data.frames siehe bspw. [@wickham_r_2017](https://r4ds.had.co.nz/tibbles.html)] 
+
+## Exkurs: Daten- und Objekttypen
+
+### Datentypen
+
+R kennt 5 grundlegende Datentypen, die letztlich allen Analysen in R
+zugrundeliegen. Diese sind:
+- `double`
+- `integer`,
+- `complex`,
+- `logical` und
+- `character`
+
+sowie außerdem noch "NULL" (praktisch wenig relevante "leere Werte").
+
+
+### Datenstrukturen und Objekte
+
+Elemente dieser Menge von Daten*typen* können zu sog. Daten*strukturen* kombiniert werden. Die unterschiedlichen Datenstrukturen lassen sich in u.a. in folgende Objektklassen unterteilen:
+- `vector` und `array`
+- `function`
+- `factor`
+- `data.frame`, `tibble`, `data.table`
+- `list`
+
+Der Vorteil von Objekten der Klasse `data.frame`, `tibble` und `data.table` ist, dass diese die Kombination verschiedener Objekttypen (character, numeric, factor etc.) erlaubt.
+
+Noch flexibler sind `list`-Objekte. Während `data.frame`, `tibble` und `data.table` nur rechteckige Daten  (d.h. alle Spalten und Zeilen haben die gleiche Länge) speichern können, lassen `list`-Objekte die Zusammenfassung von Objekten unterschiedlicher Dimensionen zu. Der Umgang mit Listen ist etwas komplizierter und wird damit im Rahmen des Moduls nicht weiter thematisiert.
+
+
+Einen guten Überblick über die Eigenschaften bieten bspw. die Webseiten [statmethods](https://www.statmethods.net/input/datatypes.html) oder in oder in deutscher Sprache bspw. [tadaa-data.de](https://r-intro.tadaa-data.de/book/datentypen.html).
+
+
+## Eingabe von Vektoren
+
+* Verwendung "sprechender Bezeichnungen"
+    * `r fa('r-project')` kann Variablennamen ohne Trennzeichen nicht ohne weiteres verarbeiten
+    * Bei den zusammengesetzten Bezeichnungen gilt in der `r fa('r-project')`-community die Konvention, ein `_` als Trennzeichen zu verwenden
+* Typen von Vektoren:
+
+  * `Logical`
+  * `numeric`
+     * `integer`
+     * `double`
+  * `character`
+
+
+
+```{r, menu,echo=FALSE}
+tbl_menu <- tibble(Nummer=as.character(c(1:5)),Gericht=c("Cheeseburger","Chickenburger","Chiliburger","Vurger","Pommes"),Preis=c("7,90€","6,50€","8,50€","8,90€","4,50€"))
+tbl_menu %>% 
+  kable(align = "lcr",format = "html", table.attr = "style='width:50%;'") %>%      #Festlegung der Tabellenbreite
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) 
+```
+
+
+
+:::q-box
+`r fa('question-circle')` Gib die Elemente *Datum*, *Gericht*, sowie *Wartezeit* und *Zufriedenheit mit der Dienstleistung* zu Hagens Kundenbefragung als Vektoren ein.
+:::
+
+
+```{r urliste, code_folding: hide}
+# Dateneingabe am Bsp. der BABC-Urliste ----
+## Einzelne Items als Vektoren ------
+### Datum-----
+date <- c('2023-01-31 20:11', '2023-01-31 19:19', '2023-02-01 12:15','2023-02-01 12:31','2023-02-01 13:11','2023-02-01 18:13',
+'2023-02-02 12:38','2023-02-02 12:51','2023-02-02 13:13',  '2023-02-02 14:13' )
+### Gericht ----
+#(obs! Eingabe als character Variable)
+meal <- c("1 & 5","4","3 & 5","1 & 5","5","2","4","1","2","1 & 5")
+### Wartezeit -----
+t_warten <- c(20,30,10,15,5,5,25,30,10,20)
+### Zufriedenheit mit der Dienstleistung -----
+sat_DL <- c("eher zufrieden", "sehr zufrieden","sehr zufrieden","eher zufrieden","sehr unzufrieden","eher unzufrieden","eher zufrieden","eher zufrieden","sehr unzufrieden","sehr zufrieden")
+```
+
+### Zusammenführung in einem tibble
+
+Die Vektoren lassen sich mit der `tibble()-`Funktion (aus dem **tidyr**-Paket) in ein gleichnamiges Objekt zusammenführen.  
+
+:::q-box
+`r fa('question-circle')` Erzeuge ein **tibble**-Objekt tbl_babc, das neben den oben erstellten Vektoren auch die Namen der Kunden enthält.
+:::
+
+```{r tbl_babc, echo=TRUE,message=FALSE}
+## Zusammenführen zu einem tibble-Objekt ----
+tbl_babc <- tibble(Kunde=c("Lukas","Jasmin","Hanna","Leon","Tim","Paul","Maximilian","David","Felix","Klara"),Datum=date,Gericht=meal,Wartezeit = t_warten, Zufriedenheit = sat_DL )
+head(tbl_babc)
+```
+
+Der Aufruf des *tibble-*Objekts `tbl_babc` mit der `head()-`Funktion liefert die ersten Einträge der eingegeben Tabelle. Neben den Dateinamen und Merkmalswerten sind in den jeweiligen Spalten auch die Datentypen (hier: `integer`,`character` und `double`) zu erkennen.
+
+
+
+
+## Import lokal gespeicherter Dateien unterschiedlicher Formate
+
+Häufig werden Primärdaten in MS-Excel Tabellen und im .xlsx-Format oder im csv-Format (comma-separated) gespeichert. Auch Sekundärdaten sind häufig in diesen Formaten verfügbar. Darüber hinaus gibt es weitere gängige Dateiformate.
+
+Grundsätzlich können in `r fa('r-project')` die unterschiedlichsten Dateiformate importiert werden. 
+
+### Gängige Dateiformate
+
+-   `r fa('r-project')`-Formate (.Rdata, .rds)
+-   comma-separated (.csv)
+-   MS-Excel (.xlsx)
+-   SPSS (.sav)
+-   xml-Format (.xml)
+-   ...
+
+Während die `r fa('r-project')`-Formate direkt mit der `load()`-Funktion geladen werden können, müssen für den Import anderer Formate Funktionen genutzt werden, die häufig das Laden **spezieller Pakete** erforderlich machen. Eine Auswahl:
+
+* **readr** (wird mit dem tidyverse-Metapaket geladen) für .txt- und .csv-Dateien
+* **readxl** für .xlsx-Dateien
+* **googlesheets4** (**googledrive**) für Google Sheets (Google Drive) Dateien,
+* **haven** für SPSS/Stata/SAS Dateiformate,  
+* **jsonlite* für JSON-Dateien und  
+* **xml2** für XML-Dateien 
+* **DBI* für relationale Datenbanken,  
+* **httr** für web APIs  
+* **rvest** für das Webscraping (Auslesen von Webseiten)
+* ...
+
+
+### Datenimport unterschiedlicher Datei-Formate
+
+#### .rds-Format am Beispiel von Migrationsdaten für Deutschland 
+
+`r fa('r-project')` bietet zwei eigene Dateiformate:
+
+* .rds und
+* .RData
+
+Der wesentliche Unterschied zwischen den originären `r fa('r-project')`-Formaten .rds und .RData ist, dass in ersteren nur ein einzelnes R-Objekt gespeichert werden kann, wohingegen letztere die Speicherung mehrerer `r fa('r-project')`-Objekte erlauben. Die Verwendung von .RData ist somit zwar bequemer, weil mehrere Objekte in einer Datei gespeichert werden können, im Sinne der Reproduzierbarkeit von (Forschungs-)Projekten wird aber die Verwendung von .rds-Dateien empfohlen (vgl. [@grolemund_hands-programming_2014-1](https://rstudio-education.github.io/hopr/dataio.html)). 
+
+Beide Formate können mit der `load()`-Funktion importiert bzw. geladen werden. 
+
+Beispielhaft werden hier Daten zur Außenmigration in Deutschland (vor 1990 der BRD) geladen, die im Rahmen eines Projekts bereits in die tidy Form gebracht und anschließend im .rds-Format abgespeichert wurden:
+
+```{r, echo=TRUE,message=FALSE,class.source = "fold-show"}
+# Import lokal gespeicherter Daten -----
+## Migrationsdaten im (R-eigenen) .rds-Format ----
+### Daten laden ----
+my_in_file <- "Aussenmigration_D_ab1950_2023-04-17.rds"
+load(xfun::from_root("data","tidy",my_in_file))
+### Kurzer Überblick ----
+head(mig_hist)
+```
+
+* Die geladenen `r fa('r-project')`-Objekte werden dabei mit ihren ursprünglichen Namen (hier: `mig_hist`) in die laufende `r fa('r-project')`-Sitzung geladen. D.h. es ist keine gesonderte Zuweisung zu einem `r fa('r-project')`-Objekt notwendig. 
+
+* Im Gegensatz dazu müssen Daten, die nicht in einem der originären `r fa('r-project')`-Formate (.rds/.Rdata) gespeichter sind, beim Laden einem `r fa('r-project')`-Objekt zugewiesen werden, um in der Umgebung (Global Environment) zur Verfügung zu stehen.
+
+
+#### .csv-Format am Beispiel von Daten einer HR-Abteilung
+
+.csv-Dateien können grundsätzlich mit der Base-`r fa('r-project')`-Funktion `read.csv()` importiert werden. Empfohlen wird jedoch für den Import Funktionen zu verwenden, die direkt ein *tibble-*Objekt erzeugen und dadurch perfekt mit den *tidyverse*-Paketen zusammenspielen.
+
+Mit laden der *tidyverse*-Bibliothek wird automatisch das **readr**-Paket geladen. Dieses u.a. die `read_csv()`-Funktion (für kommagetrennte Dateien) und die `read_csv2()`-Funktion (für die in Deutschland gebräuchlicheren csv-Formate, die ein Semikolon als Trennzeichen verwenden) zur Verfügung. 
+
+
+
+Eine Personalabteilung hat Daten zu den Mitarbeitern in der Datei *HRDataset_v14.csv* gespeichert. Diese wurde im `r fa('r-project')`-Projektordner data/raw abgelegt. Die Datei kann mit der `read_csv()`-Funktion al tibble importiert werden:
+
+```{r, echo=TRUE,message=FALSE,class.source = "fold-show"}
+my_in_file <- "HRDataset_v14.csv"
+tbl_HR <- read_csv(xfun::from_root("data","raw",my_in_file))
+head(tbl_HR)
+```
+
+#### MS Excel-Format am Beispiel Adidas-Verkaufszahlen
+
+Zum Import von MS-Excel-Dateien existieren mehrere Pakete, im *tidyverse* empfiehlt es sich, mit dem **readxl**-Paket zu arbeiten, das die `read_excel()`-Funktion zur Verfügung stellt. 
+
+
+Beispielhaft werden hier Daten des Sportartikel-Herstellers Adidas geladen, die von der Plattform [kaggle](https://www.kaggle.com/datasets/heemalichaudhari/adidas-sales-dataset) als MS-Excel-Tabelle heruntergeladen wurden.
+
+```{r, echo=TRUE,message=FALSE,class.source = "fold-show"}
+## Import von Adidas-Verkaufsdaten im MS Excel-Daten ----
+# Nutzung der read_excel()-Funktion aus dem readxl-Paket
+### Daten importieren ----
+my_in_file <- 'Adidas_US_Sales_(kaggle).xlsx'
+tbl_adi <- readxl::read_excel(xfun::from_root("data","raw",my_in_file))
+### Kurzer Einblick ----
+head(tbl_adi)
+```
+
+
+
+
+#### .sav-Format am Beispiel von Daten aus einer Jugendbefragung
+
+Für SPSS-Dateien steht die `read_sav()-`Funktion aus dem *haven-*Paket zur Verfügung.
+
+```{r, echo=TRUE,message=FALSE,class.source = "fold-show"}
+## Daten Jugendbefragung im SPSS-Format ----
+library(haven)  # Paket zum Import von Daten anderer Software-Formate (bspw. SPSS)
+### Daten laden ----
+my_in_file<-"Jugendliche_SP_ER007_FS22.sav"
+tbl_youth<-read_sav(xfun::from_root('data','raw',my_in_file))
+### kurzer Überblick -----
+head(tbl_youth)
+```
+
+
+
+### Exkurs: Daten speichern/exportieren
+
+* Speichern im .rds-Format
+
+Zum speichern im `r fa('r-project')`-Format (.rds) bietet Base-`r fa('r-project')` die `saveRDS()`-Funktion.
+
+```{r, echo=TRUE, message=FALSE,class.source = "fold-show"}
+# Speichern von Daten ---
+## tibble-Objekt im .rds-Format speichern----
+my_out_file <- "Kundenbefragung_BABC.rds"
+tbl_babc %>% 
+  saveRDS(file=xfun::from_root("data","raw",my_out_file)) #mit der save()-Funktion
+```
+
+* Exportieren als MS-Excel-Tabelle
+
+Für den Export von Datensätzen in eine .xlsx-Datei kann die `write_xlsx()-`Funktion aus dem **writexl-**Paket genutzt werden:
+
+
+```{r, echo=TRUE, message=FALSE,class.source = "fold-show"}
+## tibble als MS Excel-Datei exportieren -----
+my_out_file <- "Kundenbefragung_BABC.xlsx"  #Dateiendung beachten
+tbl_babc %>% 
+    writexl::write_xlsx(xfun::from_root("data","raw",my_out_file)) #Obs! Statt ein Paket mit library() zu laden, kann es auch mit :: vor die aus dem Paket benutzte Funktion geschrieben werden.
+```
+
+## Import von Daten aus dem www
+
+Sekundärdaten können mit fortschreitender Digitalisierung bei den verschiedenen bereitstellenden Institutionen zunehmend direkt aus dem Internet bezogen werden:
+
+
+
+### Webseiten
+
+Beispiel [Airbnb](http://insideairbnb.com/get-the-data)
+
+```{r,echo=FALSE,out.width='100%'}
+# Daten aus dem www importieren ----
+## Beispiel Airbnb ----
+### Daten aus Website sichten ----
+knitr::include_url('http://insideairbnb.com/get-the-data')
+```
+
+```{r,echo=TRUE}
+### Daten importieren ----
+tbl_rbnb <- read_csv("http://data.insideairbnb.com/germany/be/berlin/2023-06-22/data/listings.csv.gz")
+```
+
+### Webscraping und APIs
+
+#### Webscraping am Beispiel [wordfootballR](https://rdrr.io/github/JaseZiv/worldfootballR/f/vignettes/fbref-data-internationals.Rmd)
+
+```{r,echo=TRUE,cache=TRUE}
+# webscraping von Fußballdaten ----
+# Das worldfootballR Paket ermöglicht das Auslesen von  Informationen unterschiedlicher Webseiten, wie bspw. www.transfermarkt.com
+
+#install.packages('wordfootballR')
+library(worldfootballR)
+
+## Beispiel: Import der Tabelle nach Spieltagen -----
+df_Buli <- tm_matchday_table(country_name="Germany", start_year="2022", matchday=33)
+## Kurzer Einblick ----
+head(df_Buli)
+
+## Beispiel: Spielerinformationen (u.a. Alter, Position, Marktwert) ----
+
+#df_wert <- tm_player_market_values(
+#                  country_name = c("England", "Germany"),
+#                  start_year = 2021
+#                  )
+#glimpse(df_wert)
+```
+
+## Nutzung von APIs am Beispiel Statistisches Bundesamt
+
+```{r,echo=TRUE}
+# Datenimport mit der API des Stat. Bundesamtes  -----
+
+## Setup -----
+library(wiesbaden) # das Paket ist nach dem Standort des Stat. Bundesamtes benannt
+#test_login(genesis=c(db='de', user="MY_USERNAME", password="MY_PASSWORD"))
+#save_credentials(db='de',user="MY_USERNAME", password="MY_PASSWORD")
+
+## Beispiel: Hochschulstatistik ----
+
+### find data ----
+#https://www-genesis.destatis.de/genesis/online?language=de&sequenz=tabellen&selectionname=213*#abreadcrumb
+#findet sich in der Datenbank GENESIS-Online im Themenbereich 213*.
+#retrieve_datalist(tableseries="213*", genesis=c(db='de'))
+#114 Absolventenquote, Studienanfängerquote (Hochschulzugangsberechtig.), Studienanfängerquote, Deutschland insgesamt, Geschlecht, Jahr
+#also: Tabelle Nr. 21381BJ002
+### Download data ----
+
+#### data ----
+#df_studies <- retrieve_data(tablename="21381BJ002",
+#                         genesis=c(db='de'))
+
+#### metadata -----
+#df_meta <- retrieve_metadata(tablename="21381BJ002",
+#                  genesis=c(db='de'))
+
+#### labels -----
+#df_labels <- retrieve_valuelabel("GES",
+#                              genesis=c(db='de'))
+
+```
+
+```{r,include=FALSE}
+### Download data ----
+
+#### data ----
+df_studies <- retrieve_data(tablename="21381BJ002",
+                         genesis=c(db='de'))
+
+#### metadata -----
+df_meta <- retrieve_metadata(tablename="21381BJ002",
+                  genesis=c(db='de'))
+
+#### labels -----
+df_labels <- retrieve_valuelabel("GES",
+                              genesis=c(db='de'))
+
+#### save data ----
+
+##### create filename ----
+date <- '2023-07-31' #oder: Sys.Date()
+my_out_file<-glue('studies_raw_{date}.rds')
+
+##### save data ----
+save(df_studies,file = xfun::from_root("data","raw",my_out_file))
+```
+
+```{r}
+#|echo: true
+### Kurzer Einblick -----
+head(df_studies)
+```
+
+
+# Data Wrangling
+
+:::d-box
+`r fa('tag')` Der Begriff "Data Wrangling" beschreibt den Prozess mit dem die ursprünglichen Rohdaten in die Form gebracht werden, die für die Visualisierung und Modellierung der Daten (die Analyse im engeren Sinn) benötigt wird.
+:::
+
+```{r,echo=FALSE,fig.cap='Data Wrangling im Workflow. Eigene Darstellung.',fig.subcap='Eigene Darstellung.'}
+knitr::include_graphics(xfun::from_root('img','PVA1','DataWrangling.png'))
+```
+
+
+Damit umfasst das *"Data Wrangling"* eine Vielzahl durchaus unterschiedlicher "Umformungen" der Ausgangsdaten, zu denen insbesondere die folgenden Aspekte gehören:
+
+* Datenorganisation/-strukturierung
+
+* Datenbereinigung
+
+* Datenverknüpfung (bspw. bei relationalen Datenbanken)
+
+* Datenvalidierung
+
+`r fa('circle-right')` Das Überführen der Ausgangsdaten in die für die Datenanalyse benötigte Form gehört häufig zu den (zeit-)aufwendigsten Arbeitsschritten im Rahmen eines Datenprojekts. 
+
+
+## Datenbereinigung und Datenformate
+
+Grundsätzlich sollte bei der Aufbereitung von Daten darauf geachtet werden Daten- und Objekttypen so zu wählen, dass diese das Skalenniveau der Informationen berücksichtigt. Grund hierfür ist, dass sonst die Möglichkeit besteht, dass Funktionen nicht funktionieren bzw. fehlerhaft oder nicht interpretierbare Ergebnisse produzieren.
+
+Die Objektklasse bzw. der Datentyp eines Objekts kann mit der `class()`-Funktion ermittelt werden. Alternativ bietet sich bei `tibble`-Objekten die `head()`-Funktion an.
+
+:::q-box
+`r fa('question-circle')` Welche Daten- und Objekttypen sind im `tbl_babc` enthalten?
+:::
+
+```{r}
+#|echo: true
+head(tbl_babc)
+```
+:::e-box
+Mit Ausnahme der Wartezeit werden alle Eingaben als `character`-Objekte interpretiert. Damit können mathematische Operationen nur für die Wartezeit durchgeführt werden, obwohl bspw. Datum eine intervallskalierte Variable ist, für die bspw. die Ermittlung von Differenzen möglich ist. Außerdem liegen die Daten nicht in tidy Form vor.
+:::
+
+### Herstellung der tidy Form
+
+u.a. `separate()`-Funktion
+
+:::e-box
+```{r, echo=TRUE}
+tbl_tidy <- tbl_babc %>% separate(Gericht, into = c("Gericht","Beilage"))
+head(tbl_tidy)
+```
+:::
+
+### Datumsangaben
+
+Für Handhabung von zeitbezogenen Daten (Datum, Uhrzeit etc.) stellt das **lubridate**-Paket als Teil des tidyverse-Metapakets zahlreiche praktische Funktionen zur Verfügung.
+
+Ausführliche Hinweise finden sich auf der [tidyverse-Website](https://lubridate.tidyverse.org/).
+
+:::q-box
+`r fa('question-circle')` Wandle für Hagen die Variable Datum in ein Datumsformat um.
+:::
+
+
+:::e-box
+```{r,echo=TRUE}
+tbl_tidy <- tbl_tidy %>%
+                mutate(Datum=lubridate::ymd_hm(Datum,tz="CET"))
+head(tbl_tidy)
+```
+:::
+
+### `factor()'-Variablen
+
+Die Objektklasse `factor` ist für die Arbeit mit nominal und ordinal skalierten Daten praktisch, auch wenn die Verwendung zunächst etwas kompliziert erscheint.
+
+Auf den ersten Blick scheint kein Unterschied zwischen `factor`- und `character`-Objekten zu bestehen. Anders als `character`-Objekte haben `factor`-Objekte jedoch zwei Bestandteile: 
+* **levels** (Merkmalsausprägungen meist mit numerics codiert)
+* **labels** (Kennzeichnung der levels meist mit characters)
+
+:::q-box
+`r fa('question-circle')` Transformiere die Variable Zufriedenheit in einen `factor`
+:::
+
+```{r}
+#|label: factor Zufriedenheit
+#|echo: true
+tbl_tidy <- tbl_tidy %>%
+                mutate(Zufriedenheit=factor(Zufriedenheit))
+head(tbl_tidy)
+```
+
+
+### Parsing
+
+* Zerlegen von *string*-Variablen, um die interessierenden Zeichen zu extrahieren.
+
+* Ein Beispiel haben wir bereits mit der Zerlegung der Variable `Gericht` mittels `separate()`-Funktion gesehen.
+
+* Für komplexere Operationen mit *string*-Variablen bietet das **stringr**-Paket (wird automatisch mit dem tidyverse-Metapaket geladen) diverse Funktionen.
+  * Auch für das **stringr**-Paket findet sich eine Einführung auf der [tidyverse-Webeite](https://stringr.tidyverse.org/articles/stringr.html)
+
+* Beim Umgang mit helfen sog. "regelmäßige Ausdrücke" (engl. regular exprisions, kurz: [regex](https://stringr.tidyverse.org/articles/regular-expressions.html))
+
+:::q-box
+`r fa('question-circle')` Extrahiere die ersten beiden Buchstaben der Vornamen aus der Variable `Kunde`
+:::
+
+```{r}
+#|label: string extract Kunde
+#|echo: true
+tbl_tidy %>% 
+  mutate(Kürzel=str_extract(Kunde,"^.{2}")) %>% 
+  select(Kürzel)
+```
+
+
+
+## Datenformate
+
+* long
+
+Für Analysen im Sinne von Datenbankabfragen (bspw. Gruppierungen mit `group_by()`) und die Datenvisualisierung mit **ggplot2** (bspw. multivariate Abbildungen mit den Optionen `color` oder `shape` sowie "faceting", bspw. mit der `facet_wrap()`-Funktion) bietet das *long*-Format große Vorteile.
+
+:::q-box
+`r fa('question-circle')` Überführe das `tbl_tidy`-Objekt in ein Objekt `tbl_long` im long Format. Aufgrund der unterschiedlichen Objekttypen im `tbl_tidy` sind die Variablen "Datum" (Typ: `date`) und "Wartezeit" (Typ: `double`) dabei auszuschließen.
+:::
+
+```{r}
+#|label: BABC to long
+#|echo: true
+tbl_long <- tbl_tidy %>%
+                select(-c(Datum,Wartezeit)) %>% #Eliminieren von Datum/Wartezeit
+                pivot_longer(-c(Kunde),names_to = 'Merkmal',values_to = "Merkmalswert")
+tbl_long
+```
+
+* wide
+
+Das wide-Format stellt die Daten in einer Tabelle dar, die für jedes Merkmal eine Spalte enthält. In der Regel ist diese Darstellungform für Tabellen intuitiver.
+
+```{r}
+#|label: BABC pivotlonger
+#|echo: true
+tbl_long %>% 
+  pivot_wider(names_from = "Merkmal",values_from = "Merkmalswert")
+```
+
+## Datenverknüpfung
+
+Im Rahmen der empirischen Forschung werden häufig Daten aus unterschiedlichen Quellen genutzt. Eine Verknüpfung von Daten ist *allgmein* nur unter bestimmten Voraussetzungen möglich, die hier nicht diskutiert werden sollen.^[Interessierte Leser werden bspw. auf @ridder_econometrics_2007 oder @hayashi_data_2021 verwiesen.] 
+Ein *Spezialfall*, in dem die Verknüpfung verschiedener Datensätze von vornherein geplant ist, sind sog. *relationale Datenbanken*. Diese spielen gerade in der unternehmerischen Praxis eine immer wichtigere Rolle und sollen deshalb in der Grundidee kurz erläutert werden. Außerdem wird gezeigt, wie relationale Datenbanken auch in `r fa('r-project')` bearbeitet und analysiert werden können.
+ 
+### Exkurs: Relationale Datenbanken {#RelDB}
+
+:::d-box
+`r fa('tag')` Relationale Datenbanken bestehen aus *mindestens zwei* Tabellen, die über gemeinsame **Schlüsselvariable(n)** miteinander verknüpft werden können. Eine Zeile einer Tabelle (mathematisch: Tupel) wird als Datensatz (englisch: record) bezeichnet. Die Spalten der Tabelle enthalten Merkmalswerte der verschiedenen Datensätze (Tupel). 
+Jeder Datensatz muss eindeutig identifizierbar sein. Die Identifikation kann dabei über eine oder mehrere Spalten Schlüsselvariablen (englisch: keys) erfolgen.
+:::
+
+### Datenverknüpfung in `r fa('r-project')` {#sec:DCR}
+
+Zur Verknüpfung von Daten können verschiedene Funktionen des **dplyr**-Pakets genutzt werden. Dabei ist grundsätzlich zwischen dem Empfängerdatensatz `x` und dem Spenderdatensatz `y` zu unterscheiden. Diese können auf zwei grundlegend verschiedene Arten verknüpft werden:
+
+1. innere Verknüpfung mit der `inner_join()`-Funktion <br>
+Verknüpft werden Zeilen von `x`, für in `y` ein entsprechender Match bei der Schlüsselvariable existiert. Der verknüpfte Datensatz enthält nur Zeilen, die in `x` und `y` vorkommen, sodass Beobachtungen in `x` verloren gehen, wenn kein Match der Schlüsselvariable in `y` vorliegt. Aus diesem Grund werden innere Verknüpfungen eher in Ausnahmefällen vorgenommen.
+2. äußere Verknüpfungen:
+  * `left_join()` bewahrt alle Beobachtungen in `x`
+  * `right_join()` bewahrt alle Beobachtungen in `y`
+  * `full_join()` bewahrt alle Beobachtungen in `x` und `y`
+
+Für alle genannten Funktionen gibt es diverse Optionen. Eine Übersicht bietet die [tidyverse-Webseite](https://dplyr.tidyverse.org/reference/mutate-joins.html).
+
+
+Beispielsweise können die beiden mit dem **wiesbaden**-Paket heruntergeladenen Datensätze `df_studies` und `df_labels` so miteinander verknüpft werden, dass `df_studies` die labels aus `df_labels` "empfängt".
+
+```{r Wrangling-studies, echo=TRUE}
+#Verknüpfung unter Beibehaltung aller Zeilen in df_studies
+tbl_temp <- left_join(df_studies,df_labels)
+#Variablen umbenennen und auswählen
+stud_starters <- tbl_temp %>% 
+                    rename(sex=description,
+                           value=BIL020_val,
+                           Jahr=JAHR) %>%                    
+                    select(Jahr,sex,value)
+head(stud_starters)
+```
+
+
+:::e-box
+`r fa('pencil')` Es sollen die beiden Tabellen `tbl_babc` und `tbl_menu` miteinander verküpft werden, um eine Tabelle zu erhalten, die neben den Angaben der Kunden auch die Informationen aus der Speisekarte enthält.
+:::
+
+:::q-box
+`r fa('question-circle')` Welche Variable(n) dienen als Schlüssel für die betrachtete relationale Datenbank (`tbl_babc` und `tbl_menu`)?
+:::
+
+
+
+```{r,echo=TRUE}
+## Verknüpfung Kundenbefragung und Menü
+tbl_tidy <- tbl_tidy %>% 
+                left_join(tbl_menu,by=c("Gericht"="Nummer") ) %>% 
+                mutate(Gericht=Gericht.y,
+                       Beilage=if_else(is.na(Beilage),"keine","Pommes")) %>% 
+                select(!Gericht.y) 
+### Speichern Tidy ----
+my_out_file <- 'Kundenbefragung_BABC.xlsx'
+tbl_tidy %>% 
+  writexl::write_xlsx(xfun::from_root("data","tidy",my_out_file)) #Obs! diesmal speichern im tidy Ordner
+head(tbl_tidy)
+```
+
+
+# Datenvisualisierung
+
+* Für die Datenvisualisierung ist das ebenfalls zum tidyverse gehörende **ggplot2**-Paket von unschätzbarem Wert, zu dem es eine eigene Einführung geben wird. Die erzeugten Grafiken sind statisch.
+
+* `r fa('r-project')` bietet auch die Möglichkeit zur Erstellung dynamischer Plots. 
+  * Mit dem **gganimate**-Paket können statische ggplots auf einfache Weise animiert werden.
+  * Weitere Pakete zur Erzeugung dynamischer Grafiken oder auch Apps sind **plotly** und **shiny**. 
+  
+Während **ggplot2** automatische mit dem tidyverse-Metapaket geladen wird, sind die drei letztgenannten Pakete vor Benutzung mit `library()` zu laden. 
+
+
+# Kommunikation und Präsentation von Ergebnissen
+
+* Reproduzierbare Projekte (in Forschung und Unternehmenspraxis): Reproduzierbare Forschung ist ein Konzept, das darauf abzielt, wissenschaftliche Analysen und Ergebnisse transparent und nachvollziehbar zu gestalten.
+
+* Produktivitätssteigerung durch Integration von Datenanalyse und Reporting.
+
+
+
+## RMarkdown und Quarto
+
+* RMarkdown und das neuere Quarto bieten die Möglichkeit Analysen, Visualisierungen und Berichte flexibel in einem integrierten und reproduzierbaren Workflow zu erstellen.
+  * "Integriert" bedeutet, dass Textsatz, Programmcode für Analysen und die Ergebnisse in einem einzigen Dokument kombiniert werden können. Dies ermöglicht die Erstellung dynamischer Dokumente und stellt die Reproduzierbarkeit sicher.
+  * "Flexibel" besteht hinsichtlich der Eingabe und der Ausgabe
+    * Eingabe: Neben `r fa('r-project')`-Programmcode kann auch Python-Code oder tikz-Code (zur Erstellung von Vektorgrafiken) genutzt werden. Quarto ermöglicht zudem den Einsatz der aufsteigenden Programmiersprach Julia.
+    * Ausgabe: Es stehen verschiedene Ausgabeformate wie HTML, PDF, Word oder auch Powerpoint zur Verfügung. 
+  
+* Quarto kann als Weiterentwicklung von RMarkdown gesehen werden:
+  * Während bei RMarkdown klar die Nutzung von `r fa('r-project')` im Vordergrund steht, richtet sich Quarto an ein breiteres Publikum und versucht auch Nutzer von Python oder Julia anzusprechen. 
+  * Durch eine Benutzeroberfläche mit Schaltflächen ähnlich einem Textverarbeitungsprogramm (bspw. zur Textformatierung oder zum Einfügen von Tabellen oder Grafiken) ist es gerade für Einsteiger etwas **benutzerfreundlicher**.
+  * Außerdem bietet Quarto verbesserte Funktionen für die Veröffentlichung und Freigabe von Dokumenten.
+
+
+Die [Quarto Webseite](https://quarto.org/docs/get-started/hello/rstudio.html) bietet eine umfassende und übersichtliche Einführung in alle Funktionaliäten. Daher sollen im Folgenden nur  die wesentlichen Elemente kurz vorgestellt werden.
+
+
+## Grundstruktur von .qmd und .Rmd Dateien
+
+Die Grundstruktur von RMarkdown-Dokumenten (.Rmd) und Quarto-Dokumenten (.qmd) ist grundsätzlich identisch, da Quarto auf RMarkdown basiert und es erweitert. 
+
+Beide bestehen aus drei wesentlichen Elementen:
+
+1. YAML-Metadaten (YAML-Kopf) am Beginn des Dokuments
+2. Text und Formatierung
+3. Programmcode (`r fa('r-project')`, Python etc.)
+
+
+
+### YAML Kopf
+
+* Am Anfang des Dokuments befindet sich ein YAML-Block (steht für "YAML Ain't Markup Language"), der Metadaten über das Dokument enthält.
+
+* Metadaten sind unter anderem:
+  * Autor des Dokuments
+  * Titel und ggf. Untertitel
+  * Datum und die 
+  * Ausgabeformate
+
+* Der YAML-Kopf wird oben und unten durch drei Bindestriche  (`---`) begrenzt.
+
+
+
+
+### Programm-Code
+
+* Code-Blöcke
+* Inline-Code
+
+#### Codeblöcke
+
+Code-Chunks zu erstellen, in denen R-Code oder Code in anderen Programmiersprachen ausgeführt werden kann. Code-Blöcke werden mit  (`` ```{r} ``) eröffnet und mit drei Backticks (`` ``` ``) wieder geschlossen  können optional mit Parametern wie dem Chunk-Namen, der Auswertungsoption und anderen Optionen versehen werden.
+
+Für Codeblöcke stehen diverse Optionen zur Auswahl, u.a. in welcher Form diese in das Dokument eingebunden werden sollen (vgl. dazu die [RStudio Referenz](https://rmarkdown.rstudio.com/lesson-3.html)). 
+
+Zu den wichtigsten Optionen gehören:
+
+* `label`: Zur Benennung des Codeblocks, zur Orientierung oder um ihn ggf. zu verknüpfen.
+* `echo`: soll der Code im finalen Dokument erscheinen (true), oder nicht (false)?
+* `include`: soll ein Codeblock im Ausgabedokument erscheinen (true), oder nicht (false)?
+* `message` bzw. `warning`: sollen Meldungen/Warnungen im finalen Dokument erscheinen. In der Regel ist dies nicht gewünscht (false).
+* `out.width` ermöglicht die Festlegung der Größe des Outputs und wird häufig eingesetzt, wenn Bilddateien eingefügt werden. Angaben können in `%` oder einer Maßeinheit, wie bspw. Pixel (`px`) erfolgen.
+* `fig.cap` ermöglicht die Eingabe von Titeln für Abbildungen oder Tabellen (engl. captions).
+
+
+* Die Eingabe der Codeblock-Optionen
+  * erfolgte in RMarkdown traditionell in den geschweiften Klammern. Mehrere Optionen werden dann durch Komma getrennt.
+  * mittlerweile existiert eine modernere/intuitivere Variante. Die Optionen können zu Beginn des Codeblocks nach der Zeichenfolge `#|` eingefügt werden. Üblich ist, jede Option in einer neuen Zeile zu spezifizieren, die jeweils mit `#|` beginnt.
+
+:::e-box
+Soll bspw. ein Codeblock im finalen Dokument erscheinen, kann dies mit der Option `#|echo: true` am Beginn des Codeblocks umgesetzt werden.
+:::
+
+
+
+#### Inline Code
+
+Von besonderem praktischem Wert ist die Möglichkeit der Einbindung von sog. *Inline-Code*, bspw. wenn ein Ergebnis aus einer Berechnung im Fließtext eines Berichts diskutiert wird. `` `r "\u0060r tbl_tidy$Kunde[5]\u0060"` `` gibt den Merkmalswert des zweiten Elements des Merkmals "Kunde" in der BABC-Befragung aus.
+
+:::q-box
+Formuliere den folgenden Satz mit Hilfe von Inline Code: "Kunde Tim war mit der Dienstleistung sehr unzufrieden." Nutze dazu das Objekt `tbl_tidy` und sprich die entsprechenden Variablen mit dem `$`-Operator an.
+:::
+
+
+
+### Textformatierung
+
+Text wird in Form von Markdown-Syntax in das Dokument integriert.
+
+
+#### Text
+
+Markdown ermöglicht eine einfache Formatierung von:
+
+* Textabschnitten und Überschriften
+* Listen und Aufzählungen
+* Formatierung
+* Gleichungen
+* Quellenverweise
+* Einbindung von Grafik-Dateien und Hyperlinks
+* etc.
+
+Während in Quarto eine Benutzeroberfläche mit Schaltflächen für diese Formatierungen zur Verfügung steht (Bedienungshinweise auf der [Quarto-Webseite](https://quarto.org/docs/get-started/authoring/rstudio.html)), sind in RMarkdown folgende Kenntnisse essenziell. 
+
+##### Überschriften
+
+Überschriften bzw. Untergliederungen in Textabschnitte werden mit `#`-Symbolen indiziert. Die Anzahl der `#`-Symbole entspricht der Gliederungsebene: ensprechend wird eine Überschrift der ersten Gliederungsebene mit `` `# Überschrift 1` `` erzeugt, eine Überschrift der zweiten Gliederungsebene mit `` `## Überschrift 1.1` `` usw.  
+
+##### Listen und Aufzählungen
+
+* Nicht nummerierte Listen werden mit Bindestrichen `-` (oder `*` bzw. `+`) erzeugt. Bspw. also `` `- Bullet 1` ``. Eine Liste mit Unterpunkten kann durch Einrücken (mindestens 1 Tab oder 2 Leerzeichen) erzeugt werden.
+
+* Nummerierte Listen werden mit `.` indiziert. Also bspw. (`` `1. Punkt` `` oder `` `A. Punkt` ``). Für Unterpunkte gilt ebenfalls die Einrückung mit einem Tab oder zwei Leerzeichen. 
+
+
+##### Textformatierung 
+
+* Fette Schrift kann durch Platzierung des entsprechenden Begriffs zwischen je zwei `*`-Symbolen erzeugt werden, also bspw. `` `**fetter Text**` ``.
+
+* Kursive Schrift kann durch Platzierung des entsprechenden Begriffs zwischen je einem `*`-Symbol erzeugt werden, also bspw. `` `*kursiver Text*` ``.
+
+
+##### Gleichungen
+
+Für Gleichungen und mathematische Formeln greift Markdown auf die effiziente Eingabemöglichkeit mittels LaTeX-Syntax zurück.^[LaTeX ist eine professionelle Textsatzsprache, die in der akademischen Welt häufig verwendet wird.] 
+* Eingabe von **Inline-Gleichungen**: Eine Gleichung kann in den Fließtext eingebettet werden, indem sie zwischen `$`-Symbolen platziert wird. Zum Beispiel: `` `$a + b = c$` `` wird zu $a + b = c$.
+
+* Eingabe von **abgesetzten Gleichungen**: Soll eine Gleichung in einer separaten Zeile angezeigt werden, müssen die Symbole zwischen je zwei `$`-Symbolen platziert werden. Zum Beispiel: `` `$$a + b = c$$` `` wird zu $$a + b = c$$
+
+Die verschiedenen Operatoren und Hinweise zur LaTeX-Syntax für mathematische Eingaben finden sich bspw. auf [wikibooks.org](https://en.wikibooks.org/wiki/LaTeX/Mathematics). Hier sollen nur die LaTeX-Syntax einiger grundlegender mathematischer Operationen und Symbole genannt werden:
+
+* Brüche: `\frac{Zähler}{Nenner}`.
+* Potenzen: `x^2` für x hoch 2.
+* Indizes: `x_1` für x mit Index 1.
+* Wurzeln: `\sqrt{Inhalt}` für die Quadratwurzel oder `\sqrt[n]{Inhalt}` für die n-te Wurzel.
+* Griechische Buchstaben: `\alpha`, `\beta`, `\gamma`, usw.
+
+Zu beachten ist, dass LaTeX-Syntax in Markdown-Dokumenten nur in den Ausgabeformaten verwendet wird, die LaTeX unterstützen, wie PDF oder HTML (mit MathJax). Mithin kann es bei Ausgabe in reinem Textformat oder Word vorkommen, dass mathematische Ausdrücke nicht korrekt gerendert werden.
+
+##### Quellenverweise
+
+Quellenverweise können in Quarto und RMarkdown einfach durch ein `@`-Symbol vor dem **Zitationsschlüssel** aus der Zotero-Datenbank eingefügt werden. So kann bspw. ein Diskussionspapier von Schoder (2014) mit dem Zitationsschlüssel (engl. citation key) `schoder_2014` durch Eingabe `@schoder_2014` eingefügt werden.
+
+Wenn der YAML-Kopf wie in Abschnitt 6.2.4.2 modifziert wurde, wird mit rendern der .qmd- bzw. .Rmd-Datei automatisch ein Literaturverzeichnis am Ende Ihrer Ausgabedatei erstellt.
+
+
+##### Einbinden von Hyperlinks und Grafiken 
+
+* Einfache Markdown-Syntax:
+  
+  * Eine lokal gespeicherte Bilddatei kann mit `![Bildbeschreibung](pfad/zum/bild.jpg)` eingebunden werden. Dateien aus dem web durch Angabe der URL in der runden Klammer.
+  * Ganz ähnlich (nur ohne `!`) erfolgt die Einbindung eines Hyperlinks mit `[Linkbeschreibung](https://www.beispiel.de)`.
+
+* RMarkdown-Syntax (für mehr Flexibilität mittels Code-Block-Optionen)
+
+  * Einbinden von Bildern mit `knitr::include_graphics()` in einem `r fa('r-project')`-Codeblock. In der Klammer ist die Pfadangabe oder eine URL zur Bilddatei einzugeben.
+  * Einbinden von Hyperlinks (oder Bildern!) mit `knitr::include_url()` in einem `r fa('r-project')`-Codeblock.
+
+
+
+#### Tabellen in Publikationsqualität
+
+Im Verlauf dieses Dokuments wurden bspw. mit der `head()`-Funktion wiederholt Tabellen ausgegeben. Dies ist eine praktische und schnelle Möglichkeit, um sich einen Überblick zu verschaffen (oder durch Eingabe des `tibble`-Objektnamens sogar alle Informationen anzeigen zu lassen), allerdings entspricht das Layout nicht den Ansprüchen an eine publikationsfähige Tabelle.
+
+
+##### Händische Eingabe von Tabellen
+
+* In RMarkdown und Quarto können Tabellen "händisch" entweder in Mardown-Syntax oder (im pdf-Format auch in Latex-Syntax) erstellt werden. Dazu werden drei oder mehr Bindestriche (`---`) für die Zeilen und der `|`-Operator zur Abgrenzung der Spalten verwendet.
+
+* Quarto bietet zusätzlich die Möglichkeit über die Schaltfläche `table` im UI zu erzeugen.
+
+##### Tabellen aus Objekten erzeugen
+
+Für automatisiertes Reporting ist jedoch die "händische" Erstellung von Tabellen nicht praktikabel. Stattdessen können Tabellen in Publikationsqualität direkt aus `tibble`-Objekten (oder anderen Tabellenobjekten) erzeugt werden.
+
+Für das konkrete Layout existieren mittlerweile zahlreiche Pakete mit unterschiedlichen Funktionalitäten:
+
+* [**gt**-Paket](https://gt.rstudio.com/articles/intro-creating-gt-tables.html)
+* [**reactable**-Paket](https://glin.github.io/reactable/)
+* [**kableExtra**-Paket](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
+* [**huxtable**-Paket](https://hughjonesd.github.io/huxtable/huxtable.html)
+* ...
+
+Mit Hilfe derartiger Pakete kann der tibble `tbl_babc` mit wenigen Zeilen (unter Nutzung der *pipe*) in eine ansprechend formatierte und übersichtliche Tabelle zur Darstellung der Urliste verwandelt werden. Alle drei o.a. Pakete sind in der Lage interaktive Tabellen zu erzeugen und bieten diesbezüglich unterschiedliche Vorteile. Das **kableExtra**-Paket hat den Vorteil, dass mit identischem Code sowohl im html- als auch im pdf-Ausgabedateien erzeugt werden können.
+
+Hier werden Variablennamen ohne Leerzeichen und `_` verwendet, um sie später ohne weitere Formatierung in einer Tabelle darzustellen. Dazu muss der Variablenname zwischen zwei rückwärts gerichtete Anführungszeichen gesetzt werden.
+
+```{r,echo=TRUE,message=FALSE}
+library(kableExtra)
+tbl_tidy %>% 
+  kable(align = "lcccr",format = "html", table.attr = "style='width:50%;'") %>%      #Festlegung der Tabellenbreite
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) #gestreift mit mouse-over-Effekt
+```
+
+### Integration von Literaturverwaltungsprogrammen
+
+Für die Literatur-Verwaltung existieren diverse empfehlenswerte Produkte am Markt, darunter auch kostenlose Programme. Diese kurze Einführung bezieht sich auf Zotero, eine Software, die es kostenlos in Versionen für verschiedene Plattformen (Windows-PC, Apple MacOS und Linux) gibt. Zotero kann dabei in unterschiedlichen Programmen (Webbrowser-Erweiterungen, Microsoft Office bzw. MS-Word sowie RStudio in Verbindung mit Quarto/RMarkdown) genutzt werden. 
+
+Wer bereits eine andere Software (bspw. Mendeley, Citavi...) nutzt, hat zwei Möglichkeiten:
+
+* Einbinden dieser Software in RStudio ein (dazu finden sich Anleitungen im www) oder
+* Migration der Inhalte in die Zotero-Software.
+  
+#### Installation von Zotero und Integration in RStudio
+
+##### Installation Zotero und praktische Zusatztools
+
+Zur Installation von Zotero sind die folgenden Schritte notwendig:
+
+* Download des Installers auf der [Zotero Webseite](www.zotero.org)
+* Erstellen eines kostenlosen Accounts  
+
+Installation praktischer Zusatztools zur Nutzung von Zotero:
+
+* Die Literaturverwaltung mit Zotero kann durch folgende Zusatztools noch komfortabler werden:
+  * Installiere in der Zotero Desktop-App das Zusatzprogramm **Better BibTex for Zotero**. Folge dazu der Anleitung auf der [BetterBibtex Webseite](https://retorque.re/zotero-better-bibtex/installation/).
+  * Installiere den zum genutzten Browser (unterstützt werden derzeit Chrome, Edge, Safari und Firefox) [Zotero-Connector](http://www.zotero.org/download/connectors), um Quellen direkt aus dem Browser in die eigene Bibliothek importieren zu können.
+  
+* Hinweis: Zotero kann auch direkt in MS-Word genutzt werden. Nach Installation von Zotero erscheint in Word automatisch ein Reiter "Zotero".
+
+##### Integration in RStudio
+
+Zur Einbindung Zotero in RStudio sind die folgenden Schritte durchzuführen:
+
+1. Folgende Eingabe in der Console:
+
+> `remotes::install_github("paleolimbot/rbbt")`
+
+2. Nach der Installation muss RStudio geschlossen und neu gestartet werden.
+
+3. Nun sollte Zotero in den Addins von RStudio zu finden sein.
+
+Grundsätzlich sollte sichergestellt werden, dass alle Dateien (.R, .qmd etc.) stets mit UTF8-Encoding erstellt werden, um Kompatibilitätsprobleme zu vermeiden.  
+
+
+#### Erstellen eines Literaturverzeichnisses in Quarto/RMarkdown {#zotero}
+
+* Zunächst ist eine Bibliographie-Datei zu erstellen. Dazu in Zotero folgende Klicks durchführen:
+
+> `Datei > Bibliothek exportieren`
+
+* Wählen das Format CSL JSON (grundsätzlich sind auch andere Ausgabeformate, wie bspw. BibLaTex möglich, aber CSL JSON wird sich wohl weiter durchsetzen)  
+
+* Speichere die Datei im lit-Ordner des jeweiligen R-Projekts, bspw. unter dem Namen `my_bib.json`
+
+* Gib im YAML-Kopf die beiden folgenden Zeilen ein, um das Literaturverzeichnis für das .qmd- bzw. .Rmd-Dokument automatisch zu erstellen:
+
+> `bibliography: my_bib.json` 
+> `reference-section-title: Quellenverzeichnis`
+
+Obs! Hinter reference-section-title wird spezifiziert, wie die Überschrift des Quellenverzeichnisses lauten soll (hier: "Quellenverzeichnis"). Alternativ könnte bspw. auch "Literaturverzeichnis" oder nur "Literatur" festgelegt werden.  
+
+Wenn die Ausgabe im MS-Word-Format erfolgen soll, kann eine Word-Vorlage erstellt werden, um die Ausgabe direkt in der für die zu verfassende Arbeit passenden Formatierung ausgeben zu lassen. Hinweise dazu finden sich bspw. auf der [RStudio-Webseite](https://rmarkdown.rstudio.com/articles_docx.html).
