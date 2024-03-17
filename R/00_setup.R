@@ -1,3 +1,4 @@
+# Pakete ----
 library(tidyverse) # Metapaket für den gesamten Prozess eines Datenprojekts
 library(readxl) # Import von MS Excel Dateien
 library(glue) # praktische Funktion zum verketten von Zeichen
@@ -8,4 +9,5 @@ library(scales) # Paket mit Funktionen zur Formatierung von Zahlen (bspw. Prozen
 #install.packages("hrbrthemes") #ggf. installieren
 library(hrbrthemes)# Vorgefertigte Layouts ergänzend zu den ggplot-themes
 library(extrafont) # Paket zur Nutzung weiterer Schriftarten
+
 

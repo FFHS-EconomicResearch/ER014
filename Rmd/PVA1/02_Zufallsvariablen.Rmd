@@ -1429,6 +1429,87 @@ ggplot() +
   scale_color_manual(legend_title,values=c("black","red","green","blue"),labels=c(expression("N("*mu*"=0,"*sigma^2*"=1)"),expression("t("*nu*"=0)"),expression("t("*nu*"=15)"),expression("t("*nu*"=30)")))
 ```
 
+
+
+### Illustration für verschiedene Verteilungen der Grundgesamtheit
+
+#### Gleichverteilung
+
+Für eine Grundgesamtheit mit gleichverteilten Werten zwischen Null und 100 (links) ergibt sich gemäß dem Zentralen Grenzwertsatz bei hinreichend großen Stichproben (hier: n=30) eine normalverteilte **Stichprobenverteilung** (rechts).
+
+```{r}
+#| message: false
+library(patchwork) # patchwork-Paket zur gemeinsamen Darstellung zweier Diagramme
+
+# Reproduzierbarkeit sicherstellen
+set.seed(23)
+
+# Daten einer gleichverteilten Grundgesamtheit erzeugen
+pop <- runif(100000, min = 0, max = 100)
+tbl_pop <- pop %>% enframe(name = "ID", value = "value")
+
+# Dataviz Population
+p <- tbl_pop %>% 
+        ggplot(aes(x=value)) +
+            geom_bar(fill=ISBAblue) + scale_x_binned() +
+            labs(x = "Wert", y = "Häufigkeit", title = "Werte der Grundgesamtheit") +
+  theme_light() 
+
+
+# Wiederholtes (1000-faches) Ziehen von Stichproben (n=30) aus der Grundgesamtheit
+# und Berechnung des jeweiligen Mittelwerts
+tbl_sampdist <- replicate(1000, mean(sample(size = 30, x = pop))) %>%
+  as_tibble()
+
+
+# Dataviz der Stichprobenverteilung
+# aus (insgesamt 1000) Stichprobenmittelwerten
+p2 <- tbl_sampdist %>%
+          ggplot(aes(x = value)) +
+              geom_histogram(binwidth = 0.5, color = "white", fill = ISBAblue) +
+              labs(x="Mittelwert",y="Häufigkeit",title='Stichprobenmittelwerte (n=30)') +
+              theme_minimal()
+p+p2
+```
+
+
+#### Schiefe Verteilung
+
+Auch bei einer schiefen Verteilung (hier: gamma-Verteilung) der Werte in der Grundgesamtheit (links) resultiert gemäß Zentralem Grenzwertsatz eine normalverteilte **Stichprobenverteilung** (hier: n=100).
+```{r}
+# Reproduzierbarkeit sicherstellen
+set.seed(23)
+
+# Daten einer gleichverteilten Grundgesamtheit erzeugen
+pop_schief <- rgamma(100000, shape = 2, scale = 2)
+tbl_pop <- pop_schief %>% 
+                as_tibble()
+# Dataviz Population
+p <- tbl_pop %>% 
+        ggplot(aes(x=value)) +
+            geom_bar(fill=ISBAblue) + scale_x_binned(breaks = seq(0,30,3)) +
+            labs(x = "Wert", y = "Häufigkeit", title = "Werte der Grundgesamtheit") +
+  theme_light() 
+
+
+# Wiederholtes (1000-faches) Ziehen von Stichproben (n=30) aus der Grundgesamtheit
+# und Berechnung des jeweiligen Mittelwerts
+tbl_sampdist <- replicate(10000, mean(sample(size = 100, x = pop_schief))) %>%
+                  as_tibble()
+
+
+# Dataviz der Stichprobenverteilung
+# aus (insgesamt 1000) Stichprobenmittelwerten
+p2 <- tbl_sampdist %>%
+            ggplot(aes(x = value)) +
+              geom_histogram(binwidth = 0.05, color = "white", fill = ISBAblue) +
+              labs(x="Mittelwert",y="Häufigkeit",title='Stichprobenmittelwerte (n=100)') +
+              theme_minimal()
+p+p2
+```
+
+
+
 ## Weitere Grenzwertsätze
 
 Der *Zentrale Grenzwertsatz* bezieht sich auf die Konvergenz gegen die Normalverteilung. Weitere Grenzwertsätze betrachten andere Grenzverteilungen. Beispielsweise konvergiert die Hypergeometrische Verteilung gegen die Binomialverteilung. Die Binomialverteilung wiederum konvergiert gegen die Poisson-Verteilung (vgl. dazu bspw. @schwarze_grundlagen_2013-1[S. 86ff]).

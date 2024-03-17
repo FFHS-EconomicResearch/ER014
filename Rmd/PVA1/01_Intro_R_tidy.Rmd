@@ -642,6 +642,7 @@ class: left
     * Rmd/qmd
     * Abbildungen
     * ...
+
 * Dokumentation mit README.md auf jeder Ordnerebene
 
 * Ein Projekt ist erst angelegt, wenn die .Rproj-Datei im Wurzelverzeichnis erzeugt wurde.
@@ -649,6 +650,27 @@ class: left
 * "Navigation" mittels `xfun::from_root()`
 
 * Vorlage im FFHS-Moodle-Kurs: `R-Projektvorlage.zip`
+
+
+
+---
+class: left
+
+.blockquote[R-Projekte]
+
+## Anlegen und dokumentieren von R-Projekten
+
+<iframe width="900" height="420" src="https://www.youtube.com/embed/UvqtxY9Lgvk?si=xoiTIvh5DDKcCgg8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+
+---
+class: left
+
+.blockquote[R-Projekte]
+
+## Einführung in Quarto und Importieren von Daten
+
+<iframe width="900" height="420" src="https://www.youtube.com/embed/S6oCvjEoLFs?si=bbB590PCszdAOONF" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 
 
