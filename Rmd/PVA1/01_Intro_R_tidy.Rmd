@@ -563,6 +563,10 @@ Anwendungsspezifische Funktionen (sog. "Verben"):
   * `summarise()` 
   * `group_by()`
 ]
+
+Ausführlicher im Skript [Datenprojekte in R](https://ffhs-economicresearch.github.io/ER014/Rmd/PVA1/01_DatenprojekteR.html#1) oder in [Kapitel 3 von moderndive.com](https://moderndive.com/3-wrangling.html)
+`r NoCite(bib,"ismay_statistical_2020-1")`
+
 ]
 .panel[.panel-name[Pipes]
 
@@ -607,25 +611,35 @@ class: left
 
 ## Beispiel: Lesbarkeit durch Pipes
 .small[
-* Schwer lesbarer Code in Base-`r fa('r-project')`
+* **Aufgabe:** Berechne den Logarithmus des Vektors `x=(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907)`, setze dessen erste Differenzen in die Exponentialfunktion ein und runde das Ergebnis (eine Nachkommastelle).
+
 ```{r}
-#| label: baseR nested
+#| echo: false
+#| message: false
 # Initialisierung Vektor x
 x <- c(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907)
-
-# Berechne den Logarithmus von x, gib die entsprechend verzögerten und iterierten Differenzen zurück. Berechne die Exponentialfunktion und runde das schließlich das Ergebnis 
-round(exp(diff(log(x))), 1)
+#Laden der magrittr-Bibliothek
+library(magrittr) 
 ```
-* Intuitive Erfassung von workflows mittels Pipe 
-```{r pipe,message=FALSE}
-# Laden der magrittr-Bibliothek
-library(magrittr) #
+
+* Schwer lesbarer (verschachtelter) Code in Base-`r fa('r-project')`
+
+```{r}
+#| label: baseR nested
+round(exp(diff(log(x))), 1) 
+```
+* Intuitive Erfassung von workflows mittels magrittr-Pipe (wird mit tidyverse-Paket geladen)
+```{r}
+#| label: pipe
+#| message: false
 x %>% log() %>%
       diff() %>%
       exp() %>%
       round(1)
 ```
 ]
+]
+
 
 
 

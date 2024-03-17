@@ -1,5 +1,6 @@
 ---
-title: "Sampling"
+title: "Stichprobenverteilung und Schätzung mittels (Re-)Sampling"
+subtitle: ""
 author: "Prof. Dr. Jörg Schoder"
 date: "2023-05-29"
 output: slidy_presentation
@@ -426,10 +427,20 @@ virtual_prop_red_100 %>%
 ```
 
 
+### Zentraler Grenzwertsatz
+
+Mit zunehmendem Stichprobenumfang nähert sich (1) die Stichprobenverteilung eines Punktschätzers (bspw. Anteil roter Kugeln) einer Normalverteilung an und nimmt (2) die Streuung dieser Stichprobenverteilungen ab (`r fa('circle-right')` kleinere Standardfehler).
+
+```{r}
+#| echo: false
+#| fig-align: 'center'
+knitr::include_url("https://www.youtube.com/embed/jvoxEYmQHNM?si=NwpE22md7mmc8_4K",height = '400px')
+```
 
 
+`r fa('exclamation-circle')` Die **Normalverteilung der Stichprobenverteilung** resultiert dabei **unabhängig von der Verteilung in der Grundgesamtheit** - solange die für die Stichproben jeweils berechneten Mittelwerte auf unabhängigen Zufallsvariablen basieren. Die Unabhängigkeit wird dabei durch die Zufälligkeit der Stichprobenziehung sichergestellt.
 
-
+Beispiele, vgl. Skript [Wahrscheinlichkeitstheorie & Zufallsvariablen](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA1/02_Zufallsvariablen.html)
 
 ## 
 
