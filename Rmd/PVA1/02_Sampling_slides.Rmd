@@ -442,6 +442,127 @@ knitr::include_url("https://www.youtube.com/embed/jvoxEYmQHNM?si=NwpE22md7mmc8_4
 
 Beispiele, vgl. Skript [Wahrscheinlichkeitstheorie & Zufallsvariablen](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA1/02_Zufallsvariablen.html)
 
+
+## Mögliche Punktschätzer
+
+
+Im bisher verwendeten Beispiel ging es um den Anteil roter Kugeln, mithin um die Schätzung eines Anteilswerts. Das Konzept der Stichprobenziehung kann jedoch auch zur Schätzung anderer Parameter einer Grundgesamtheit verwendet werden:
+
+
+<table class="table" style="font-size: 16px; margin-left: auto; margin-right: auto;">
+<caption style="font-size: initial !important;">
+<span id="tab:table-ch8"></span>Mögliche Punktschätzer auf Basis von Stichproben
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+Fall
+</th>
+<th style="text-align:left;">
+Parameter der Grundgesamtheit
+</th>
+<th style="text-align:left;">
+Notation
+</th>
+<th style="text-align:left;">
+Punktschätzung
+</th>
+<th style="text-align:left;">
+Symbol(e)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+1
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Anteil in Grundgesamtheit
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(p\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Anteil in Stichprobe
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(\widehat{p}\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+2
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Mittelwert der Grundgesamtheit
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(\mu\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Stichprobenmittelwert
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(\overline{x}\)</span> oder <span class="math inline">\(\widehat{\mu}\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+3
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Differenz von Anteilen einer Grundgesamtheit
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(p_1 - p_2\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Differenz von Anteilen einer Stichprobe
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(\widehat{p}_1 - \widehat{p}_2\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+4
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Differenz von Mittelwerten der Grundgesamtheit
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(\mu_1 - \mu_2\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Differenz von Stichprobenmittelwerten
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(\overline{x}_1 - \overline{x}_2\)</span> oder <span class="math inline">\(\widehat{\mu}_1 - \widehat{\mu}_2\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+5
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Empirischer Regressionskoeffizient (Grundgesamtheit)
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(\beta_1\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Angepasster ("fitted") Regressionskoeffizient (Stichprobe)
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(b_1\)</span> oder <span class="math inline">\(\widehat{\beta}_1\)</span>
+</td>
+</tr>
+</tbody>
+</table>
+
+
+
 ## 
 
 <center><huge>

@@ -1,0 +1,18 @@
+---
+title: "Hypothesentests mittels (Re-)Sampling"
+subtitle: ""
+author: "Prof. Dr. Jörg Schoder"
+date: "2023-05-29"
+output: slidy_presentation
+
+---
+
+
+
+```{r}
+#| label: setup
+#| include: false
+library(fontawesome)
+```
+
+## Münzen
