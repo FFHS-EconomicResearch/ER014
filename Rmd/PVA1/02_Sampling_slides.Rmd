@@ -29,6 +29,9 @@ knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/0868c64eb2998fbe3
 Quelle: [moderndive.com](https://moderndive.com/7-sampling.html)
 
 ## 
+<br>
+<br>
+<br>
 
 <center><huge>
 **Zufallsexperiment und Stichprobenziehung**
@@ -81,7 +84,7 @@ library(moderndive)
 tactile_prop_red
 ```
 
-## Stichprobenverteilung
+## Stichprobenverteilung des physischen Experiments
 
 ```{r}
 #| echo: true
@@ -131,10 +134,19 @@ red_true  %>%
 
 
 
-## (Virtuelles) Sampling und Punktschätzung
+## (Virtuelles) Re-Sampling und Punktschätzung
 
+* Ziehung aus der Grundgesamtheit (Urne)
 
-### Unterschiedliche Schaufelgrößen
+* Unterschiedliche Stichprobenumfänge ("Schaufelgrößen")
+
+* Statt einmaliger Ziehung einer Stichprobe: Wiederholte Ziehung (Re-Sampling)
+
+* Im folgenden Ziehung von jeweils 1000 Stichproben unterschiedlicher Stichprobenumfänge
+  * n=25 (kleine Schaufel)
+  * n=50 (mittlere Schaufel)
+  * n=100 (große Schaufel)
+
 
 ```{r}
 #| echo: false
@@ -149,14 +161,17 @@ knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/3c1a8244da7e0106e
 
 ## "Kleine Schaufel" (Stichprobengröße n = 25) 
 
-* 1000 Ziehungen mit der kleinen Schaufel
+* 1000 Ziehungen mit der kleinen Schaufel 
+
+* Jede Ziehung erfolgt aus der Urne (Grundgesamtheit)!
 
 ```{r}
 #| echo: true
 #| message: false
+set.seed(23)
 n <- 25
 rep <- 1000
-virtual_samples_25 <- bowl %>%
+virtual_samples_25 <- bowl %>%  #Ziehung aus der Urne (Grundgesamtheit)
                         rep_sample_n(size = n,
                                      reps = rep)
 virtual_samples_25
@@ -193,11 +208,14 @@ virtual_prop_red_25 %>%
 
 * 1000 Ziehungen mit der mittleren Schaufel
 
+* Jede Ziehung erfolgt aus der Urne (Grundgesamtheit)!
+
 ```{r}
 #| echo: true
 #| message: false
+set.seed(23)
 n <- 50
-virtual_samples_50 <- bowl %>%
+virtual_samples_50 <- bowl %>%  # Ziehung aus der Urne (Grundgesamtheit)
                          rep_sample_n(size = n,
                                       reps = rep)
 ```
@@ -233,11 +251,14 @@ virtual_prop_red_50 %>%
 
 * 1000 Ziehungen mit der großen Schaufel
 
+* Jede Ziehung erfolgt aus der Urne (Grundgesamtheit)!
+
 ```{r}
 #| echo: true
 #| message: false
+set.seed(23)
 n<-100
-virtual_samples_100 <- bowl %>%
+virtual_samples_100 <- bowl %>%  # Ziehung aus der Urne (Grundgesamtheit)
                           rep_sample_n(size = n,
                                        reps = rep)
 virtual_samples_100
@@ -277,21 +298,24 @@ virtual_prop_red_100 %>%
 
 * Stichprobenziehung ist **unverzerrt** (unbiased), wenn jedes Element der Grundgesamtheit dieselbe Auswahlwahrscheinlichkeit hat
 
-$\Rightarrow$ Bedeutung der Zufallsaufwahl bei der Datenerhebung (!)
+`r fa('circle-right')` Bedeutung der Zufallsaufwahl bei der Datenerhebung (!)
 
 * Statistische Inferenz als Schätzung einer unbekannten Größe der Grundgesamtheit auf Basis einer Stichprobe
 
-* Entscheidende Frage: Kennen wir den *wahren* Wert? 
+* **Entscheidende Frage**: Kennen wir den *wahren* Wert? 
 
 
 ## Wenn der **wahre Wert unbekannt** ist
 
 ### (Virtuelles) Ziehen einer Stichprobe
 
+* Einmaliges Ziehen einer Stichprobe (Umfang n=50) aus der Grundgesamtheit.
+
 ```{r}
 #| echo: true
+set.seed(23)
 n <- 50
-virtual_shovel <- bowl %>% 
+virtual_shovel <- bowl %>% #Ziehen aus der Grundgesamtheit
                      rep_sample_n(size = n)
 virtual_shovel
 ```
@@ -316,13 +340,23 @@ prop_red <- virtual_shovel %>%
 
 * *prop_red* als **Punktschätzung** $(\hat{p}=$ `r prop_red`) für den wahren Anteil $p=$ `r red_true$Anteil_rot` der roten Kugeln in der Grundgesamtheit.
 
-<!-- * Obs! Wenn wir die Varianz der soeben gezogenen Stichprobe (**Stichprobenvarianz**) berechnen wollen, dann muss im Vergleich zur Berechnung im Rahmen der deskriptiven Statistik (also für eine Population) nur noch durch $(n-1)$ statt durch $n$ geteilt werden.  -->
+### Punktschätzung und Erwartungstreue
 
-<!-- $$\hat{\sigma}^2=\frac{n}{n-1}S^2=\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar{X})^2$$ -->
+* `r fa('exclamation-circle')` Zur Berechnung der Varianz einer Stichprobe (**Stichprobenvarianz**) muss eine **Korrektur der Freiheitsgrade** vorgenommen werden.
 
-<!-- * Begründung: Die Varianz der Stichprobe ist nicht erwartungstreu. Erwartungstreue kann durch die Korrektur der Freiheitsgrade erreicht werden.  -->
+  * zur Erinnerung: in der deskriptiven Statistik wurde die Varianz (einer binomial verteilten (Zufalls-)Variable) wie folgt berechnet. 
 
-<!-- * Intuition: Wenn der Mittelwert einer Stichprobe mit $n=50$ berechnet wird und dieser in die Berechnung der Varianz eingeht, dann können nur $n-1=49$ Beobachtungen beliebige Werte annehmen, der 50. Wert ist determiniert (sonst ergäbe sich ein anderer Mittelwert). -->
+$$\sigma^2=\frac{p\cdot (1-p)}{n}$$
+
+  die vorhandenen Daten wurden als Daten der gesamten Population behandelt, mithin ist der zur Berechnung der Varianz erforderliche *wahre Anteilswert* ($p$) bekannt.
+  
+  * Weil im Fall einer Stichprobenziehung der Anteilswert $p$ der Population (in der Regel) nicht bekannt ist, wird er durch den Anteilswert der Stichprobe $\hat{p}$ geschätzt. Dadurch können nur noch $(n-1)$ Werte frei variieren, der n-te Wert ist wegen $\hat{p}=\frac{(h(\mbox{rot}))}{n}$ determiniert. Mithin muss für die **Schätzung der Stichprobenvarianz** eine **Korrektur der Freiheitsgrade** vorgenommen werden:
+
+$$\hat{\sigma}^2=\frac{n}{n-1}\sigma^2=\frac{\hat{p}\cdot(1-\hat{p})}{n-1}$$
+
+* Die Korrektur der Freiheitsgrade stellt die **Erwartungstreue** der Schätzung sicher. Die Varianz der Stichprobe wäre entsprechend nicht erwartungstreu.
+
+<!-- * Intuition: Wenn der Anteils-/Mittelwert einer Stichprobe mit $n=50$ berechnet wird und dieser in die Berechnung der Varianz eingeht, dann können nur $n-1=49$ Beobachtungen beliebige Werte annehmen, der 50. Wert ist determiniert (sonst ergäbe sich ein anderer Anteils-/Mittelwert). -->
 
 
 ## Statistische Inferenz
@@ -366,7 +400,7 @@ knitr::include_graphics("https://d33wubrfki0l68.cloudfront.net/1a0b6b7dbcdc8472e
 
 ## Reliabilität und Validität
 
-* Erinnerung: Zufallsstichprobe stellt unverzerrte (valide) Punktschätzung sicher
+* Erinnerung: Zufallsstichprobe stellt unverzerrte (valide) Punktschätzung sicher.
 
 
 ### Stichprobenverteilungen...
@@ -563,16 +597,30 @@ Angepasster ("fitted") Regressionskoeffizient (Stichprobe)
 
 
 
-## 
 
+
+
+##
+<br>
+<br>
+<br>
 <center><huge>
-**Intervallschätzung und Konfidenzintervall**
+**Bootstrapping und Konfidenzintervalle**
 <huge>
 <center>
 
+## Bootstrapping und Intervallschätzungen
+
+### Stichproben-Variation ohne Kenntnis der Grundgesamtheit
+
+* Wie können wir die Auswirkungen von Stichproben-Variation quantifizieren, wenn wir nur über eine einzig Stichprobe verfügen?
+
+`r fa('circle-right')` Bootstrapping als Methode zur Untersuchung der Stichproben-Variation auf Basis einer (einzigen) Stichprobe.
 
 
-## Punktschätzung vs. Intervallschätzung
+### Punktschätzung vs. Intervallschätzung
+
+* Wie können wir **statt eines konkreten Werts** für einen unbekannten Populationsparameter einen **Bereich von sehr plausiblen Werten** ermitteln? 
 
 ```{r}
 #| echo: false
@@ -583,28 +631,69 @@ Angepasster ("fitted") Regressionskoeffizient (Stichprobe)
 knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/45f6d2e16255dbcb42de86336e1e49ef732aa5da/8bcd0/images/shutterstock/point_estimate_vs_conf_int.png')
 ```
 
-## Ermittlung von Konfidenzintervallen
+
+`r fa('circle-right')` Bootstrapping als Methode zur Ermittlung von Konfidenzintervallen ohne die Notwendigkeit zur Annahme einer bestimmten Verteilung der Grundgesamtheit.
 
 
-* **Schritt 1:** Festlegung eines Konfidenzniveaus (Vertrauensniveaus)
-    * 90%
-    * 95%
-    * 99%
-    
-* **Schritt 2:** Wahl einer Methode
-    * Traditionelle Methode auf Basis einer Verteilungsannahme
-    * Bootstrapping-Methoden
-        * Perzentil-Ansatz
-        * Standardfehler-Ansatz   
-
-* **Schritt 3:** Statistik(en) berechnen
-    * Mittelwert/Schätzwert
-    * Standardfehler
-
-* **Schritt 4:** ggf. Visualisierung und Interpretation
 
 
-## Einzelne Stichprobe aus dem physischen Experiment
+
+
+## Stichprobenverteilung (Reminder) 
+
+* Ermittlung durch wiederholtes Ziehen von Stichproben **aus der Grundgesamtheit** (der **wahren** Verteilung).
+
+* Beispiel: 1000 virtuelle Stichproben mit $n=50$ aus der Urne.
+
+```{r}
+#| echo: true
+set.seed(23)
+virtual_samples <- bowl %>% # Ziehen aus der Grundgesamtheit
+                      rep_sample_n(size = 50, reps = 1000)
+```
+
+* Stichprobenverteilung von $\hat{p}$ berechnen
+
+```{r}
+#| echo: true
+sampling_distribution <- virtual_samples %>%
+                                  group_by(replicate) %>%
+                                  summarize(red = sum(color == "red")) %>%
+                                  mutate(prop_red = red / 50)
+```
+
+* Visualisierung der Stichprobenverteilung von $\hat{p}$
+
+```{r}
+#| echo: false
+sampling_distribution %>% 
+      ggplot(aes(x = prop_red)) +
+              geom_histogram(binwidth = 0.05, boundary = 0.4, color = "white") +
+              labs(x = "Anteil roter Kugeln (aus 50)",
+                   y= "Anzahl",
+                   title = "Stichprobenverteilung") +
+                   geom_vline(xintercept = red_true$Anteil_rot,color='red')
+```
+
+* `r fa('exclamation-circle')` rote Linie: **wahrer Anteil** $(p)$ roter Kugeln
+
+* Standardfehler der Stichprobenverteilung
+
+
+```{r}
+#| echo: false
+sampling_distribution %>%
+          summarize(se = sd(prop_red))
+```
+
+
+## Bootstrapping-Verteilung 
+
+* In den meisten Fällen liegen uns **die Daten nicht** vor, sodass wir meist auf **eine** Stichprobe zurückgreifen müssen (im Folgenden: die von Ilyas und Yohan gezogene Stichprobe)
+
+* Bootstrapping als Methode zur Untersuchung der Stichproben-Variation basierend auf Daten einer (einzigen) Stichprobe.
+
+### Einzelne Stichprobe aus dem physischen Experiment
 
 * Quelle: [moderndive.com](https://moderndive.com/8-confidence-intervals.html#ci-conclusion)
 
@@ -628,12 +717,129 @@ stats_sample_1
 
 In der Stichprobe von Ilyas und Yohan befinden sich insgesamt `r stats_sample_1$Anzahl_rot` rote Kugeln, d.h. der Anteil roter Kugeln entspricht in ihrer Stichprobe `r paste0(round(stats_sample_1$Anteil_rot*100,0),"%")`.
 
+
+### Bootstrapping-Verteilung
+
+
+* Wiederholtes Ziehen **mit vs. ohne Zurücklegen**? Unterschied bei der Ermittlung einer Stichprobenverteilung...
+  * ...bei Ziehung aus der Grundgesamtheit (Urne)
+  * ...bei Ziehung aus **einer** Stichprobe
+
+* `r fa('exclamation-circle')` bei Nutzung der `rep_sample_n()`-Funktion wird standardmäßig *ohne zurücklegen* gezogen (*replace=FALSE*). Mehrwert/Erkenntnisgewinn durch Re-Sampling mit Zurücklegen?
+
+```{r}
+#| echo: true
+set.seed(23)
+bowl_sample_1 %>%  #Stichprobendaten von Ilyas und Yohan
+  rep_sample_n(size = 50, reps = 1000) %>% 
+    group_by(replicate) %>%
+    summarize(red = sum(color == "red")) %>%
+    mutate(prop_red = red / 50)
+```
+
+* **Bootstrapping** als **Re-Sampling-Methode** zur Ermittlung einer Stichprobenverteilung (bzw. *Bootstrapping-Verteilung*) durch wiederholtes Ziehen (**mit zurücklegen!**) von Stichproben **aus den Daten** (also einer einzelnen Stichprobe).
+
+* Für das Bootstrapping muss somit in der `rep_sample_n()`-Funktion die Option (*replace=TRUE*) genutzt werden.
+
+
+```{r}
+#| echo: true
+set.seed(23)
+bowl_sample_1 %>%  #Stichprobendaten von Ilyas und Yohan
+  rep_sample_n(size = 50, reps = 1000, replace=TRUE) %>%  # Ziehen mit Zurücklegen
+    group_by(replicate) %>%
+    summarize(red = sum(color == "red")) %>%
+    mutate(prop_red = red / 50)
+```
+
+
+
+
+### Bootstrapping mit dem **infer**-Paket
+
+* Alternative zur Ermittlung einer Bootstrap-Verteilung: Funktionen aus dem **infer**-Paket:
+
+  * `specify()`
+  * `generate()`
+  * `calculate()`
+  * `visualize()`
+  * weitere Funktionen lernen wir später noch kennen.
+
+```{r}
+#| echo: true
+library(infer)
+set.seed(23)
+bootstrap_distribution <- bowl_sample_1 %>%
+                              specify(response = color,
+                                      success = "red") %>%
+                              generate(reps = 1000,
+                                       type = "bootstrap") %>%
+                              calculate(stat = "prop")
+```
+
+* Visualisierung der Bootstrap-Verteilung
+
+```{r}
+#| echo: true
+bootstrap_distribution %>%
+                  visualize() +
+                  labs(x = "Anteil roter Kugeln (aus 50)",
+                       y= "Anzahl",
+                       title = "Bootstrapping-Verteilung") +
+                  geom_vline(xintercept = stats_sample_1$Anteil_rot,
+                             color='red', linetype='dashed')
+```
+
+* Obs! gestrichelt - der **Anteilswert** $(\hat{p})$, den Ilyas und Yohan in ihrer **Stichprobe** ermittelt haben
+
+* Standardfehler Bootstrap-Verteilung
+
+```{r}
+#| echo: false
+bootstrap_distribution %>%
+              summarize(se = sd(stat))
+```
+
+* **Interpretation:**
+  
+  * Die Bootstrap-Verteilung hat typischerweise ein von der Stichprobenverteilung abweichendes Zentrum. Mithin kann bootstrapping die Qualität der Schätzung (hier $\hat{p}$) nicht verbessern.
+  
+  * Auch wenn die Bootstrap-Verteilung nicht dasselbe Zentrum wie die Stichprobenverteilung hat, wird sie sehr wahrscheinlich eine ähnliche Form und Streuung aufweisen. Damit liefert die Bootstrapping-Methode eine gute Schätzung für den Standardfehler.
+
+
+
+
+
+
+
+## Ermittlung von Konfidenzintervallen
+
+
+* **Schritt 1:** Festlegung eines Konfidenzniveaus (Vertrauensniveaus)
+    * 90%
+    * 95%
+    * 99%
+    
+* **Schritt 2:** Wahl einer Methode
+    * Traditionelle Methode auf Basis einer Verteilungsannahme
+    * Bootstrapping-Methoden
+        * Standardfehler-Ansatz  
+        * Perzentil-Ansatz
+         
+* **Schritt 3:** Statistik(en) berechnen
+    * Mittelwert/Schätzwert
+    * Standardfehler
+
+* **Schritt 4:** ggf. Visualisierung und Interpretation
+
+
+
+
 ## Nutzung der Funktionen im **infer**-Paket
 
 ### Schritt 1: specify()
 ```{r}
 #| echo: true
-library(infer)
 #bowl_sample_1 %>%        
 #    specify(response = color)   # funktioniert nicht - "success" (also das "Ereignis A") muss definiert werden!
 
@@ -705,6 +911,15 @@ sample_1_bootstrap %>%
 ## Interpretation Konfidenzintervall
 
 
+* Gängig, aber falsch ist die folgende Interpretation (eines 95%-Konfidenzintervalls): 
+
+"Mit 95%iger Wahrscheinlichkeit enthält das Konfidenzintervall den wahren Wert $p$."
+
+* Warum falsch? Jedes der Konfidenzintervalle in der untenstehenden Abbildung enthält den wahren Wert $p$ oder nicht: Die Wahrscheinlichkeit ist entweder 1 oder 0.
+
+* Korrekte Interpretation:
+
+"Bei hinreichend großer Anzahl wiederholter Stichprobenziehungen, können wir erwarten, dass etwa 95 % der resultierenden Konfidenzintervalle den wahren Wert des Populationsparameters umfassen/beinhalten."
 
 ### Perzentil-Methode
 
@@ -719,8 +934,27 @@ sample_1_bootstrap %>%
 knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/2d2e483414940e38694400a6ae4a69ca4afb7970/29dd2/moderndive_files/figure-html/reliable-percentile-1.png')
 ``` 
 
+* Grobe gesagt stellen die Intervalle unsere "beste Schätzung" eines plausiblen Wertebereichs für den wahren Anteil roter Kugeln dar.
+
+* Mit anderen Worten: "Wir sind zu 95 % "zuversichtlich", dass ein 95 %-Konfidenzintervall den Wert des Populationsparameters abbildet."
+
+* Warum "zuversichtlich" in Anführungszeichen? Um zu betonen, dass sich **95% zwar eigentlich** auf die **Zuverlässigkeit unseres Verfahrens zur Konstruktion von Konfidenzintervallen** bezieht, ein konstruiertes Konfidenzintervall aber letztlich unsere beste Schätzung eines Intervalls ist, das den wahren Wert der Grundgesamtheit enthält.
+
 
 ### Standardfehler-Methode
+
+* Weniger flexibel als der Perzentil-Ansatz, weil nur anwendbar, wenn eine Normalverteilung der Daten vorliegt.
+
+* Zur Erinnerung: Im Fall der Normalverteilung liegen 95% der Werte 1,96 Standardabweichungen links und rechts des Mittelwerts. 
+
+* Die Standardabweichung der Stichprobenverteilung ist der Standardfehler (SE). Mithin kann das Konfidenzintervall mit Hilfe des Standardfehlers wie folgt konstruiert werden:
+
+$$\hat{p} \pm 1.96 \cdot SE = (\hat{p} - 1.96 \cdot SE, \, \hat{p} + 1.96 \cdot SE)$$
+* Der Standardfehler kann dabei...
+  * ...mittels Bootstrapping ermittel werrden (s.o.) 
+  * ...oder basierend auf der **theoretischen** Verteilung:
+
+$$\text{SE}_{\widehat{p}} \approx \sqrt{\frac{\widehat{p}(1-\widehat{p})}{n}}$$
 
 * Beispiel 80%-Konfidenzintervall (Standardfehler-Methode)
 
@@ -735,95 +969,5 @@ knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/1956d1602c3e1bc1a
 ``` 
 
 
+* vgl. Abschnitt 8.5.2 in [moderndive](https://moderndive.com/8-confidence-intervals.html#shorthand)
 
-## Stichprobenverteilung vs. Bootstrap-Verteilung 
-
-
-### Stichprobenverteilung 
-
-* Beispiel: 1000 virtuelle Stichproben mit $n=50$ aus der Urne (Obs! Ziehen aus der **wahren** Verteilung)
-
-```{r}
-#| echo: false
-virtual_samples <- bowl %>%
-                      rep_sample_n(size = 50, reps = 1000)
-```
-
-* Stichprobenverteilung von $\hat{p}$ berechnen
-
-```{r}
-#| echo: false
-sampling_distribution <- virtual_samples %>%
-  group_by(replicate) %>%
-  summarize(red = sum(color == "red")) %>%
-  mutate(prop_red = red / 50)
-```
-
-* Visualisierung der Stichprobenverteilung von $\hat{p}$
-
-```{r}
-#| echo: false
-sampling_distribution %>% 
-      ggplot(aes(x = prop_red)) +
-              geom_histogram(binwidth = 0.05, boundary = 0.4, color = "white") +
-              labs(x = "Anteil roter Kugeln (aus 50)",
-                   y= "Anzahl",
-                   title = "Stichprobenverteilung") +
-                   geom_vline(xintercept = red_true$Anteil_rot,color='red')
-```
-
-* Obs! rote Linie: **wahrer Anteil** $(p)$ roter Kugeln
-
-* Obs! bei Nutzung der *rep_sample_n()*-Funktion wird standardmäßig *ohne zurücklegen* gezogen (*replace=FALSE*)
-
-* Standardfehler der Stichprobenverteilung
-
-
-```{r}
-#| echo: false
-sampling_distribution %>%
-          summarize(se = sd(prop_red))
-```
-
-### Bootstrapping-Verteilung 
-
-* Beim Bootstrapping wird **aus den Daten** (hier: der von Ilyas und Yohan gezogenen Stichprobe) *mit (!) zurücklegen* gezogen
-
-```{r}
-#| echo: false
-bootstrap_distribution <- bowl_sample_1 %>%
-                              specify(response = color,
-                                      success = "red") %>%
-                              generate(reps = 1000,
-                                       type = "bootstrap") %>%
-                              calculate(stat = "prop")
-```
-
-* Visualisierung der Bootstrap-Verteilung
-
-```{r}
-#| echo: false
-bootstrap_distribution %>%
-                  visualize() +
-                  labs(x = "Anteil roter Kugeln (aus 50)",
-                       y= "Anzahl",
-                       title = "Bootstrapping-Verteilung") +
-                  geom_vline(xintercept = stats_sample_1$Anteil_rot,
-                             color='red', linetype='dashed')
-```
-
-* Obs! gestrichelt - der **Anteilswert** $(\hat{p})$, den Ilyas + Yohan in ihrer **Stichprobe** ermittelt haben
-
-* Standardfehler Bootstrap-Verteilung
-
-```{r}
-#| echo: false
-bootstrap_distribution %>%
-              summarize(se = sd(stat))
-```
-
-* **Interpretation:**
-  
-  * Die Bootstrap-Verteilung hat typischerweise ein von der Stichprobenverteilung abweichendes Zentrum. Mithin kann bootstrapping die Qualität der Schätzung (hier $\hat{p}$) nicht verbessern.
-  
-  * Auch wenn die Bootstrap-Verteilung nicht dasselbe Zentrum wie die Stichprobenverteilung hat, wird sie sehr wahrscheinlich eine ähnliche Form und Streuung aufweisen. Damit liefert die Bootstrapping-Methode eine gute Schätzung für den Standardfehler.

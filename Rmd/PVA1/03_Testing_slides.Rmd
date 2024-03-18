@@ -3,8 +3,10 @@ title: "Hypothesentests mittels (Re-)Sampling"
 subtitle: ""
 author: "Prof. Dr. Jörg Schoder"
 date: "2023-05-29"
-output: slidy_presentation
 
+bibliography: ../../lit/my_bib.bib
+reference-section-title: Quellenverzeichnis
+output: slidy_presentation
 ---
 
 
@@ -12,7 +14,676 @@ output: slidy_presentation
 ```{r}
 #| label: setup
 #| include: false
+library(tidyverse)
 library(fontawesome)
+library(patchwork)
 ```
 
-## Münzen
+
+
+## Beispiel: Geschlechterdiskriminierung am Arbeitsplatz
+
+
+```{r}
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+#| fig-cap: 'Bildquelle: [fullonapp.com](https://fullonapp.com/learn-how-to-get-promoted-at-your-job-with-these-10-basic-points/)'
+knitr::include_graphics(xfun::from_root('img','PVA1','promo_(fullonapp).jpg'))
+```
+
+### Studiendesign
+
+* Daten aus einer 1974 im Journal of Applied Psychology veröffentlichten Studie
+
+* Studiendesign:
+  * 48 Bankaufsichtsbeamte sollten die Rolle eines hypothetischen Direktors einer Bank mit mehreren Filialen übernehmen. 
+  * Allen Probanden wurde ein Lebenslauf vorgelegt und die Frage gestellt, ob der Kandidat auf dem Lebenslauf für eine neue Position in einer ihrer Filialen geeignet sei oder nicht.
+  * Die 48 Lebensläufe waren jedoch in jeder Hinsicht identisch, mit einer Ausnahme: dem Namen des Bewerbers. 
+    * 24 Vorgesetzte erhielten zufällig Lebensläufe mit typisch "männlichen" Namen
+    * 24 Vorgesetzten erhielten zufällig Lebensläufe mit typisch "weiblichen" Namen
+  * Weil sich die Lebensläufe nur hinsichtlich des (binären) Geschlechts unterscheiden, kann auf Basis der Daten ein kausaler Zusammenhang des Geschlechts im Sinne eines Experiments untersucht werden.
+  
+  
+### Daten
+
+* Tabelle mit sechs zufälligen Beobachtungen:
+
+```{r}
+#| echo: true
+library(moderndive)
+set.seed(13)
+promotions %>% 
+  sample_n(size = 6) %>% 
+  arrange(id)
+```
+* Explorative Datenanalyse
+
+  * Datenvisualisierung mittels Balkendiagramm
+```{r}
+#| echo: true
+
+p <- promotions %>% 
+        mutate(gender=if_else(gender=='female','weiblich','männlich'),
+               decision=if_else(decision=='promoted','befördert','nicht befördert')) %>% 
+        ggplot(aes(x = gender, fill = decision)) +
+        geom_bar() + scale_fill_manual(values = c("green", "red")) +
+        labs(x = "Vorname im Lebenslauf",fill='Entscheidung',y='Häufigkeit')
+p
+```
+   * Kennzahlen
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+tbl_prom <- promotions %>% 
+                group_by(gender, decision) %>% 
+                tally()
+tbl_prom
+prom_rates <- tbl_prom %>% 
+                  group_by(gender) %>% 
+                  summarise(props=n/sum(n))
+prom_male <- prom_rates %>% 
+                  filter(gender=='male') %>% 
+                  pull()
+prom_fem <- prom_rates %>% 
+                  filter(gender=='female') %>% 
+                  pull()
+gender_diff <- round(prom_male[2],3)-round(prom_fem[2],3)
+```
+
+Während also `r prom_male[2]*100`% der Männer befördert wurden, waren es bei den Frauen lediglich `r round(prom_fem[2]*100,1)`%. Mithin betrug der Unterschied in der Beförderung zwischen den Geschlechtern `r gender_diff*100`%.
+
+`r fa('circle-right')` Damit stellt sich eine typische Frage der statistischen Inferenz:
+Kann aus dem beobachteten Unterschied auf eine geschlechtsspezifische Diskriminierung bei Beförderungen in Banken geschlossen werden?
+
+Oder könnte ein Unterschied bei den Beförderungsquoten von `r gender_diff*100`% auch in einer (hypothetischen) Welt, in welcher es keine geschlechtsspezifische Diskriminierung gibt, **zufällig auftreten**? 
+
+
+`r fa('circle-right')` Zur Beantwortung der Frage können wir die Stichprobenvariation (in der hypothetischen Welt) nutzen.
+
+
+## Nullhypothese: Welt ohne Diskriminierung
+
+* In einer diskriminierungsfreien Welt wäre die Variable `Geschlecht` ohne Bedeutung für die Entscheidung über eine Beförderung.
+
+* Wir könnten die Variable `Geschlecht` "neu mischen" und zufällig auf die Stichprobe verteilen, ohne etwas zu verändern.
+
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| out-height: '80%'
+#| fig-align: 'center'
+knitr::include_graphics('https://moderndive.com/images/shutterstock/shutterstock_128283971.jpg')
+```
+
+
+<table class="table" style="font-size: 16px; margin-left: auto; margin-right: auto;">
+<caption style="font-size: initial !important;">
+<span id="tab:compare-six"></span>Beispiel einer "Mischung" der Variable "Geschlecht"
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+résumé number
+</th>
+<th style="text-align:left;">
+decision
+</th>
+<th style="text-align:left;">
+gender
+</th>
+<th style="text-align:left;">
+shuffled gender
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+not
+</td>
+<td style="text-align:left;">
+male
+</td>
+<td style="text-align:left;">
+male
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+not
+</td>
+<td style="text-align:left;">
+female
+</td>
+<td style="text-align:left;">
+male
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+not
+</td>
+<td style="text-align:left;">
+female
+</td>
+<td style="text-align:left;">
+female
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+promoted
+</td>
+<td style="text-align:left;">
+male
+</td>
+<td style="text-align:left;">
+female
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:left;">
+promoted
+</td>
+<td style="text-align:left;">
+male
+</td>
+<td style="text-align:left;">
+female
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:left;">
+promoted
+</td>
+<td style="text-align:left;">
+female
+</td>
+<td style="text-align:left;">
+male
+</td>
+</tr>
+</tbody>
+</table>
+
+ 
+
+
+```{r}
+#| echo: true
+p <- p + labs(title = 'Original')
+p1 <- promotions_shuffled %>%
+        mutate(gender=if_else(gender=='female','weiblich','männlich'),
+               decision=if_else(decision=='promoted','befördert','nicht befördert')) %>% 
+        ggplot(aes(x = gender, fill = decision)) +
+        geom_bar() + scale_fill_manual(values = c("green", "red")) +
+        labs(x = "Vorname im Lebenslauf",fill='Entscheidung',title='Gemischt',y='Häufigkeit')
+p+p1
+```
+
+* Kennzahlen
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+tbl_prom <- promotions_shuffled %>% 
+                group_by(gender, decision) %>% 
+                tally()
+tbl_prom
+prom_rates <- tbl_prom %>% 
+                  group_by(gender) %>% 
+                  summarise(props=n/sum(n))
+prom_male <- prom_rates %>% 
+                  filter(gender=='male') %>% 
+                  pull()
+prom_fem <- prom_rates %>% 
+                  filter(gender=='female') %>% 
+                  pull()
+gender_diff <- round(prom_male[2],3)-round(prom_fem[2],3)
+```
+
+In der hypothetischen Welt, in der "Geschlecht" ein *unbedeutendes label* ist, wären also `r prom_male[2]*100`% der Männer befördert wurden, waren es bei den Frauen lediglich `r round(prom_fem[2]*100,1)`%. Mithin wäre der Unterschied in der Beförderung zwischen den Geschlechtern nun mit `r gender_diff*100`% deutlich geringer als in der Original-Stichprobe.
+
+`r fa('circle-right')` Die unterschiedliche Differenz der geschlechtsspezifischen Beförderungsquoten ist ein weiteres Beispiel für **Stichproben-Variation**.
+
+
+## Wiederholtes Mischen (Permutation)
+
+
+* Die Autoren von [moderndive](https://moderndive.com/9-hypothesis-testing.html#understanding-ht) Freunde darum, die "Mischübung" zu wiederholen. 
+
+* Die Ergebnisse von 16 Gruppen wurden in einem gemeinsamen [GoogleSheet](https://docs.google.com/spreadsheets/d/1Q-ENy3o5IrpJshJ7gn3hJ5A0TOWV2AZrKNHMsshQtiE/edit?pli=1#gid=0) festgehalten. Hier ein Ausschnitt:
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| out-height: '80%'
+#| fig-align: 'center'
+#| fig-cap: 'Ausschnitt GoogleSheets'
+knitr::include_graphics('https://moderndive.com/images/sampling/promotions/shared_spreadsheet.png')
+```
+
+### Erzeugung einer Stichprobenverteilung mittels Permutation
+
+* Die Stichprobenverteilung dieser 16-fach wiederholten Mischübung (**Permutation**) stellt sich wie folgt dar:
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| out-height: '80%'
+#| fig-align: 'center'
+#| fig-cap: 'Verteilung bei 16-facher Permutation'
+knitr::include_graphics('https://moderndive.com/ModernDive_files/figure-html/null-distribution-1-1.png')
+```
+
+
+* Das Histogramm stellt die Differenz zwischen den geschlechtsspezifischen Beförderungsquoten in einer hypothetischen diskriminierungsfreien Welt dar.
+  * Die Diskriminierungsfreiheit zeigt sich in der Stichprobenverteilung in der Zentrierung um Null herum
+  * Obwohl die Werte um Null liegen, gibt es dennoch Abweichungen - selbst in der hypothetischen Welt sind in Zufallsstichproben immer noch kleine, **zufällige** Unterschiede bei den Beförderungsraten zu erwarten.
+  * Tatsächlich zeigen sich im Histogramm durchaus größere Unterschiede von bis zu -0,292 oder 0,208.
+
+* Die rote Linie stellt den Unterschied der Beförderungsquoten aus der Original-Stichprobe (29,2%) dar. Wie wahrscheinlich wäre es, dass wir in einer hypothetischen Welt ohne Geschlechterdiskriminierung diesen Unterschied beobachten?
+
+`r fa('circle-right')` Die in der Original-Stichprobe von 48 Lebensläufen Geschlechter-Unterschiede sind mit der *(Null-)Hypothese einer diskriminierungsfreien Welt* **kaum vereinbar**. Es spricht viel dafür, die Null-Hypothese zu verwerfen und festzustellen, dass die Daten auf eine geschlechtsspezifische Diskriminierung hindeuten.
+
+### Permutation vs. Bootstrapping
+
+* Bootstrapping: Ziehen aus den Stichproben-Daten mit Zurücklegen
+
+* **Permutation**: Ziehen aus den Stichproben-Daten **ohne** Zurücklegen
+
+
+## Permutation als Teststrategie (Permutationstests)
+
+* Indem wir die geschlechtsspezifischen Unterschiede in den Beförderungsquoten ($p_m-p_f$) untersucht haben, haben wir ein Beispiel für Fall 3 aus der bereits bekannten Tabelle betrachtet:
+
+<table class="table" style="font-size: 16px; margin-left: auto; margin-right: auto;">
+<caption style="font-size: initial !important;">
+<span id="tab:table-ch8"></span>Mögliche Punktschätzer auf Basis von Stichproben
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+Fall
+</th>
+<th style="text-align:left;">
+Parameter der Grundgesamtheit
+</th>
+<th style="text-align:left;">
+Notation
+</th>
+<th style="text-align:left;">
+Punktschätzung
+</th>
+<th style="text-align:left;">
+Symbol(e)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+1
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Anteil in Grundgesamtheit
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(p\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Anteil in Stichprobe
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(\widehat{p}\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+2
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Mittelwert der Grundgesamtheit
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(\mu\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Stichprobenmittelwert
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(\overline{x}\)</span> oder <span class="math inline">\(\widehat{\mu}\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+3
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Differenz von Anteilen einer Grundgesamtheit
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(p_1 - p_2\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Differenz von Anteilen einer Stichprobe
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(\widehat{p}_1 - \widehat{p}_2\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+4
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Differenz von Mittelwerten der Grundgesamtheit
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(\mu_1 - \mu_2\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Differenz von Stichprobenmittelwerten
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(\overline{x}_1 - \overline{x}_2\)</span> oder <span class="math inline">\(\widehat{\mu}_1 - \widehat{\mu}_2\)</span>
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 0.5in; ">
+5
+</td>
+<td style="text-align:left;width: 1.2in; ">
+Empirischer Regressionskoeffizient (Grundgesamtheit)
+</td>
+<td style="text-align:left;width: 0.8in; ">
+<span class="math inline">\(\beta_1\)</span>
+</td>
+<td style="text-align:left;width: 1.5in; ">
+Angepasster ("fitted") Regressionskoeffizient (Stichprobe)
+</td>
+<td style="text-align:left;width: 0.6in; ">
+<span class="math inline">\(b_1\)</span> oder <span class="math inline">\(\widehat{\beta}_1\)</span>
+</td>
+</tr>
+</tbody>
+</table>
+
+* Ausgehend von unserer Stichprobe mit $n_m=24$ "männlichen" und $n_w=24$ "weiblichen" BewerberInnen ist der **Punktschätzer** für $p_m-p_f$ also die Differenz der Stichprobenanteile $\hat{p_m}-\hat{p_f}= 0,875 - 0,583 = 0,292 = 29,2%$. Diese Differenz zugunsten der "männlichen" Lebensläufe von 0,292 ist größer als 0, was auf eine Diskriminierung zugunsten der Männer hindeutet.
+
+* Daher stellten wir uns ursprünglich die folgende Frage: "Ist der Unterschied signifikant größer als 0? Mit anderen Worten, ist dieser Unterschied ein Hinweis auf eine echte Diskriminierung, oder können wir ihn nur auf Stichprobenschwankungen zurückführen?
+
+`r fa('circle-right')` Hypothesentests erlauben uns (unter anderem) solche Unterscheidungen zwischen zufälligen und "über-zufälligen" Differenzen zwischen Gruppen zu treffen!
+
+
+## Hypothesentests und Begrifflichkeiten
+
+* **Hypothese** als Aussage über den Wert eines unbekannten Populationsparameters. 
+  * Hypothesentests können sich auf jeden der Populationsparameter in der obigen Tabelle der fünf Inferenzszenarien beziehen.
+  * In unserem Beispiel Geschlechterunterschieden bei der Beförderung interessieren wir uns für Differenz der Populationsanteile $p_m-p_f$ als **Parameter der Grundgesamtheit**.
+
+* **Hypothesentest** als Test zwischen zwei **konkurrierenden Hypothesen**: (1) einer Nullhypothese $H_0$ (ausgesprochen "H-Null") und (2) einer Alternativhypothese $H_A$.
+  * Im Allgemeinen ist $H_0$ eine Behauptung, dass es "keinen Effekt" oder "keinen Unterschied von Interesse" gibt. 
+  * Demgegenüber ist die Alternativhypothese in der Regel eine Behauptung, die der Wissenschaftler aufstellt und für die er Belege finden möchte ("Herausforderer"-Hypothese zur $H_0$) betrachtet. 
+  * In unserem Beispiel zu Geschlechtsunterschieden bei Beförderungen:
+    * $H_0$: Männer und Frauen werden in gleichem Maße befördert vs.
+    * $H_A$: Männer werden in höherem Maße befördert als Frauen (einseitiger Test)
+    * oder $H_A$: es gibt einen Unterschied in der Beförderung zwischen den Geschlechtern (zweiseitiger Test)
+    * Kurz (im Fall des einseitigen Tests):
+      * $H_0$: $p_m-p_f=0$ vs.
+      * $H_A$: $p_m-p_f>0$
+
+* **Teststatistik** als Punktschätzung bzw. zusammenfassende Stichprobenstatistik. 
+  * basiert auf einer Stichprobe von Beobachtungen
+  * kondensiert viele Werte zu einem Wert. 
+  * **Im Beispiel:** Stichproben von $n_m=24$ Lebensläufen mit männlichen Namen und $n_f=24$ Lebensläufen mit weiblichen Namen. Differenz der Stichprobenanteile $\hat{p_m}-\hat{p_f}$ als **interessierende Punktschätzung**.  
+
+
+* **Beobachtete** Teststatistik: der Wert der Teststatistik, den wir in der Realität (Stichprobe) beobachtet haben. Im Beispiel:  $\hat{p_m}-\hat{p_f}= 0,875 - 0,583 = 0,292 = 29,2%$ 
+
+* Die **Nullverteilung**: Stichprobenverteilung der Teststatistik **unter der Annahme**, dass die Nullhypothese $H_0$ wahr ist. 
+  * Wie verändert sich die Teststatistik aufgrund von Stichprobenvariationen? 
+  * Im Beispiel: Wie verändert sich der Unterschied in den Stichprobenanteilen $\hat{p_m}-\hat{p_f}$ aufgrund der Stichproben-Variation unter $H_0$? 
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| out-height: '80%'
+#| fig-align: 'center'
+#| fig-cap: 'Nullverteilung'
+knitr::include_graphics('https://moderndive.com/ModernDive_files/figure-html/null-distribution-1-1.png')
+```
+
+
+* **p-Wert** als Wahrscheinlichkeit, bei gültiger $H_0$ eine Teststatistik zu erhalten, die genauso extrem oder noch extremer als die beobachtete Teststatistik ist
+  * p-Wert als Quantifizierung der "Überraschung": Angenommen, H0 ist wahr, wie überrascht sind wir von dem, was wir beobachtet haben?
+  * Im Beispiel: wie überrascht sind wir im hypothetischen Universum ohne geschlechtsspezifische Diskriminierung, dass die gesammelten Daten einen Unterschied in den Beförderungsraten von 0,292 anzeigen?
+  * "Extrem" im Sinne der Alternativhypothese $H_A$: "männliche" werden Bewerber häufiger befördert als "weibliche" Bewerber. In diesem Fall haben wir in 0 von 16 Fällen einen Unterschied im Anteil erhalten, der größer oder gleich dem beobachteten Unterschied von 0,292 = 29,2 % ist. Ein sehr seltenes (in der Tat nicht vorkommendes) Ergebnis!
+  * Bei sehr seltenen Überraschungen (kleinen p-Werten) wird die $H_0$ üblicherweise zugunsten von $H_A$ verworfen.
+  
+* Das **Signifikanzniveau** $\alpha$ sollte bei Hypothesentests **Vorab** festgelegt werden. 
+  * $\alpha$ dient als Grenzwert für den $p-Wert$. Wenn der p-Wert unter $\alpha$ fällt, wird die Nullhypothese $H_0$ abgelehnt.
+  * übliche Werte für $\alpha$: 0,1, 0,01 und **0,05**.
+  * Wenn der p-Wert nicht unter $\alpha$ fällt, würde $H_0$ nicht zurückgewiesen.
+  
+`r fa('circle-right')` Kritischer Rationalismus (K. Popper): Die $H_0$ nicht abzulehnen, heißt nicht, sie zu akzeptieren!
+
+## Exkurs: p-Hacking
+
+### Comedy
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| out-height: '80%'
+#| fig-align: 'center'
+knitr::include_url('https://www.youtube.com/watch?v=FLNeWgs2n_Q')
+```
+
+[John Oliver P-Hacking](https://www.youtube.com/watch?v=FLNeWgs2n_Q)
+
+### Akademischer und ausführlicher (mehrere Teile)
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| out-height: '80%'
+#| fig-align: 'center'
+knitr::include_url('https://www.youtube.com/watch?v=eqrv-Lq4a5E&list=PLmXNcJ-VjBYooRTlv91jS479PcnK-6zsN')
+```
+
+[Jeff Galak](https://www.youtube.com/watch?v=eqrv-Lq4a5E&list=PLmXNcJ-VjBYooRTlv91jS479PcnK-6zsN)
+
+## Hypothesentests mit dem **infer**-Paket
+
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| out-height: '80%'
+#| fig-align: 'center'
+#| fig-cap: 'Workflow Hypothesentest mit infer-Paket'
+knitr::include_graphics('https://moderndive.com/images/flowcharts/infer/ht.png')
+```
+
+Verglichen mit dem infer-workflow zur Konstruktion von Konfidenzintervallen:
+
+  * ein zusätzlicher Schritt: `hypothesize()` zur Formulierung der Hypothesen
+  * Festlegung des Signifikanzniveaus (default: $\alpha=.05$)
+
+### `specify()`
+
+* Spezifikation der abhängigen Variable (*response*) und der unabhängigen/erklärenden (*explanatory*) Variable(n):
+
+> formula = response ~ explanatory
+
+* Im Beispiel: Wir wollen den Effekt des Geschlechts auf die Entscheidung über Beförderungen untersuchen.
+  * *response* ist also die Variable "Beförderungsentscheidung" (`decision`).
+  * *explanatory* ist die Variable "Geschlecht" (`gender`). Mehrere unabhängige Variablen können ggf. mittels `+` verknüpft werden.
+  * Bei `decision` handelt es sich um eine binäre/dichotome Variable (auch: Dummy-Variable) mit zwei Ausprägungen: "promoted" vs. "not". Wir interessieren uns für die dokumentierten Beförderungen (Option *success = "promoted"*)
+
+
+```{r}
+#| echo: true
+library(infer)
+promotions %>% 
+  specify(formula = decision ~ gender, success = "promoted") 
+```
+
+`r fa('exclamation-circle')` Die Daten selbst werden lediglich "wiederholt" bzw. unverändert dargestellt. Jedoch ändern sich die Metadaten: Die Variablen werden als `Response` bzw. `Explanatory` kategorisiert.
+
+
+### `hypothesize()`
+
+* Formulierung von $H_0$ und $H_A$.
+
+* Im Beispiel:
+   * $H_0$: $p_m-p_f=0$ vs.
+   * $H_A$: $p_m-p_f>0$
+
+* Festlegung der $H_0$ in der `hypothesize()`-Funktion, die zusätzlich folgende Optionen enthält:
+  * `point` für Tests im Einstichprobenfall (bspw. Wochenarbeitszeit 40 Stunden (oder nicht))
+  * `independence` für Tests im Zwei-Stichprobenfall
+
+* Im Beispiel handelt es sich um einen Zwei-Stichprobenfall. Lebensläufe mit weiblichen vs. männlichen Namen. Entsprechend:
+
+```{r}
+#| echo: true
+promotions %>% 
+  specify(formula = decision ~ gender, success = "promoted") %>% 
+  hypothesize(null = "independence") 
+```
+
+`r fa('exclamation-circle')` Auch dieser Schritt verändert die Daten selbst nicht. Erneut ändern sich nur die Metadaten: Die Null-Hypothese wird "aufgenommen".
+
+### `generate()`
+
+* Nun sollen die wiederholten Ziehungen von "durchgemischten" Datensätzen erfolgen. Die Ziehungen erfolgen dabei unter der Annahme, dass die Nullhypothese wahr ist.
+
+* Statt wie oben (nur) 16 Mal zu mischen, lassen wir den Computer mit Hilfe der `generate()`-Funktion 1000 Wiederholungen durchführen (Option *reps = 1000*). 
+
+* Da wir die Wiederholungen als "Ziehen mit Zurücklegen" vornehmen wollen, müssen wir  die Option *type = "permute"* (statt "bootstrap" für das wiederholte Ziehen mit Zurücklegen)
+
+```{r}
+#| echo: true
+promotions_generate <- promotions %>% 
+                          specify(formula = decision ~ gender, success = "promoted") %>% 
+                          hypothesize(null = "independence") %>%
+                          generate(reps = 1000, type = "permute")
+nrow(promotions_generate)
+```
+
+Wir erhalten ein **tibble**-Objekt mit `r nrow(promotions_generate)` Zeilen: Für jede der 48 Zeilen der Original-Sitchprobe werden 1000 Mischungen/Mutationen durchgeführt. 
+
+
+### `calculate()`
+
+* Die 1000 "Re-Shuffles" wurden unter der Annahme erzeugt, dass die Nullhypothese wahr ist.
+
+* Aus diesen Stichproben berechnen wir nun die **Teststatistik**. 
+  * Wir interessieren uns für den unbekannten Populationsparameter "Differenz der Populationsanteile" $p_m-p_f$.
+  * Folglich berechnen wir als Teststatistik die Differenz der Stichprobenanteile $\hat{p_m}-\hat{p_f}$.
+  * Für jede unserer 1000 Mischungen können wir diese Teststatistik mit der Option *stat = "diff in props"* ermitteln. 
+  * Weil uns $\hat{p_m}-\hat{p_f}$ interessiert, nutzen wir außerdem die Option *order = c("male", "female")*. 
+  
+`r fa('exclamation-circle')` Die Reihenfolge der Subtraktion spielt keine Rolle, solange wir im Rahmen der Analyse konsistent bleiben und auch die Interpretationen entsprechend anpassen.
+
+* Im Beispiel speichern wir das Ergebnis in einem **tibble**-Objekt namens null_distribution:
+
+
+```{r}
+#| echo: true
+null_distribution <- promotions %>% 
+                          specify(formula = decision ~ gender, success = "promoted") %>% 
+                          hypothesize(null = "independence") %>%
+                          generate(reps = 1000, type = "permute") %>% 
+                          calculate(stat = "diff in props", order = c("male", "female"))
+null_distribution
+```
+
+* Wir erhalten erwartungsgemäß 1000 Anteilswerte für geschlechtsspezifische Differenzen bei der Beförderung. Diese Anteilswerte würden resultieren, wenn die $H_0$ gültig ist.
+
+* Wie hoch war die **beobachtete** Teststatistik $\hat{p_m}-\hat{p_f}$? Die oben berechnete Differenz 0,875 - 0,583 = 0,292 = 29,2% können wir mit der **infer**-Pipe berechnen, wenn wir die Schritte `hypothesize()` und `generate()` weglassen. Speichern wir dies in `obs_diff_prop`:
+
+
+```{r}
+#| echo: true
+obs_diff_prop <- promotions %>% 
+                          specify(formula = decision ~ gender, success = "promoted") %>% 
+                          calculate(stat = "diff in props", order = c("male", "female"))
+obs_diff_prop
+```
+
+### `visualize()`
+
+
+* Schließlich wollen wir herausfinden, wie überrascht wir von einer beobachteten geschlechtsspezifischen Differenz bei den Beförderungen in Höhe von 29,2 % wären, wenn wir in einer Welt ohne Geschlechterdiskriminierung (d.h. unter gültiger $H_0$) lebten. W
+
+* Visualisierung der Nullverteilung unserer 1000 Werte von $\hat{p_m}-\hat{p_f}$ mit der `visualize()`-Funktion.
+
+
+```{r}
+#| fig-cap: 'Nullverteilung'
+visualize(null_distribution, bins = 10)
+```
+
+
+* Das Diagramm kann noch mit Hilfe der noch ergänzt werden:
+   * beobachtete Differenz und
+   * p-Wert
+   * Konfidenzintervalle
+   
+*  `shade_p_value()` mit den Optionen:
+    * **obs_stat** und
+    * **direction** mit den Optionen:
+      *  "less" oder "left"
+      * "greater" oder "right"
+      * "two-sided" oder "both"
+
+Für unser Beispiel: 
+
+```{r}
+#| fig-cap: 'Nullverteilung mit beobachtetem Anteil und p-Wert (schattiert)'
+visualize(null_distribution, bins = 10) + 
+  shade_p_value(obs_stat = obs_diff_prop, direction = "right")
+```
+
+
+* Die senkrechte Linie stellt den beobachteten Anteil von 29,2% dar.
+
+* Der schattierte Bereich stellt den p-Wert dar.
+  * Interpretation des p-Werts als die Wahrscheinlichkeit, eine Teststatistik zu erhalten, die genauso groß oder größer ist als die beobachtete Teststatistik , wenn $H_0$ wahr ist.
+  * Hier: in der hypothetischen Welt ohne geschlechtsspezifische Diskriminierung wären eher selten Unterschiede von 0,292 = 29,2 % oder mehr zu beobachten. Mit anderen Worten, der p-Wert ist eher klein. 
+  * Mithin würden wir dazu tendieren, die angenommene Grundgesamtheit zu verwerfen. Statistisch ausgedrückt würden wir "$H_0$ verwerfen".
+  
+* Welcher Anteil der Nullverteilung ist schattiert? Mit anderen Worten, was ist der genaue Wert des p-Wertes? 
+
+`r fa('circle-right')` Mit der Funktion `get_p_value()` und denselben Argumenten wie im vorherigen Code shade_p_value() kann der p-Wert berechnet werden:
+
+```{r}
+null_distribution %>% 
+  get_p_value(obs_stat = obs_diff_prop, direction = "right")
+```
