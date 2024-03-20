@@ -150,9 +150,9 @@ knitr::include_graphics(xfun::from_root('img','PVA3','data_in_business_(tableau)
 ---
 class: left
 
-.blockquote[`r fa('r-project')` Basics]
+.blockquote[Motivation und Einordnung]
 
-## `r fa('r-project')`-chitektur
+## Daten, Experimente und Innovationen
 
 .right-column[
 .blockquote[
