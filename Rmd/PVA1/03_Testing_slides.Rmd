@@ -687,3 +687,147 @@ visualize(null_distribution, bins = 10) +
 null_distribution %>% 
   get_p_value(obs_stat = obs_diff_prop, direction = "right")
 ```
+
+
+
+## Betrachtung von Konfidenzintervallen
+
+Die zur Berechnung der p-Werte verwendete **Pipe** mit Funktionen den **infer**-Pakets muss nur minimal modifiziert werden, um Konfidenzintervalle zu berechnen:
+
+```{r}
+bootstrap_distribution <- promotions %>% 
+                                specify(formula = decision ~ gender, 
+                                        success = "promoted") %>% 
+        # Modifikation 1 - Entfernen von hypothesize():
+                              # hypothesize(null = "independence") %>% 
+        # Modifikation 2 - "bootstrap" statt "permute":
+                                generate(reps = 1000, type = "bootstrap") %>% 
+                                calculate(stat = "diff in props", 
+                                          order = c("male", "female"))
+```
+
+
+
+### Perzentil-Ansatz
+
+```{r}
+percentile_ci <- bootstrap_distribution %>% 
+                      get_confidence_interval(level = 0.95, type = "percentile")
+percentile_ci
+```
+
+Gemäß unserer groben Interpretation (aus dem Foliensatz zu Sampling und Konfidenzintervallen): Wir können 95% "zuversichtlich" sein, dass die **wahre Differenz**
+der geschlechtsspezifischen Unterschiede in der Beförderung $p_m-p_f$ im Intervall (`r percentile_ci$lower_ci`; `r percentile_ci$upper_ci`) liegt.
+
+
+* Visualisierung des Konfidenzintervalls für die Differenz $p_m-p_f$:
+
+```{r}
+visualize(bootstrap_distribution) + 
+  shade_confidence_interval(endpoints = percentile_ci)
+```
+
+`r fa('exclamation-circle')` Der Wert Null liegt nicht im 95%-Konfidenzintervall für die Differenz $p_m-p_f$. Dies legt nahe, dass die geschlechtsspezifischen Differenzen in Beförderungsquoten wirklich unterschiedlich sind. Aus der Tatsache, dass das gesamte 95%-Konfidenzintervall rechts von Null liegt, spricht dafür, dass die geschlechtsspezifischen Unterschiede zugunsten der Männer aufallen.
+
+
+### Standardfehler-Ansatz
+
+Weil die Bootstrap-Verteilung annähernd normalverteilt scheint, kann das Konfidenzintervall auch mittels Standardfehler konstruiert werden. Dazu müssen wir
+die Option *point_estimate = obs_diff_prop* noch in die `get_confidence_interval()`-Funktion einfügen, um das Zentrum des Konfidenzintervalls beim beobachteten Wert der Differenz (0,29) festzulagen.
+
+
+```{r}
+se_ci <- bootstrap_distribution %>% 
+                      get_confidence_interval(level = 0.95, type = "se",
+                                              point_estimate = obs_diff_prop)
+se_ci
+```
+
+
+* Visualisierung des mittels Standardfehler konstruierten 95%-Konfidenzintervalls für die Differenz $p_m-p_f$. 
+
+```{r}
+visualize(bootstrap_distribution) + 
+        shade_confidence_interval(endpoints = se_ci)
+```
+
+* Auch in dem mittels Standardfehler konstruierten 95%-Konfidenzintervall ist die Null nicht enthalten. Mithin liegt auch hier der Schluss nahe, dass die  geschlechtsspezifischen Unterschiede $p_m-p_f$ tatsächlich nicht zufällig sind.
+
+
+
+## Es gibt nur einen Test
+
+
+* Das **infer**-Paket setzt letzlich den ["There is only one test"](http://allendowney.blogspot.com/2016/06/there-is-still-only-one-test.html) Ansatz von Allen Downey um:
+
+```{r}
+#| echo: false
+knitr::include_graphics('https://moderndive.com/images/copyright/there_is_only_one_test.png')
+```
+
+`r fa('circle-right')` Grundsätzlich kann jeder Hypothesentest  mit dem oben dargestellten workflow des **infer**-Pakets durchgeführt werden:
+
+  1. `specify()`: Spezifikation der interessierenden Variablen
+  2. `hypothesize()`: Formulierung der Null-Hypothese
+  3. `generate()`: Simulation von Daten unter der Annahme, dass $H_0$ wahr ist
+  4. `calculate()`: Berechnung der interessierenden (Anteile, Mittelwerte, Differenzene etc.) Teststatistik für beobachtete und simulierte Daten
+  5. `visualize()`: grafische Darstellung der Nullverteilung und Berechnung des p-Werts auf Basis des Vergleichs von beobachteten und simulierten Werten
+
+
+
+##
+<br>
+<br>
+<br>
+<center><huge>
+**Interpretation von Hypothesentests**
+<huge>
+<center>
+
+
+
+## Zwei mögliche Ausgänge
+
+
+## Fehlerarten
+
+
+## Wahl des Signifikanzniveaus
+
+
+
+
+## Vergleich mit traditionellen Hypothesentests
+
+
+## 
+<br>
+<br>
+<br>
+<center><huge>
+**Fazit und Ausblick**
+<huge>
+<center>
+
+
+## Mind Map: Test-Szenarien
+
+
+```{r}
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+#| fig-cap: 'Inferenz Mind Map'
+knitr::include_url('https://coggle.it/diagram/Vxlydu1akQFeqo6-/t/inference')
+```
+
+
+
+## Wann sind Tests überflüssig?
+
+
+
+## Probleme mit p-Werten
+
+
+## Ausblick
