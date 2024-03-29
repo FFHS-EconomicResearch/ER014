@@ -127,16 +127,15 @@ knitr::include_graphics('https://moderndive.com/images/shutterstock/shutterstock
 <thead>
 <tr>
 <th style="text-align:right;">
-résumé number
+Lebenslauf Nr.</th>
+<th style="text-align:left;">
+Entscheidung
 </th>
 <th style="text-align:left;">
-decision
+Geschlecht
 </th>
 <th style="text-align:left;">
-gender
-</th>
-<th style="text-align:left;">
-shuffled gender
+Geschlecht permutiert
 </th>
 </tr>
 </thead>
@@ -146,13 +145,13 @@ shuffled gender
 1
 </td>
 <td style="text-align:left;">
-not
+nicht
 </td>
 <td style="text-align:left;">
-male
+männlich
 </td>
 <td style="text-align:left;">
-male
+männlich
 </td>
 </tr>
 <tr>
@@ -160,13 +159,13 @@ male
 2
 </td>
 <td style="text-align:left;">
-not
+nicht
 </td>
 <td style="text-align:left;">
-female
+weiblich
 </td>
 <td style="text-align:left;">
-male
+männlich
 </td>
 </tr>
 <tr>
@@ -174,13 +173,13 @@ male
 3
 </td>
 <td style="text-align:left;">
-not
+nicht
 </td>
 <td style="text-align:left;">
-female
+weiblich
 </td>
 <td style="text-align:left;">
-female
+weiblich
 </td>
 </tr>
 <tr>
@@ -188,13 +187,13 @@ female
 4
 </td>
 <td style="text-align:left;">
-promoted
+befördert
 </td>
 <td style="text-align:left;">
-male
+männlich
 </td>
 <td style="text-align:left;">
-female
+weiblich
 </td>
 </tr>
 <tr>
@@ -202,13 +201,13 @@ female
 5
 </td>
 <td style="text-align:left;">
-promoted
+befördert
 </td>
 <td style="text-align:left;">
-male
+männlich
 </td>
 <td style="text-align:left;">
-female
+weiblich
 </td>
 </tr>
 <tr>
@@ -216,23 +215,23 @@ female
 6
 </td>
 <td style="text-align:left;">
-promoted
+befördert
 </td>
 <td style="text-align:left;">
-female
+weiblich
 </td>
 <td style="text-align:left;">
-male
+männlich
 </td>
 </tr>
 </tbody>
 </table>
 
- 
+Das Objekt `promotions_shuffled` enthält die eine Permutation der Variable `Geschlecht` und zeigt ein Beispiel (eine Ziehung), wie die Anteile der Beförderungen beider Geschlechter bei zufälliger Zuordnung des Geschlechts verteilt sein könnten (vgl. Balkendiagramm). Die "Mischung" erfolgte dabei in einer diskriminierungsfreien Welt, d.h. für die gültige $H_0$. 
 
 
 ```{r}
-#| echo: true
+#| echo: false
 p <- p + labs(title = 'Original')
 p1 <- promotions_shuffled %>%
         mutate(gender=if_else(gender=='female','weiblich','männlich'),
@@ -787,6 +786,15 @@ knitr::include_graphics('https://moderndive.com/images/copyright/there_is_only_o
 
 
 ## Zwei mögliche Ausgänge
+
+* Entscheidung über Testausgang durch Vergleich von Signifikanzniveau $\alpha$ und $p$-Wert:
+  * Wenn $p<\alpha$: $H_0$ wird zugunsten von $H_A$ verworfen.
+  * Wenn $p\geq\alpha$: $H_0$ kann nicht verworfen werden (bzw. muss beibehalten werden).
+  
+* Kritischer Rationalismus (K. Popper): Eine Hypothese ($H_0$ oder $H_A$) nicht abzulehnen...
+  * ...heißt nicht, sie zu akzeptieren!
+  * ...sondern nur, dass wir (noch) nicht genügend Evidenz dafür haben. $H_0$ kann also durchaus auch im Fall $p\geq\alpha$: $H_0$ falsch sein.
+
 
 
 ## Fehlerarten
