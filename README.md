@@ -12,8 +12,8 @@ Materialien zum Modul ER014 - Data Science and Strategy for Business
 
 ## PVA1
 
-Teil 1: Intro Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA2/01_IntroRegression_slides.html#1)
+Teil 1: Intro Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA2/01_IntroRegression_slides.html#1))
 
-Teil 2: Deskriptive Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA2/02_DescriptiveRegression_.html#1); [Manuskript](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA2/01_Intro_SimpleRegression.html#1))
+Teil 2: Deskriptive Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA2/02_DescriptiveRegression.html#1); [Manuskript](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA2/01_Intro_SimpleRegression.html#1))
 
-Teil 3: Stochastische Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA2/03_InferenceRegression_.html#1)
+Teil 3: Stochastische Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA2/03_InferenceRegression_.html#1))
