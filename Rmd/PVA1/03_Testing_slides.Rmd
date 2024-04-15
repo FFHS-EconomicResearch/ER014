@@ -516,6 +516,29 @@ knitr::include_url('https://www.youtube.com/watch?v=eqrv-Lq4a5E&list=PLmXNcJ-VjB
 
 [Jeff Galak](https://www.youtube.com/watch?v=eqrv-Lq4a5E&list=PLmXNcJ-VjBYooRTlv91jS479PcnK-6zsN)
 
+
+### Prinzipien ASA
+
+
+Die [ASA (2016)](https://www.amstat.org/asa/files/pdfs/P-ValueStatement.pdf) hat folgende Grundsätze herausgegeben, die sich u.a. auf Missverständnisse und Missbrauch des $p$-Wertes beziehen:
+
+1. $p$-Werte können angeben, wie unvereinbar die Daten mit einem bestimmten statistischen Modell sind.
+
+2. $p$-Werte messen nicht die Wahrscheinlichkeit, dass die untersuchte Hypothese wahr ist, oder die Wahrscheinlichkeit, dass die Daten allein durch Zufall entstanden sind.
+
+3. Wissenschaftliche Schlussfolgerungen und unternehmerische oder politische Entscheidungen sollten nicht allein darauf beruhen, dass ein $p$-Wert einen bestimmten Schwellenwert überschreitet. 
+
+4. Korrekte Schlussfolgerungen erfordern eine umfassende Berichterstattung und Transparenz. 
+
+5. Ein $p$-Wert oder eine statistische Signifikanz ist **kein Maß für die Größe eines Effekts** oder die Bedeutung eines Ergebnisses. 
+
+6. Ein $p$-Wert an sich ist kein gutes Maß für die Evidenz eines Modells oder einer Hypothese.
+
+
+
+`r fa('circle-right')` Im Vordergrund eines umfassenden Ergebnisberichts sollte die Effektstärke stehen. Ergänzend sollte die Einschätzung der statistischen Signifikanz eines Effekts mit dem $p$-Wert erfolgen.
+
+
 ## Hypothesentests mit dem **infer**-Paket
 
 
@@ -671,11 +694,11 @@ visualize(null_distribution, bins = 10) +
 ```
 
 
-* Die senkrechte Linie stellt den beobachteten Anteil von 29,2% dar.
+* Die senkrechte Linie stellt den beobachteten Anteil von 29.2% dar.
 
 * Der schattierte Bereich stellt den p-Wert dar.
   * Interpretation des p-Werts als die Wahrscheinlichkeit, eine Teststatistik zu erhalten, die genauso groß oder größer ist als die beobachtete Teststatistik , wenn $H_0$ wahr ist.
-  * Hier: in der hypothetischen Welt ohne geschlechtsspezifische Diskriminierung wären eher selten Unterschiede von 0,292 = 29,2 % oder mehr zu beobachten. Mit anderen Worten, der p-Wert ist eher klein. 
+  * Hier: in der hypothetischen Welt ohne geschlechtsspezifische Diskriminierung wären eher selten Unterschiede von 0.292 = 29.2 % oder mehr zu beobachten. Mit anderen Worten, der p-Wert ist eher klein. 
   * Mithin würden wir dazu tendieren, die angenommene Grundgesamtheit zu verwerfen. Statistisch ausgedrückt würden wir "$H_0$ verwerfen".
   
 * Welcher Anteil der Nullverteilung ist schattiert? Mit anderen Worten, was ist der genaue Wert des p-Wertes? 
@@ -703,6 +726,7 @@ bootstrap_distribution <- promotions %>%
                                 generate(reps = 1000, type = "bootstrap") %>% 
                                 calculate(stat = "diff in props", 
                                           order = c("male", "female"))
+bootstrap_distribution
 ```
 
 
@@ -732,7 +756,7 @@ visualize(bootstrap_distribution) +
 ### Standardfehler-Ansatz
 
 Weil die Bootstrap-Verteilung annähernd normalverteilt scheint, kann das Konfidenzintervall auch mittels Standardfehler konstruiert werden. Dazu müssen wir
-die Option *point_estimate = obs_diff_prop* noch in die `get_confidence_interval()`-Funktion einfügen, um das Zentrum des Konfidenzintervalls beim beobachteten Wert der Differenz (0,29) festzulagen.
+die Option *point_estimate = obs_diff_prop* noch in die `get_confidence_interval()`-Funktion einfügen, um das Zentrum des Konfidenzintervalls beim beobachteten Wert der Differenz (0.29) festzulagen.
 
 
 ```{r}
@@ -784,28 +808,177 @@ knitr::include_graphics('https://moderndive.com/images/copyright/there_is_only_o
 <center>
 
 
+## Kritischer Rationalismus
 
-## Zwei mögliche Ausgänge
+
+* Kritischer Rationalismus (K. Popper): Thesen/Theorien können durch eine einzige (nicht mit der Theses/Theorie konsistente) Beobachtung falsiziert werden; eine endgültige Verifikation ist jedoch nicht möglich, auch wenn noch so viele (mit der These/Theorie konsistente) Beobachtungen vorliegen.
+
+* Im Kontext von Hypotesentests: Eine Hypothese ($H_0$ oder $H_A$) nicht abzulehnen...
+  * ...heißt nicht, sie zu akzeptieren!
+  * ...sondern nur, dass (noch) nicht genügend Evidenz für die Ablehnung vorliegt. $H_0$ kann also durchaus auch im Fall $p\geq\alpha$: $H_0$ falsch sein.
+
+* Analogie zu "In dubio pro reo" im Strafrecht:
+  * Der Angeklagte ist entweder *unschuldig* ($H_0$) oder *schuldig* ($H_A$)
+  * Unschuldsvermutung: 
+    * Nur wenn genügen Evidenz für die Schuld vorliegt, wird $H_0$ abgelehnt und der Angeklagte verurteilt. Genügend Evidenz? Juristisch: Zweifelsfreiheit. Statistisch: Signifikanzniveau $\alpha$
+    * bestehen Zweifel an der Schuld, gilt die Unschuldsvermutung. Dennoch kann der Angeklagte in Wahrheit schuldig sein.
+  
+
+* Beispiel: Diskriminierung bei Beförderungen
+  * Vorab festgelegt:
+    * $H_0$: $p_m-p_f=0$ vs. $H_A$: $p_m-p_f>0$
+    * $\alpha= 0.05$, vorab (!) festgelegt.
+  * Resampling der Nullverteilung liefert $p-$Wert von 0.027: Die Wahrscheinlichkeit, einen Unterschied von $p_m-p_f=.292$ in einer Welt zu beobachten, in der $H_0$ gilt, liegt bei nur 2.7%. 
+  
+`r fa('circle-right')`Damit haben wir (bezogen auf das vorab festgelegte Signifikanzniveau $\alpha=.05$) genügend Evidenz, um "$H_0$ auf dem 5%-Signifikanzniveau zu verwerfen". Wir haben also genügend "Beweise" in den Daten gefunden, um festzustellen, dass geschlechtsspezifische Diskriminierung eine Rolle bei Beförderungen spielt.
+
 
 * Entscheidung über Testausgang durch Vergleich von Signifikanzniveau $\alpha$ und $p$-Wert:
   * Wenn $p<\alpha$: $H_0$ wird zugunsten von $H_A$ verworfen.
   * Wenn $p\geq\alpha$: $H_0$ kann nicht verworfen werden (bzw. muss beibehalten werden).
+
+* **statistische vs. praktische Signifikanz**: 
+  * klinische Studie zum Vergleich neuer medizinischer Behandlung mit Standardbehandlung
+  * statistische Analyse zeigt statistisch signifikanten Unterschied in der Lebenserwartung bei Anwendung der neuen Behandlung.
+  * Verlängerung der Lebenszeit beträgt höchstens drei Tage, im Durchschnitt weniger als 24 Stunden, die Lebensqualität während der verlängerten Lebenszeit ist schlecht. 
+
+
+`r fa('circle-right')` Signifikanz vs. Effektstärke!
+
+## Fehlerarten und Wahl des Signifikanzniveaus
+
+* Wie wäre unsere Entscheidung zur Frage der Geschlechterdiskriminierung bei Beförderungen ausgefallen, hätten wir vorab (!) $\alpha=.01$ gesetzt?
+
+### Fehlerarten
+
+<div align="center">
+
+<table border="2" cellspacing="20" cellpadding="20">
+        <!-- <caption>Klassifikation wirtschaftlicher Güter</caption> -->
+        <thead>
+            <tr>
+                <th colspan="2" rowspan="2">  </th>
+                <th colspan="2">Wahrheit/Realität</th>
+            </tr>
+            <tr>
+                <th>$H_0$ korrekt</th>
+                <th>$H_0$ falsch</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th rowspan="2">Entscheidung</th>
+                <th>$H_0$ beibehalten</th>
+                <td>richtige Entscheidung</td>
+                <td>Fehler 2. Art ($\beta$-Fehler)</td>
+            </tr>
+            <tr>
+                <th>$H_0$ verwerfen</th>
+                <td>Fehler 1. Art ($\alpha$-Fehler)</td>
+                <td>richtige Entscheidung</td>
+            </tr>
+      </tbody>
+    </table>
+
+</div>
+
+
+* Fehler 1. Art: 
+  * Angeklagter wird zu Unrecht verurteilt.  
+  * Wir unterstellen zu Unrecht eine Geschlechterdiskriminierung bei Beförderungen.
   
-* Kritischer Rationalismus (K. Popper): Eine Hypothese ($H_0$ oder $H_A$) nicht abzulehnen...
-  * ...heißt nicht, sie zu akzeptieren!
-  * ...sondern nur, dass wir (noch) nicht genügend Evidenz dafür haben. $H_0$ kann also durchaus auch im Fall $p\geq\alpha$: $H_0$ falsch sein.
+`r fa('circle-right')` $\alpha$ gibt die Wahrscheinlichkeit an, einen Fehler 1. Art zu begehen (die $H_0$ irrtümlich zu verwerfen). Je kleiner $\alpha$ vorab (!) gesetzt wird, umso geringer die Gefahr eines Fehlers 1. Art. 
+
+
+* Fehler 2. Art:
+  * Angeklagter wird zu Unrecht freigesprochen.
+  * Wir unterstellen zu Unrecht Fairness bei Beförderungen.
+
+`r fa('circle-right')` $\beta$ gibt die Wahrscheinlichkeit an, einen Fehler 2. Art zu begehen (die $H_0$ irrtümlich beizubehalten.
+
+* **Teststärke** ($1-\beta$): Wahrscheinlichkeit, mit der ein statistischer Test zur Annahme einer wahren Alternativhypothese $H_A$ führt.
+
+### Einordnung empirischer Ergebnisse
+
+
+<iframe width="800" height="450" src="https://www.youtube.com/embed/aMv8ZNwXTjQ?si=EGIgRx_wZSK602T4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 
 
-## Fehlerarten
+
+### Wahl des Signifikanzniveaus
+
+* Idealvorstellung: $\alpha=\beta=0$.
+
+* Realität: Zielkonflikt $\alpha$ vs. $\beta$
+
+* Gängige Praxis: $\alpha$ vorab (!) festlegen und versuchen, $\beta$ zu minimieren.
+  * Typische Werte für $\alpha$: 0.1, 0.05, 0.01, 0.001
+  * Je kleiner $\alpha$, "umso länger" wird die $H_0$ beibehalten (**konservativer Test**)
+  * Je größer $\alpha$, "umso schneller" wird die $H_0$ verworfen (**liberaler Test**)
 
 
-## Wahl des Signifikanzniveaus
+
+## Hypothesentests auf Basis theoretischer Verteilungen
+
+* traditionelle Hypothesentests konstruieren die Nullverteilung nicht mittels Computersimulation (Resampling), weil die dafür notwendige "Rechenpower" erst seit kurzem verfügbar ist. 
+
+* stattdessen greifen traditionelle Hypothesentests auf **Wahrscheinlichkeitsmodelle**, **Wahrscheinlichkeitsverteilungen** und einige **Annahmen** zurück, um die Nullverteilung zu ermitteln.
+
+* simulationsgestützte Methoden werden letztlich durch theoriegestützte Methoden approximiert. Formelbasierte, theoretische Ansätze als "Short-Cuts".
+
+### Annahmen im Fall von Unterschiedlichen Anteilen
+
+
+1. Unabhängigkeit der Beobachtungen: Jeder ausgewählte Fall muss unabhängig von allen anderen ausgewählten Fällen sein; 
+
+`r fa('circle-right')` die Bedingung ist im Beispiel erfüllt, da die Fälle nach dem Zufallsprinzip ausgewählt wurden.
+
+
+2. Unabhängige Auswahl der Stichproben
+
+`r fa('circle-right')` Im Beispiel gibt es keinen Grund zu vermuten, dass ein ausgewählter Lebenslauf mit weiblichem Namen in irgendeiner Beziehung zu einem ausgewählten Lebenslauf mit männlichem Namen stehen würde.
+
+3. Stichprobengröße: Die Anzahl der **gepoolten Erfolge und Misserfolge** muss **für jede Gruppe** mindestens 10 betragen
+
+Ermittlung der gepoolten Erfolgsquote:
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+library(janitor)
+library(kableExtra)
+promotions %>% tabyl(gender,decision) %>% 
+  kable(align = "lcr",format = "html", table.attr = "style='width:50%;'") %>%      #Festlegung der Tabellenbreite
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+```{r}
+z_hat <- promotions %>% 
+  observe(decision ~ gender, success = "promoted",
+          stat = "z", order = c("female","male" ))
+z_hat
+```
+
+```{r}
+null_dist_theory <- promotions %>%
+  specify(decision ~ gender, success = "promoted") %>%
+  assume("z")
+
+visualize(null_dist_theory) +
+  shade_p_value(obs_stat = z_hat, direction = "less")
+```
 
 
 
+```{r}
+prop_test(promotions, 
+          decision ~ gender,  
+          order = c("female", "male"),
+          alternative = "greater")
+```
 
-## Vergleich mit traditionellen Hypothesentests
 
 
 ## 
@@ -818,15 +991,14 @@ knitr::include_graphics('https://moderndive.com/images/copyright/there_is_only_o
 <center>
 
 
-## Mind Map: Test-Szenarien
-
+## Mind Map zur "Test-Navigation"
 
 ```{r}
 #| echo: false
 #| out-width: '100%'
 #| fig-align: 'center'
 #| fig-cap: 'Inferenz Mind Map'
-knitr::include_url('https://coggle.it/diagram/Vxlydu1akQFeqo6-/t/inference')
+knitr::include_url('https://coggle.it/diagram/Vxlydu1akQFeqo6-/t/inference',height = '750px')
 ```
 
 
@@ -834,8 +1006,6 @@ knitr::include_url('https://coggle.it/diagram/Vxlydu1akQFeqo6-/t/inference')
 ## Wann sind Tests überflüssig?
 
 
-
-## Probleme mit p-Werten
 
 
 ## Ausblick

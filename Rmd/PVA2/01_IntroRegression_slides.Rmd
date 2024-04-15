@@ -1,0 +1,899 @@
+---
+title: "Data Science for Business"
+subtitle: "Regression"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS" 
+date: "`r Sys.Date()`"
+bibliography: ../../lit/my_bib.bib
+reference-section-title: Quellenverzeichnis
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+         - default
+         - ../../css/ffhs-theme_js.css
+         - xaringan-themer.css
+    includes:
+      after_body: ../../css/insert-logo.html
+    lib_dir: ../../libs
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    seal: false
+    
+
+    
+---
+class: title-slide
+
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+style_xaringan(text_color = "#d50006",inverse_text_color = "#FFFFFF",inverse_background_color = "#d50006", title_slide_background_color = "#d50006",header_background_color = "#d50006",header_color = "#FFFFFF",header_h1_font_size = "32px",
+  header_h2_font_size = "26px",link_color="#502479",
+  header_h3_font_size = "20px",text_slide_number_color = "#d50006",text_slide_number_font_size = "0.5em")
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_progress_bar(color = "#d50006", location = "bottom")
+xaringanExtra::use_xaringan_extra(c("tile_view","scribble","panelset","tachyons"))
+xaringanExtra::style_panelset_tabs(font_family = "inherit")
+#xaringanExtra::use_search(show_icon = TRUE)
+#weitere: "share_again","animate_css", "webcam","freezeframe","clipboard","fit_screen","extra-styles" 
+xaringanExtra::use_editable(expires = 1)
+xaringanExtra::use_freezeframe(trigger = "hover")
+``` 
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(latex2exp)
+library(fontawesome)
+library(emo)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           style = "markdown",
+           dashed = TRUE)
+file.name <- system.file("Bib", 
+                         "my_bib.bib", 
+                         package = "RefManageR")
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+```
+
+# ER014 - Data Science & Strategy for Business
+
+## PVA2
+
+
+### Teil 1: Einführung Regressionsanalyse
+
+ 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+### FS 2024
+<br>
+### Prof. Dr. Jörg Schoder
+.mycontacts[
+`r fa('github')` @FFHS-EconomicResearch
+`r fa('linkedin')` @jfschoder
+]
+
+
+---
+layout: true
+
+<div class="my-footer"></div>       
+
+<div style="position: absolute;left:400px;bottom:10px;font-size:9px">`r fa('creative-commons')``r rmarkdown::metadata$author`</div>
+
+
+
+
+
+
+
+
+
+---
+name: agenda
+class: left
+
+.blockquote[Agenda]
+
+## Einführung in die Regressionsanalyse
+
+* Motivation und Einordnung
+  
+* Korrelation und Kausalität
+
+* Arten von Zusammenhängen
+
+
+
+
+---
+class: left
+
+.blockquote[Motivation und Einordnung]
+
+## Data Science, Big Data und KI
+
+```{r}
+#| echo: false
+knitr::include_graphics(xfun::from_root('img','PVA2','BigData_etc_(Vollmer)_linkedin.png'))
+```
+.quelle[Bildquelle: `r Citet(bib, "vollmer_how_2020")`.]
+
+???
+
+`r Citet(bib, "stoetzer_regressionsanalyse_2020")`
+
+* KI (ML, DeepL etc.) sucht letztlich nach Strukturen und Mustern in meist gigantischen Datenmengen (Big Data). 
+
+* KI möglich, weil
+  * erstens leistungsfähige Rechner und komplexe Algorithmen existieren und
+  * zweitens solche enormen Datenmengen ohne große Kosten verfügbar sind.
+
+* Dabei werden statistische Verfahren genutzt, weil letztlich auch Textdaten, Bilder oder auch Videos in Maschinensprache aus Folgen von 0en und 1en bestehen, die entsprechend mit statistischen Verfahren analysiert werden können
+
+* Insofern macht es keinen Unterschied, ob die Zahlenreihe eines Aktienkurses oder ein Text (bspw. Geschäftsbericht) untersucht wird
+
+* Viele der Methoden, die in diesem Zusammenhang eingesetzt werden, sind Anwendungen
+und Erweiterungen von Regressionsverfahren
+
+
+---
+class: left
+
+.blockquote[Motivation und Einordnung]
+
+## Etymologie
+
+
+.pull-left[
+* Latein: "regredi" ("umkehren", "zurückführen/-gehen")
+
+* Einführung des Begriffs in die Statisik durch **Francis Galton (1822-1911)**:
+
+> "the average regression of the offspring is a constant fraction of their
+respective mid-parental deviations" (Quelle: [Wikipedia](https://en.wikipedia.org/wiki/Regression_toward_the_mean)).
+
+`r fa('circle-right')` Tendenz der Rückkehr (*Regression*) zu einem mittleren Wert bei Vererbung körperl. Eigenschaften.
+
+
+]
+
+.pull-right[
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out-width: '100%'
+#| fig-align: 'center'
+# install.packages("HistData") ggf. Paket installieren
+library(tidyverse)
+library(plotly)
+library(HistData)
+data(GaltonFamilies)
+tbl_galton <- GaltonFamilies %>%
+                  mutate(mph = midparentHeight*2.54,
+                         ch = childHeight*2.54,
+                         gender=if_else(gender=='female','weiblich','männlich'))
+
+p <- tbl_galton %>% 
+        ggplot(aes(x=mph,y=ch, color=gender)) +
+            geom_point() + 
+            labs(x="mittlere Körpergröße Eltern (in cm)",
+                 y="Körpergröße Kind (in cm)"
+                ) + 
+            theme_light() + 
+            theme(legend.title = element_blank(),legend.position = "bottom")
+p
+#ggplotly(p)    
+```
+
+]
+.quelle[Eigene Darstellung. Datenquelle: [HistData](https://friendly.github.io/HistData/).]
+
+
+???
+
+* Etymologie: Ableitung vom lateinischen Verb "regredi" ("umkehren",
+"zurückführen/-gehen")
+
+
+* Begriff findet sich in zahlreichen wissenschaftlichen Disziplinen:
+Psychologie, Geologie,. . .
+* Einführung in die Statisik durch **Francis Galton (1822-1911)**:
+
+> "the average regression of the offspring is a constant fraction of their
+respective mid-parental deviations" (Quelle: Wikipedia).
+
+   `r fa('circle-right')` extreme Characteristika (hier: Körpergröße) der Eltern werden nicht            vollständig an die Nachkommen weitergegeben. Vielmehr gibt es eine Regression (Tendenz der           Rückkehr) zu einem mittleren Wert.
+    
+* Deskriptive vs. induktive/stochastische Regressionsanalyse.
+
+* Empirische vs. stoachastische Regressionsanalyse
+
+
+
+
+
+
+```{r}
+#| include: false
+# Regressionsgeraden ----
+p2 <- tbl_galton %>% 
+        ggplot(aes(x=mph,y=ch)) +
+            geom_point() +
+            geom_smooth(method = "lm", se= FALSE) +
+            geom_smooth(aes(color=gender),method = "lm", se= FALSE) +
+            labs(x="mittlere Körpergröße Eltern (in cm)",
+                 y="Körpergröße Kind (in cm)"
+                ) + 
+            theme_light() + 
+            theme(legend.title = element_blank(),legend.position = "bottom")
+#p2
+```
+
+
+
+
+---
+class: inverse, center, middle
+
+## Korrelation und Kausalität
+
+.blockquote[Refresher: Korrelation]
+
+.blockquote[Kausalität]
+
+
+
+
+
+---
+class: left
+
+.blockquote[Refresher: Korrelation]
+
+## Statistische Zusammenhänge
+
+.pull-left[
+* Korrelation: 
+  * **Richtung und Stärke des Zusammenhangs** zwischen zwei Variablen
+  * Einfache Maße unterstellen einen linearen Zusammenhang
+
+* Verschiedene Maße, je nach Skalenniveau der Variablen
+]
+.pull-right[
+```{r}
+#| echo: false
+#| fig-align: 'center'
+#| out-width: '100%'
+knitr::include_graphics(xfun::from_root('img','PVA2','Korrelationsarten_(Gruber).png'))
+```
+]
+.quelle[Bildquelle: `r Citet(bib, "gruber_statistik_2019")`]
+
+
+???
+
+Bei der Korrelation geht es um **Richtung und Stärke des Zusammenhangs** zwischen zwei Variablen. Es wird ein linearer Zusammenhang unterstellt.
+
+
+
+
+---
+class: left
+
+.blockquote[Refresher: Korrelation]
+
+## Korrelation bei metrisch skalierten Variablen
+
+.blockquote[
+`r fa('tag')` Der Bravais-Pearson-Korrelationskoeffizient $r_{XY}$ ist ein normiertes statistisches Maß, das Auskunft über **Richtung und Stärke** des Zusammenhangs zweier **metrisch skalierter** Merkmale *X* und *Y* gibt.
+]
+
+Berechnung:
+
+$$
+\begin{eqnarray}
+			r_{XY}=\frac{s_{XY}}{s_X\cdot s_Y}&=&\frac{\frac{1}{n}\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})}{\sqrt{\frac{1}{n}\sum_{i=1}^{n}(x_i-\bar{x})^2}\cdot\sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i-\bar{y})^2}}\nonumber\\
+&=&\frac{\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})}{\sqrt{\sum_{i=1}^{n}(x_i-\bar{x})^2}\cdot\sqrt{\sum_{i=1}^{n}(y_i-\bar{y})^2}}
+\end{eqnarray}
+$$
+
+???
+
+* Kovarianz ebenfalls Zusammenhangsmaß, aber nicht geeignet, um Stärke des Zusammenhangs anzugeben
+
+* Wenn uns nicht nur die Richtung des Zusammenhangs interessiert, ist ein dimensionsloses, normiertes Maß notwendig
+
+* Normierung der Kovarianz durch Division mit dem Produkt der Standardabweichungen
+
+
+
+
+---
+class: left
+
+.blockquote[Refresher: Korrelation]
+
+## Beispiel: Bravais-Pearson-Korrelationskoeffizient
+
+
+.panelset[
+.panel[.panel-name[Berechnung in R]
+
+* `cor()`-Funktion (Base-`r fa('r-project')`)
+
+```{r, echo=TRUE}
+tbl_galton %>% 
+  summarise(r_XY=cor(midparentHeight,childHeight,method = "pearson"))
+```
+* Alternativ: `correlate()`-Funktion (corrr-Paket, tidymodels) 
+
+```{r, echo=TRUE}
+#| eval: false
+#| message: false
+library(corrr)
+tbl_galton %>% 
+  correlate() %>% 
+  focus(term,childHeight)
+```
+
+]
+.panel[.panel-name[Interpretation]
+* Der Korrelationskoeffizient liegt zwischen +1 und -1.
+  * Besteht kein Zusammenhang, ist der Korrelationskoeffizient Null.
+  * negative Werte zeigen eine gegenläufige Bewegung an, d.h. erhöht sich *x*, dann sinkt $y$ und vice versa.
+  
+* Je höher der Betrag der Korrelation, desto stärker der Zusammenhang (**Effektstärke**, engl. effect size):
+  * $>|0,1|$: kleiner Effekt
+  * $>|0,3|$: mittlerer Effekt
+  * $>|0,5|$: großer Effekt
+
+`r fa('exclamation-circle')` Unterschiede in Bewertung Effektstärke zwischen Natur- und Sozialwissenschaften!
+]
+]
+
+
+
+---
+class: left
+
+.blockquote[Kausalität]
+
+## Ursache und Wirkung?
+
+```{r}
+#| label: spurious-corr
+#| echo: false
+#| fig-align: 'center'
+knitr::include_url('https://www.tylervigen.com/spurious-correlations',height = "470px")
+```
+
+---
+class: left
+
+.blockquote[Kausalität]
+
+## Variablenbezeichnungen
+
+| Y                                |  X                            |
+|:--------------------------------:|:-----------------------------:|
+|        Abhängige Variable        |     Unabhängige Variable      |
+|        Erklärte Variable         |      Erklärende Variable      |
+|        Ergebnisvariable (engl. outcome)         |      Vorhersagevariable (engl. predictor)      |
+|            Regressand            |         Regressor(en)         |
+| Antwortvariable (engl. response) | Co-Variable (engl. covariate) |
+|          Effektvariable          |       Kontrollvariable        |
+
+`r fa('question-circle')`[Modeling for explanation vs. Modeling for Prediction](https://moderndive.com/5-regression.html)
+
+`r NoCite(bib, "ismay_statistical_2020-1")`
+
+???
+
+But, why do we have two **different labels**, **explanatory and predictor**, for the variable $x$? That’s because *even though the two terms are often used interchangeably, roughly speaking* **data modeling serves one of two purposes**:
+
+* **Modeling for explanation**: When you want to explicitly describe and quantify the relationship between the outcome variable $y$ and a set of explanatory variables $x$, determine the significance of any relationships, have measures summarizing these relationships, and possibly identify any causal relationships between the variables.
+
+* **Modeling for prediction**: When you want to predict an outcome variable $y$ based on the information contained in a set of predictor variables $x$. Unlike modeling for explanation, however, you don’t care so much about understanding how all the variables relate and interact with one another, but rather only whether you can make good predictions about $y$ using the information in $x$.
+
+
+
+---
+class: left
+
+.blockquote[Kausalität]
+
+## Naturwissenschaften vs. Sozialwissenschaften
+
+
+.blockquote[ 
+"If an instance in which the phenomenon under investigation occurs, and an instance in which it does not occur, have every circumstance in common save one, that one occurring only in the former; the circumstance in which alone the two instances differ, is the effect, or the cause, or an indispensable part of the cause, of the phenomenon."
+.tr[
+`r Citet(bib, "mill_system_1882")`
+]
+]
+
+
+* Experimentelle Daten
+
+--
+
+* Beobachtungsdaten
+
+--
+
+`r fa('circle-right')` Problem der Identifikation
+
+???
+
+* Aus dem regelmäßigen Auftreten von Ereignissen kann
+nicht auf eine Ursachen - Wirkungsbeziehung
+geschlossen werden
+* Warum ist das wichtig? Kann ich sicher sein, dass meine
+Maßnahmen tatsächlich die gewünschten Folgen haben?
+
+
+* Verweis auf A. Nobel Gedächtnispreis für Wirtschaftswissenschaften 2021 für Card und Angrist (Natürliche Experimente als identification strategy)
+
+* [ANSWERING CAUSAL QUESTIONS USING OBSERVATIONAL DATA](https://www.nobelprize.org/uploads/2021/10/advanced-economicsciencesprize2021.pdf)
+
+
+---
+class: left
+
+.blockquote[Kausalität]
+
+## Exkurs: Granger-Kausalität
+
+* `r Citet(bib, "granger_investigating_1969")` versucht Ursache und Wirkung durch die zeitliche Abfolge zu untersuchen
+
+* Idee: Wenn Werte der Variable $X$ aus der Vergangenheit helfen, die Entwicklung einer Variable $Y$ vorherzusagen, kann von einer kausalen Beziehung ausgegangen werden.
+
+
+* Setzt voraus, dass "alles andere" unverändert ist (Hume: "constant conjunctions")
+--
+
+* Begrenzte Anwendbarkeit in den **Sozialwissenschaften**
+
+  * Steigende Einzelhandelsumsätze als Ursache für Weihnachten?
+  * Vorausschauende Akteure und die Rolle von Erwartungen!
+
+
+
+
+---
+class: left
+
+.blockquote[Kausalität]
+
+## Kontrafaktischer Kausalitätsbegriff
+
+* Vorherrschender Kausalitätsbegriff:  Vergleich von Faktum und Kontrafaktum
+
+--
+  * Faktum: als gegeben akzeptierte Tatsache
+
+--
+  * Kontrafaktum: Alternative zum Faktum
+
+
+.blockquote[
+D. Hume (sinngemäß): Wäre das Ereignis (Faktum) auch eingetreten, wenn die
+(vermeintliche!) Ursache nicht stattgefunden hätte (Kontrafaktum)?
+]
+
+
+`r fa('exclamation-circle')` Beobachtbar ist in der Regel entweder das Faktum oder das Kontrafaktum!
+
+???
+
+* Beispiel: Tablette und Kopfweh
+* Kopfweh weg weil Tablette genommen
+* Wäre Kopfweh auch weggegangen ohne Tablette?
+
+[Stocker, Kap. 10](https://www.uibk.ac.at/econometrics/einf/kap10.pdf):
+
+[nobelprize.org](https://www.nobelprize.org/uploads/2021/10/advanced-economicsciencesprize2021.pdf):
+Most applied science is concerned with uncovering causal relationships. In many fields,
+randomized controlled trials (RCTs) are considered the gold standard for achieving this. The
+systematic use of RCTs to study causal relationships — assessing the efficacy of a medical
+treatment for example - has resulted in tremendous welfare gains in society. However, due to
+financial, ethical, or practical constraints, many important questions - particularly in the social
+sciences - cannot be studied using a controlled randomized experiment. For example, what is the
+impact of school closures on student learning and the spread of the COVID-19 virus? What is the
+impact of low-skilled immigration on employment and wages? How do institutions affect
+economic development? How does the imposition of a minimum wage affect employment?
+
+
+
+
+---
+class: left
+
+.blockquote[Kausalität]
+
+## Variablentypen
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA2','Variablenarten_(Goldenstein_etal_2018)_S115.png'))
+```
+
+.quelle[Quelle: `r Citet(bib, "goldenstein_wissenschaftliches_2018-1")`, S. 115.]
+
+
+???
+
+
+Beispiel Werbung und Umsätze aus [Stocker, Kap. 10](https://www.uibk.ac.at/econometrics/einf/kap10.pdf), S. 4:
+- Werbeausgaben als Ursache für höhere Umsätze: dies ist die gängige Argumentation der Marketingabteilungen.
+- Höhere Umsätze als Ursache für Werbeausgaben (*reverse causality*): dies kann der Fall sein, wenn höhere Umsätze die Finanzierung zusätzlicher Werbeausgaben ermöglichen.
+- Ein dritter Faktor (*confounding variable*) ist eine gemeinsame Ursache für Umsätze und Werbeausgaben (**Scheinkorrelation**): z.B. könnte eine gute Konjunktur zu steigenden Umsätzen und zu steigenden Werbeausgaben führen.
+- Nicht alle Firmen wurden erfasst, möglicherweise wurden besonders große oder kleine Firmen nicht erfasst, oder besonders erfolgreiche oder erfolglose Firmen antworteten nicht auf eine Umfrage (*Selektionsprobleme*). Oder möglicherweise wurden die Ergebnisse durch eine Untergruppe von Firmen (z.B. Branche) getrieben (*unobserved heterogeneity*).
+- Die Korrelation zwischen Umsätzen und Werbeausgaben könnte in einer Stichprobe zufällig auftreten: dies - und nur dies - sollte durch **statistische Tests** erkennbar sein.
+
+
+
+
+
+---
+class: left
+
+.blockquote[Kausalität]
+
+## Ursache und Wirkung
+
+<br>
+
+```{r}
+#| echo: false
+#| fig-align: 'center'
+knitr::include_graphics('https://imgs.xkcd.com/comics/correlation.png')
+```
+
+.quelle[Bildquelle: [xkcd.com/comics](https://imgs.xkcd.com/comics/correlation.png).]
+
+---
+class: inverse, center, middle
+
+## Arten von Zusammenhängen
+
+
+.blockquote[Exakte vs. statistische Zusammenhänge]
+
+
+
+.blockquote[Lineare vs. nicht-lineare Zusammenhänge]
+
+
+
+
+
+---
+class: left
+
+.blockquote[Exakte vs. statistische Zusammenhänge]
+
+## Beispiel
+
+```{r}
+#| message: false
+#| echo: false
+#| out-width: '70%'
+#| fig-align: 'center'
+
+# Exakter Zusammenhang ------
+
+p1 <- ggplot() +  xlim(0, 55) +
+        stat_function(fun = function(x) (1.5*x),linewidth=1.1) + 
+        labs(x="Liter Benzin",y="Rechnungsbetrag",title = "Tankstelle") +
+        theme_light()
+
+
+
+# Statistischer Zusammenhang ------
+
+## Download data ----
+#my_URL <- "http://www.hsto.info/econometrics/data/auto40.csv"
+#download.file(url=my_URL,
+#              destfile=xfun::from_root("data","raw",
+#                                       "autos_(StockerUIBK)_20240414.csv"),
+#              method='auto')
+## Import data -----
+my_in_file <- "autos_(StockerUIBK)_20240414.csv"
+tbl_autos <- read_csv2(xfun::from_root("data","raw",my_in_file))
+
+## Plot ------
+p2 <- tbl_autos %>% 
+          ggplot(aes(x=Alter,y=Preis)) + 
+              geom_point() + theme_light() + 
+              geom_smooth(method = "lm", se = FALSE) +
+              scale_x_continuous(limits=c(0,6),breaks=seq(0, 5, 1)) +
+              scale_y_continuous(limits=c(0,26000),breaks=seq(0, 25000, 5000)) + 
+              labs(x="Alter (in Jahren)",y="Preis",title="Gebrauchtwagen")
+```
+
+.pull-left[
+```{r}
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+p1
+```
+]
+--
+.pull-right[
+```{r}
+#| echo: false
+#| message: false
+#| out-width: '100%'
+#| fig-align: 'center'
+p2
+```
+]
+
+.quelle[Eigene Darstellung basierend auf: `r Citet(bib,"stocker_grundlagen_nodate")`, S. 5.]
+
+???
+
+* Auch in einer komplexen Welt sind **exakte** Zusammenhänge zwischen zwei Variablen zu beobachten, bspw. beim Tanken
+
+* Aber Vielfach sind die Zusammenhänge weniger eindeutig. beispielsweise auf dem Gebrauchtwagenmarkt. Offensichtlich sinkt der "durchschnittliche" Preis mit dem Alter, aber der Zusammenhang gilt nicht länger exakt
+
+* Ursachen: Autos unterscheiden sich in anderen - hier nicht dargestellten - Charakteristika:
+  * Kilometerstand, 
+  * Ausstattung
+  * Farbe
+  * Verkäufer und deren Motive,
+  * Ort und vieles mehr
+
+* Trotzdem ist klar erkennbar, dass ältere Autos "im Durchschnitt" billiger sind, und
+dass dieser Zusammenhang durch die strichliert eingezeichnete Gerade relativ gut
+approximiert werden kann.
+
+* Damit schon ein wichtiger Hinweis für empirische Regressionsanalyse: dort beschäftigen wir uns mit **bedingten Mittelwerten**
+
+
+
+---
+class: left
+
+.blockquote[Exakte vs. Statistische Zusammenhänge]
+
+## Deskriptive vs. stochastische Regressionsanalyse
+
+.pull-left[
+* **Deskriptive**:
+  * Beschreibung der Beziehung zwischen Variablen
+  * Regressionsgleichung:
+$$y_i=b_1+b_2\cdot x_i+e_i$$
+  * Interpretation der Koeffizienten als **bedingte Mittelwerte**
+]
+--
+.pull-right[
+* **Stochastische**:
+  * Modellierung der Beziehung zwischen Variablen unter Berücksichtigung von Unsicherheit
+    * Regressionsgleichung:
+$$y_i=\beta_1+\beta_2\cdot x_i+\epsilon_i$$
+  * Instrument für induktive Schlussfolgerungen (**Parameter** der Grundgesamtheit)
+]
+
+--
+`r fa('exclamation-circle')` Ob eine Regressionsanalyse deskriptiv oder stochastisch ist, hängt nicht von den Daten sondern vom Erkenntnisinteresse ab!
+
+
+
+???
+
+[Stocker, Kap. 3](https://www.uibk.ac.at/econometrics/einf/kap03_stoch.pdf)
+
+Tatsächlich wird die Regressionsanalyse eher selten für deskriptive Zwecke eingesetzt. In den meisten Fällen interessieren wir uns nicht für die konkret beobachteten
+Einzelfälle, sondern wir interpretieren diese Beobachtungen lediglich als Stichprobe
+aus einer unbeobachtbaren Grundgesamtheit, und unser eigentliches Interesse gilt den
+Zusammenhängen in dieser Grundgesamtheit.
+
+
+Ob eine Regressionsanalyse deskriptiv oder stochastisch ist hängt nicht von den
+Daten ab, sondern von unserem Erkenntnisinteresse! Die gleichen Beobachtungen
+können mit Hilfe einer deskriptiven Regressionsanalyse einfach beschrieben werden,
+oder als Stichprobe aus einer größeren Grundgesamtheit interpretiert werden. Im
+zweiten Fall wird mit Hilfe der stochastischen Regressionsanalyse versucht, die Information aus der Stichprobe für Rückschlüsse auf die Grundgesamtheit zu nützen.
+
+* Regressionsgleichungen
+  * Während im Fall der deskriptiven Analyse $y_i = b_1+b_2\cdot x_i+e_i$, werden im Fall der stochastischen Analyse **griechische Symbole** verwendet.
+  * Der Grund ist einfach: in der deskriptiven Analyse konnten wir die Koeffizienten $b_1$ und $b_2$ berechnen, da alle interessierenden Beobachtungen verfügbar waren.
+  * Hingegen ist die Grundgesamtheit nicht beobachtbar, deshalb können wir die beiden
+Koeffizienten $\beta_1$ und $beta_2$ nicht berechnen! Wir müssen sie schätzen
+  * Dabei wissen wir, dass die unbekannten Koeffizienten $\beta_1$ und $beta_2$ existieren, und dass sie fixe Zahlen sind. 
+  * Solche unbekannte Größen der Grundgesamtheit werden häufig **Parameter** genannt
+
+
+* Das Wort **"para"-"meter"** verweist aber auf etwas, das **über das Messen hinausgeht** (wie die Parapsychologie auf etwas verweist, was über die Psychologie hinausgeht). 
+  * In der Mathematik versteht man darunter spezielle Variablen, die im gegenständlichen Fall als konstant angenommen werden, in anderen Fällen aber variiert werden können (gewissermaßen "beliebig, aber fest" sind). 
+  * In diesem Sinne verwenden wir im folgenden den Begriff "Parameter" für Werte, die in einer unbeobachtbaren Grundgesamtheit als konstant - aber unbeobachtbar - angenommen werden. 
+  * Eine typische Aufgabe der Statistik ist es solche Parameter aus einer Stichprobe zu schätzen.
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Lineare vs. nicht-lineare Zusammenhänge]
+
+
+## Zusammenhänge und Funktionstypen
+
+
+* Kann die Tendenz des Zusammenhangs durch eine Funktion beschrieben werden?
+
+
+* Typen der Tendenz des Zusammenhangs:
+
+--
+  * *linearer* Zusammenhang
+
+--
+	* *nicht-linearer* Zusammenhang 
+
+--
+      * Polynom
+
+--
+      * logarithmisch
+
+--
+  	  * exponentiell
+
+--
+	    * parabelförmig
+
+--
+  	  * ...
+
+
+---
+class: left
+
+.blockquote[Lineare vs. nicht-lineare Zusammenhänge]
+
+## Linearität: Beispiel "Anscombe Quartett"
+
+.panelset[
+.panel[.panel-name[Daten]
+```{r}
+#| echo: false
+#| message: false
+# load data ------
+df_anscombe <- anscombe
+#  transformations ----
+tbl_anscombe <- df_anscombe %>%
+                  mutate(observation = seq_len(n())) %>%
+                  pivot_longer(-observation,names_to = "key",values_to = "value") %>%
+                  separate(key, c("variable", "set"), 1, convert = TRUE) %>%
+                  mutate(set = c("I", "II", "III", "IV")[set]) %>%
+                  pivot_wider(names_from = "variable",values_from = "value")
+head(tbl_anscombe,10)
+```
+
+]
+.panel[.panel-name[Korrelationen]
+```{r}
+# Correlations ----
+tbl_anscombe %>% 
+  group_by(set) %>% 
+  summarise(corr=cor(x,y,method = "pearson"))
+```
+]
+.panel[.panel-name[Plot]
+```{r}
+#| echo: false
+#| message: false
+#| out-width: '55%'
+#| fig-align: 'center'
+
+# plot -----
+tbl_anscombe %>%
+     ggplot(aes(x=x,y=y)) +
+       geom_point() +
+       geom_smooth(method = "lm",se=FALSE) +
+       facet_wrap(~ set) + theme_light()
+
+```
+]
+]
+
+
+
+
+.quelle[Eigene Darstellung. Daten: `r fa('r-project')`.]
+
+???
+
+* Verweis auf Bedeutung der EDA! Kennzahlen allein problemtatisch
+
+* I: Variablen scheinen normalverteilt. Diagramm legt nahe, dass beide Variablen normalverteilt sind.
+
+* II: offensichtlicher Zusammenhang, der aber nicht linear ist. 
+
+* III: perfekte lineare Korrelation. Ausreißer führt zu Verringerung des Pearson-Koeff.
+
+* IV: Ausreißer kann Korrelationskoeff. auch (künstlich) erhöhen
+
+[vgl. Gruber](https://wgruber.github.io/Modellbildung/korrelationen.html)
+
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Lineare vs. nicht-lineare Zusammenhänge]
+
+## Theoriegeleitete vs. datengetriebene Analyse
+
+```{r}
+#| echo: false
+#| fig-align: 'center'
+knitr::include_graphics('https://imgs.xkcd.com/comics/linear_regression.png')
+```
+
+
+.quelle[Bildquelle: [xkcd.com/comics](https://imgs.xkcd.com/comics/linear_regression.png).]
+
+???
+
+* Kritisch
+
+* Zeigt letztlich, dass es wichtig ist eine Theorie zu haben. Es geht nicht um "Data-fitting", auch wenn es manchmal verlockend ist
+
+
+
+
+
+
+---
+class: inverse,center,middle
+
+# Wir brauchen eine Pause.
+
+---
+
+background-image: url("http://bit.ly/cs631-donkey")
+background-size: 80%
+
+
+
+
+
+---
+class: left
+
+## Quellenverzeichnis
+
+.ref-slide[
+```{r, results='asis', echo=FALSE, warning=FALSE}
+PrintBibliography(bib)
+```
+]

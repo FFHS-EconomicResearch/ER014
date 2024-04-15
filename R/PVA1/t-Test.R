@@ -1,4 +1,4 @@
-# Creatre Data ------
+# Create Data ------
 library(tidyverse)
 set.seed(23)
 hours_wp <- 60-round(rnorm(12,10,5),0)
@@ -40,8 +40,8 @@ tbl_long %>%
 library(infer)
 
 tbl_long %>%
-  specify(minutes ~ type)
-  hypothesize()
+  specify(minutes ~ type) %>%
+  hypothesize(null="independence")
 
 
 
@@ -76,3 +76,26 @@ tbl_long %>%
 tbl_grid <- tibble(x=seq(-100,100,.5))
 tbl_grid %>%
   ggplot(aes(x=x)) + stat_density(kernel = "gaussian")
+
+
+
+# two-sample t-Test ----
+
+#https://ismayc.github.io/teaching/sample_problems/two-means-indep.html
+
+
+
+
+tbl_cleSac <- read_tsv("http://ismayc.github.io/teaching/sample_problems/cleSac.txt")
+
+tbl_cleSac %>%
+  write_rds(xfun::from_root("data","raw","cleSac_(Ismay).rds"))
+
+tbl_cleSac <- read_rds(xfun::from_root("data","raw","cleSac_(Ismay).rds"))
+
+tbl_cleSac %>%
+    rename(metro_area = Metropolitan_area_Detailed,
+          income = Total_personal_income) %>%
+    na.omit()
+
+

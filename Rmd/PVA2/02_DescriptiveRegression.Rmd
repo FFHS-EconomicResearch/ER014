@@ -1,0 +1,985 @@
+---
+title: "Data Science for Business"
+subtitle: "Regression"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS" 
+date: "`r Sys.Date()`"
+bibliography: ../../lit/my_bib.bib
+reference-section-title: Quellenverzeichnis
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+         - default
+         - ../../css/ffhs-theme_js.css
+         - xaringan-themer.css
+    includes:
+      after_body: ../../css/insert-logo.html
+    lib_dir: ../../libs
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    seal: false
+    
+
+    
+---
+class: title-slide
+
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+style_xaringan(text_color = "#d50006",inverse_text_color = "#FFFFFF",inverse_background_color = "#d50006", title_slide_background_color = "#d50006",header_background_color = "#d50006",header_color = "#FFFFFF",header_h1_font_size = "32px",
+  header_h2_font_size = "26px",link_color="#502479",
+  header_h3_font_size = "20px",text_slide_number_color = "#d50006",text_slide_number_font_size = "0.5em")
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_progress_bar(color = "#d50006", location = "bottom")
+xaringanExtra::use_xaringan_extra(c("tile_view","scribble","panelset","tachyons"))
+xaringanExtra::style_panelset_tabs(font_family = "inherit")
+#xaringanExtra::use_search(show_icon = TRUE)
+#weitere: "share_again","animate_css", "webcam","freezeframe","clipboard","fit_screen","extra-styles" 
+xaringanExtra::use_editable(expires = 1)
+xaringanExtra::use_freezeframe(trigger = "hover")
+``` 
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(latex2exp)
+library(fontawesome)
+library(emo)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           style = "markdown",
+           dashed = TRUE)
+file.name <- system.file("Bib", 
+                         "my_bib.bib", 
+                         package = "RefManageR")
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+```
+
+# ER014 - Data Science & Strategy for Business
+
+## PVA2
+
+### Teil 2: Deskriptive Regressionsanalyse
+
+ 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+### FS 2024
+<br>
+### Prof. Dr. Jörg Schoder
+.mycontacts[
+`r fa('github')` @FFHS-EconomicResearch
+`r fa('linkedin')` @jfschoder
+]
+
+
+---
+layout: true
+
+<div class="my-footer"></div>       
+
+<div style="position: absolute;left:400px;bottom:10px;font-size:9px">`r fa('creative-commons')``r rmarkdown::metadata$author`</div>
+
+
+---
+name: agenda
+class: left
+
+.blockquote[Agenda]
+
+## Empirische Regressionsanalyse
+
+* Deskriptive und explorative Datenanalyse
+
+* Methode der Kleinsten Quadrate (KQ-Methode)
+
+* Goodness of Fit
+
+
+
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Deskriptive und explorative Datenanalyse]
+
+## Explorative Datenanalyse und Erkennung von Mustern
+
+```{r}
+#| label: datasaurus
+#| echo: false
+#| message: false
+#| warning: false
+#| out-width: '65%'
+#| fig-align: 'center'
+library(tidyverse)
+library(datasauRus)
+datasaurus_dozen %>%
+        ggplot(aes(x, y)) +
+              geom_point() +
+              facet_wrap(~dataset) + 
+              theme_light()
+
+```
+
+???
+
+* Ein Tool, um im wahrsten Sinne des Wortes ein Bild von den Daten zu bekommen ist die EDA
+
+* Erlaubt uns bspw. schnell, lineare und nicht-lineare Zusammenhänge als Muster zu erkennen
+
+* Deshalbt sollte jde Regressionsanalyse mit einer EDA beginnen
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Deskriptive und explorative Datenanalyse]
+
+## Wahrnehmung und Kausalität
+
+.panelset[
+.panel[.panel-name[Grauton A vs. B]
+```{r}
+#| echo: false
+knitr::include_url('https://persci.mit.edu/gallery/checkershadow',height = "420px")
+```
+]
+.panel[.panel-name[Beweis]
+```{r}
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics('https://persci.mit.edu/wp-content/uploads/checkershadow_double_med-1024x398.jpg')
+```
+]
+]
+
+
+
+???
+
+[Stocker, Kap 10](https://www.uibk.ac.at/econometrics/einf/kap10.pdf)
+
+* Aber: Mustererkennung bedeutet nicht, dass es auch kausale Zusammenhänge sind! 
+
+* Charts legen Zusammenhang nahe, der vielleiht in Wahrheit gar nicht existiert.
+
+* Wahrnehmung kann täuschen. Kant: Kausalität als a priori gegebene Kategorie bildet, die notwendig ist um Erfahrung überhaupt erst machen zu können. 
+  * Kausalität existiert demnach nicht unabhängig von unserer Wahrnehmung, sondern wird gewissermaßen "in die Realität hineinprojeziert" und ist in diesem Sinne eine Vorbedingung fur unsere Wahrnehmung.
+  * In dieser Hinsicht war Kant noch radikaler als Hume, für ihn gehört Kausalität
+gewissermaßen zur inneren Struktur der Erkenntnis
+
+* Diese Ideen wurden später von verschiedenen Richtungen des Konstruktivismus aufgegriffen, die davon ausgehen, dass die empfundene Realität von den Individuen
+selbst durch den Vorgang des Erkennens konstruiert wird
+
+* Beispiel: Unser Gehirn analysiert das Schachbrett scheinbar ohne unser aktives Zutun
+  * und schließt aus der Anordnung und der unscharfen Kontur, dass B im Schatten
+liegt, also dunkler sein sollte. 
+  * Um diesen Effekt zu korrigieren und die Kontrast auszugleichen "rechnet" unser Gehirn diesen Effekt heraus, weshalb uns B heller als A erscheint
+
+
+
+---
+class: left
+
+.blockquote[Deskriptive und explorative Datenanalyse]
+
+## Elemente explorativer Datenanalyse
+
+* Hervorhebung der inhaltlichen Bedeutung der Daten. Es geht primär um ein substanzielles
+Verständnis von Variablen und deren möglichen Zusammenhängen
+
+* Betonung der grafischen Darstellung und Inspektion von Variablen bzw. Datenmengen
+
+* Schwerpunkt liegt auf der versuchsweisen Modellbildung und Hypothesengenerierung
+in einem iterativen Prozess der Modellspezifikation und Modellneuspezifikation
+
+* Ausgangspunkte sind Skepsis, Flexibilität und Sparsamkeit bezüglich der anzuwendenden statistischen Methoden
+
+
+???
+
+`r Citet(bib, "stoetzer_regressionsanalyse_2020")`, S. 3
+
+
+
+---
+class: left
+
+.blockquote[Deskriptive und explorative Datenanalyse]
+
+## Explorative Datenanalyse mit einer Zeile R-Code
+
+.pull-left[
+```{r}
+#| label: EDA-Autos
+#| echo: true
+#| message: false
+#| fig-show: 'hide'
+# Import data -----
+my_in_file <- "autos_(StockerUIBK)_20240414.csv"
+tbl_autos <- read_csv2(xfun::from_root("data","raw",my_in_file))
+# GGally-Matrixplot -----
+library(GGally)
+tbl_autos %>% ggpairs() +
+                  theme_light()
+```
+
+]
+.pull-right[
+![](`r knitr::fig_chunk("EDA-Autos", "png")`)
+]
+
+
+---
+class: inverse, center, middle
+
+## Methode der kleinsten Quadrate
+
+.blockquote[Bivariate Regression]
+
+.blockquote[Multivariate Regression]
+
+
+
+
+---
+class: left
+
+.blockquote[Bivariater Fall]
+
+## Grundidee: Zusammenhänge mit Funktionen beschreiben
+
+* Einfachster Fall: 1 Regressand $Y$, 1 Regressor $X$ (bivariater Fall)
+
+--
+* "Regression von Y auf X": (y-x-Regression $\hat{y}=f(x)$)
+
+--
+* $f(x)$?
+
+--
+  * Linear: $y=b_1+b_2x$
+      * $b_1$: Interzept/Konstante
+      * $b_2$: Steigungskoeffizient
+
+--
+  * Parabel: $y=b_1+b_2x+b_3x^2$
+
+--
+  * Potenzfunktion: $y=b_1x^{b_2}$
+
+--
+  * Exponentialfunktion: $y=b_1b_2^x$
+
+--
+  * logistische Funktion: $y=\frac{k}{1+e^{b_1+b_2x}},~b_2<0.$
+
+--
+  * ...
+
+
+
+
+???
+
+* Im Folgenden sei $X$ der Regressor (unabhängige Variable) und $Y$ der Regressand (abhängige Variable) bzw. "Regression von Y auf X": (y-x-Regression $\hat{y}=f(x)$).
+
+* Umgekehrt $\hat{x}=h(y)$ als Regression von X auf Y (x-y-Regression).
+
+* wir schauen uns den einfachsten Fall an, eine lineare Gleichung, die hat nur 2 Koeffizienten...
+
+
+
+
+---
+class: left
+
+.blockquote[Bivariate Regression]
+
+## Lineare Regressionsgleichung und Residuen
+
+$$\begin{aligned}[t]
+	y_i&=\underbrace{b_1+b_2x_i}_{\mbox{systematische Komponente}}+\underbrace{e_i}_{\mbox{unsystematische Komponente}}\\
+	&=\underbrace{\hat{y}}_{\mbox{Regressionsfunktion}}+\underbrace{e_i}_{\mbox{Residuum}}
+\end{aligned}$$
+
+
+.blockquote[
+`r fa('tag')`	Die Differenzen zwischen den beobachteten Werten $y_i$ des metrisch messbaren Merkmals Y und den mittels Regressionsfunktion vorhergesagten Werten $\hat{y_i}$ heißen **Residuen** (von Residualgröße, engl. residuals) $e_i$. Für das Residuum der Beobachtung $i$ gilt: $e_i = y_i - \hat{y}_i ~\mbox{für}~i = 1,\dots, n$.
+]
+
+`r fa('circle-right')` Residuen als nicht erklärte Streuung.
+
+???
+
+
+* $\hat{y}$ (lies: "y Dach"):
+  * **Regressionsfunktion** $(\hat{y}=b_1+b_2x_i)$ bildet nicht die tatsächlichen Wertepaare ($x_i,y_i$) ab,...
+  * ... *sondern ordnet jedem beobachteten* x-Wert einen *"durchschnittlichen" y-Wert ($\hat{y}$)} zu
+  * wobei $\hat{y}$ *auf der Regressionsfunktion* liegt.
+
+
+
+---
+class: left
+
+.blockquote[Bivariate Regression]
+
+## Methode der kleinsten Quadrate
+
+
+* Idee: 
+  * Wähle die Gerade, die soviel wie möglich von Streuung der beobachteten $y$-Werte "erklärt"
+  * Minimiere den Anteil der unsystematischen Komponente $(e)$ in der Regressionsgleichung $\hat{y}$
+
+
+* Methode der kleinsten Quadrate (Ordinary Least Squares, OLS):
+		
+$$\begin{equation}
+\min_{b_1,b_2}\sum_{i=1}^ne_i^2=\sum_{i=1}^n(y_i-\hat{y})^2=\sum_{i=1}^n(y_i-b_1-b_2x_i)^2
+\end{equation}$$
+
+
+---
+class: left
+
+.blockquote[Bivariate Regression]
+
+## Regressionsgerade grafisch ermitteln
+
+```{r}
+#| label: shiny-OLS
+#| echo: false
+#| fig-align: center
+#| out-width: "100%"
+knitr::include_url('https://tomicapretto.shinyapps.io/LeastSquaresRegression/',height = '470px')
+``` 
+
+
+???
+
+Obs! Die Regressionsgerade ist diejenige Gerade, welche die Summe der quadrierten Vorhersagefehler (Residuen) minimiert.
+
+
+
+---
+class: left
+
+.blockquote[Bivariate Regression]
+
+## Regressionsgerade analytisch ermitteln
+
+
+* Bedingungen erster Ordnung:
+
+$$\begin{equation} 
+\frac{\partial\sum_ie_i^2}{\partial b_1}=-2\sum_i(y_i-b_1-b_2x_i)=-2\sum_i e_i\stackrel{!}{=}0~~~~~~
+(1)
+\end{equation}$$
+
+$$\begin{equation} 
+\frac{\partial\sum_ie_i^2}{\partial b_2}=-2\sum_i(y_i-b_1-b_2x_i)x_i=-2\sum_i x_ie_i\stackrel{!}{=}0~~~~~~
+(2)
+\end{equation}$$
+
+
+
+
+---
+class: left
+
+.blockquote[Bivariate Regression]
+
+## Regressionsgerade analytisch ermitteln (cont'd)
+
+* Umstellung von Gleichung (1) liefert *Bestimmungsgleichung für* $b_1$:
+
+$$\begin{equation}
+\sum y_i=n b_1+b_2\sum x_i\implies b_1=\bar{y}-b_2\bar{x}~~~~~~
+(3)
+\end{equation}$$
+
+
+
+* Einsetzen von (3) ind (2) liefert *Bestimmungsgleichung für* $b_2$:
+
+$$\begin{equation*}
+b_2=\frac{\sum_i(x_i-\bar{x})(y_i-\bar{y})}{\sum_i(x_i-\bar{x})^2} \iff 	b_2=\frac{\frac{1}{n}\sum_i(x_i-\bar{x})(y_i-\bar{y})}{\frac{1}{n}\sum_i(x_i-\bar{x})^2}
+\end{equation*}$$
+
+
+
+* Damit:
+
+$$\begin{equation}
+b_2=\frac{s_{y,x}}{s^2_x}
+\end{equation}$$
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Multivariate Regression]
+
+## Zwei Regressoren
+
+
+```{r}
+#| label: mult-reg-graph
+#| echo: false
+#| out-width: '85%'
+#| fig-align: 'center'
+knitr::include_graphics('https://i.stack.imgur.com/3pmXi.png')
+
+```
+
+
+
+---
+class: left
+
+.blockquote[Multivariate Regression]
+
+## Mehr als zwei  Regressoren
+
+* Von der Geradengleichung zur Linearkombination:
+
+$$y_i=b_{i1}x_{i1}+b_{i2}x_{i2}+b_{i3}x_{i3}+\dots+b_{ik}x_{ik}+e_i$$
+
+
+* Matrizendarstellung:
+
+$$\begin{pmatrix}
+y_1 \\
+y_2 \\
+\vdots \\
+y_i 
+\end{pmatrix}
+=
+\begin{pmatrix}
+x_{1,1} & x_{1,2} & \cdots & x_{1,k} \\
+x_{2,1} & x_{2,2} & \cdots & x_{2,k} \\
+\vdots  & \vdots  & \ddots & \vdots  \\
+x_{i,1} & x_{i,2} & \cdots & x_{i,k} 
+\end{pmatrix}\cdot
+\begin{pmatrix}
+b_1 \\
+b_2 \\
+\vdots \\
+b_k
+\end{pmatrix}
++
+\begin{pmatrix}
+e_1 \\
+e_2 \\
+\vdots \\
+e_i
+\end{pmatrix}$$
+
+
+
+* Kompakte Matrizen-Schreibweise:
+
+$$\textbf{y}=\textbf{X}\cdot b+e$$
+
+
+
+---
+class: left
+
+.blockquote[Multivariate Regression]
+
+## Optimierungsproblem
+
+* Analog zur linearen Einfachregression sollen die quadrierten Residuen minimiert werden:
+
+$$\begin{eqnarray}\min_\beta(e'e)&=&\min_\beta(y-X\beta)'(y-X\beta)\\
+&=&\min_\beta[y'y-2\beta'X'y+\beta'X'X\beta]\,
+\end{eqnarray}$$
+
+* Bedingung erster Ordnung (FOC):
+
+$$\frac{\partial(e'e)}{\partial b}=-2X'y+2X'X b\stackrel{!}{=}0$$
+
+
+* Damit folgt für die Koeffizienten:
+
+$$b=(X'X)^{-1}X'y$$
+
+
+
+
+
+
+---
+class: inverse, center, middle
+
+## Lineare Einfachregression
+
+
+.blockquote[Bedingte Mittelwerte]
+
+.blockquote[Bestimmtheitsmaß]
+
+.blockquote[Ein kategorialer Regressor]
+
+
+---
+class: left
+
+.blockquote[Bedingte Mittelwerte]
+
+## Beispiel Autodaten: Kennzahlen
+
+* Arithmetischer Mittelwert und Median:
+
+```{r}
+tbl_autos %>% 
+      summarise(d_alter=mean(Alter),
+                d_preis=mean(Preis),
+                med_alter=median(Alter),
+                med_preis=median(Preis))
+```
+
+* Korrelationskoeffizient:
+
+```{r}
+tbl_autos %>% 
+  summarise(correlation = cor(Alter, Preis))
+```
+
+???
+
+```{r}
+#| message: false
+library(skimr)
+tbl_autos %>% 
+  select(Alter, Preis) %>% skim()
+```
+
+
+
+---
+class: left
+
+.blockquote[Bedingte Mittelwerte]
+
+## Beispiel Autodaten: Regressionsgerade
+
+.pull-left[
+```{r}
+#| label: "Reg-Autos"
+#| echo: true
+#| fig-show: "hide"
+tbl_autos %>% 
+          ggplot(aes(x=Alter,y=Preis)) + 
+              geom_point() + theme_light() + 
+              geom_smooth(method = "lm", se = FALSE) +
+              scale_x_continuous(limits=c(0,6),breaks=seq(0, 5, 1)) +
+              scale_y_continuous(limits=c(0,26000),breaks=seq(0, 25000, 5000)) + 
+              labs(x="Alter (in Jahren)",y="Preis",title="Gebrauchtwagen")
+```
+]
+.pull-right[
+![](`r knitr::fig_chunk("Reg-Autos", "png")`)
+]
+
+
+---
+class: left
+
+.blockquote[Bedingte Mittelwerte]
+
+## Beispiel Autodaten: Koeffizienten ermitteln
+
+.pull-left[
+```{r}
+#| message: false
+#| warning: false
+model <- tbl_autos %>% 
+                lm(Preis~Alter,.)
+library(broom)
+tidy(model) %>% 
+  select(term,estimate)
+```
+]
+.pull-right[
+```{r}
+#| message: false
+#| warning: false
+library(moderndive)
+get_regression_table(model)
+```
+]
+
+
+---
+class: left
+
+.blockquote[Bedingte Mittelwerte]
+
+## Beispiel Autodaten: Koeffizienten interpretieren
+
+* Regressionsgerade
+
+$$\begin{eqnarray}\hat{y_i}&=&b_1+b_2\cdot x_i\\
+\widehat{\mbox{Preis_i}}&=&b_1 + b_2\cdot \mbox{Alter}\\
+&=&23056-2635\cdot Alter_i\\
+\end{eqnarray}$$
+
+
+* Interpretation Intercept $(b_1)$: Durchschnittspreis für neues Autos
+  
+```{r}
+dp0 <- tbl_autos %>% filter(Alter<.5) %>% 
+          summarise(d_preis_neuwagen=mean(Preis))
+dp0
+```
+
+
+
+---
+class: left
+
+.blockquote[Bedingte Mittelwerte]
+
+## Beispiel Autodaten: Steigungskoeffizient interpretieren
+
+* Interpretation Steigung $(b_2)$: Mit jedem zusätzlichen Jahr verringert sich der Wert des Fahrzeugs **im Durchschnitt** um `r round(tidy(model)$estimate[2],2)` Geldeinheiten.
+
+* Ermittlung des **Durchschnittspreis** eines 2-jährigen Autos mittels Modell:
+```{r}
+dp2 <- pull(dp0)+tidy(model)$estimate[2]*2
+dp2
+```
+
+* Vergleich mit den Daten
+```{r}
+tbl_autos %>% filter(Alter>=.5&Alter<2.5) %>% 
+          summarise(d_preis_neuwagen=mean(Preis)) %>% pull()
+```
+
+???
+[Stocker](https://www.uibk.ac.at/econometrics/einf/kap02_ols.pdf), S. 24
+
+Intuitiv können wir uns also 
+
+* die gefitteten Werte $y_b$ (auf der Regressionsgeraden) als lineare Approximation an die bedingten Mittelwerte vorstellen.
+
+* Wir werden diese Interpretation später weiter vertiefen, wenn wir Dummy Variablen diskutieren. 
+
+* Hier dient sie v.a. als *Vorbereitung auf die stochastische Regressionsanalyse*, in deren Rahmen wir die $y_b$ ganz ähnlich als **lineare Approximation an die bedingten
+Erwartungswerte** interpretieren werden.
+
+
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Bestimmtheitsmaß]
+
+## Varianzzerlegung
+
+```{r}
+#| label: Varianzzerlegung
+#| echo: false
+#| out-width: '90%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA2','Varianzzerlegung_(Stocker).png'))
+```
+
+.quelle[Bildquelle: [`r Citet(bib, "stocker_grundlagen_nodate")`, S. 33.](https://www.uibk.ac.at/econometrics/einf/kap02_ols.pdf)]
+
+
+
+
+---
+class: left
+
+.blockquote[Bestimmtheitsmaß]
+
+## Erklärte vs. nicht erklärte Streuung
+
+* Abweichung einer einzelnen Beobachtung vom Mittelwert $\bar{y}$:
+
+$$\begin{equation}
+  y_i-\bar{y}=(\hat{y}_i-\bar{y})+(y_i-\hat{y}_i)~~~~~~(1)
+\end{equation}$$
+
+
+* Ermittlung der **Gesamtstreuung** von $y$ um den Mittelwert $\bar{y}$ durch quadrieren von Gleichung (1) und aufsummieren über alle Beobachtungen sowie diverse Umformungen:
+
+$$\begin{equation*}
+\sum_i(y_i-\bar{y})^2=\sum_i(\hat{y}_i-\bar{y})^2+\sum_i(y_i-\hat{y})^2
+\end{equation*}$$
+bzw.
+$$\begin{equation*}
+	\underbrace{\sum_i(y_i-\bar{y})^2}_{\mbox{TSS}}=\underbrace{\sum_i(\hat{y}_i-\bar{y})^2}_{\mbox{ESS}}+\underbrace{\sum_i e_i^2}_{\mbox{SSR}}
+\end{equation*}$$
+
+
+
+
+
+---
+class: left
+
+.blockquote[Bestimmtheitsmaß]
+
+## Bestimmtheitsmaß und Wertebereich
+
+.blockquote[
+`r fa('tag')` Das Bestimmtheitsmaß $R^2$ (engl. R squared) ist definiert als Anteil der durch die Regressionsgerade erklärten Streuung (ESS) an der gesamten Streuung (TSS):
+
+$$\begin{equation*}
+	R^2 =\frac{\mbox{ESS}}{\mbox{TSS}}=\frac{\mbox{TSS}-\mbox{SSR}}{TSS}=1-\frac{\mbox{SSR}}{TSS}=1-\frac{\sum_i e_i^2}{\sum_i(y_i-\bar{y})^2}
+\end{equation*}$$
+
+
+]
+
+`r fa('exclamation-circle')` Für Regressionsgleichungen mit Interzept gilt: $0\leq R^2\leq 1$.
+
+
+???
+
+* Die Gesamtstreuung ("Total Sum Squared", TSS) ergibt sich als Summe aus erklärter Streuung ("Explained Sum Squared", ESS) und nicht erklärter Streuung ("Sum of Squared Residuals", SSR).
+* Obs! Für Regressionsgleichungen mit Interzept gilt: $0\leq R^2\leq 1$.
+
+
+
+
+---
+class: left
+
+.blockquote[Bestimmtheitsmaß]
+
+## Bestimmtheitsmaß in R: Residuen ermitteln
+
+```{r}
+regression_points <- get_regression_points(model)
+regression_points %>% 
+  head(10)
+```
+
+
+---
+class: left
+
+.blockquote[Bestimmtheitsmaß]
+
+## Bestimmtheitsmaß in R:
+
+* "Händisch"
+
+```{r}
+SSQ <- regression_points  %>% 
+          summarise(TSS=sum((Preis-mean(Preis))^2),
+                    SSR=sum(residual^2))
+1-SSQ$SSR/SSQ$TSS
+```
+
+* moderndive `get_regression_summaries()`
+
+```{r}
+get_regression_summaries(model)
+```
+
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer Regressor]
+
+## Beispiel Lebenserwartung und Geografie
+
+```{r}
+#| echo: false
+#| warning: false
+library(gapminder)
+gapminder2007 <- gapminder %>%
+                    filter(year == 2007) %>%
+                    select(country, lifeExp, continent, gdpPercap)
+glimpse(gapminder2007)
+```
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer Regressor]
+
+## Datenvisualisierung: Histogramme
+
+.panelset[
+.panel[.panel-name[Pooled]
+```{r}
+#| echo: false
+#| out-width: '50%'
+#| fig-align: 'center'
+ggplot(gapminder2007, aes(x = lifeExp)) +
+  geom_histogram(binwidth = 5, color = "white") +
+  labs(x = "Lebenserwartung", y = "Zahl der Länder",
+       title = "Histogramm Lebenserwartung weltweit")
+```
+]
+
+.panel[.panel-name[Kontinente]
+```{r}
+#| echo: false
+#| out-width: '50%'
+#| fig-align: 'center'
+ggplot(gapminder2007, aes(x = lifeExp)) +
+  geom_histogram(binwidth = 5, color = "white") +
+  labs(x = "Lebenserwartung", 
+       y = "Zahl der Länder",
+       title = "Histogramm Lebenserwartung weltweit") +
+  facet_wrap(~ continent, nrow = 2)
+```
+]
+]
+
+---
+class: left
+
+.blockquote[Ein kategorialer Regressor]
+
+## Datenvisualisierung: Boxplot
+
+```{r}
+#| echo: false
+#| out-width: '60%'
+#| fig-align: 'center'
+ggplot(gapminder2007, aes(x = continent, y = lifeExp)) +
+  geom_boxplot() +
+  labs(x = "Continent", y = "Lebenserwartung (in Jahren)",
+       title = "Lebenserwartung Nach Kontinent")
+```
+
+---
+class: left
+
+.blockquote[Ein kategorialer Regressor]
+
+## Deskriptive Statistiken
+
+```{r}
+lifeExp_by_continent <- gapminder2007 %>%
+                        group_by(continent) %>%
+                        summarise(median = median(lifeExp), 
+                                  mean = mean(lifeExp))
+lifeExp_by_continent
+```
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer Regressor]
+
+## Lineare Regression und Interpretation des Interzept-Terms
+
+
+```{r}
+lifeExp_model <- gapminder2007 %>% 
+                      lm(lifeExp ~ continent, data = .)
+get_regression_table(lifeExp_model)
+```
+`r fa('question-circle')` Interpretation Intercept?
+
+???
+
+* **intercept corresponds** to the mean life expectancy of **countries in Africa** of 54.8 years.
+
+* Warum Afrika als Referenz? You might be asking at this point why was Africa chosen as the “baseline for comparison” group. This is the case for no other reason than it **comes first alphabetically** of the five continents; 
+
+* kann entsprechend mit factor-Variable geändert werden!
+
+* **continent: Americas** corresponds to countries in the Americas and the value +18.8 . Vgl. Folie vorher: 54.8+18.8=73.6
+
+* **continent: Asia** corresponds to countries in Asia and the value +15.9. Vgl. Folie vorher: 54.8+15.9=70.7
+
+* **continent: Europe** corresponds to countries in Europe and the value +22.8.  Vgl. Folie vorher: 54.8+22.8=77.6 .
+
+* **continent: Oceania** corresponds to countries in Oceania and the value +25.9 is the same difference in mean life expectancy relative to Africa.  Vgl. Folie vorher: 
+54.8+25.9=80.7.
+
+
+---
+class: inverse, center, middle
+
+## Multiple Regression
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+.blockquote[Zwei numerische Regressoren]
+
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel
+
+
+
+---
+class: inverse,center,middle
+
+# Wir brauchen eine Pause.
+
+---
+
+background-image: url("http://bit.ly/cs631-donkey")
+background-size: 80%
+
+
+
+
+
+---
+class: left
+
+## Quellenverzeichnis
+
+.ref-slide[
+```{r, results='asis', echo=FALSE, warning=FALSE}
+PrintBibliography(bib)
+```
+]

@@ -1,0 +1,190 @@
+---
+title: "Data Science for Business"
+subtitle: "Regression"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS" 
+date: "`r Sys.Date()`"
+bibliography: ../../lit/my_bib.bib
+reference-section-title: Quellenverzeichnis
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+         - default
+         - ../../css/ffhs-theme_js.css
+         - xaringan-themer.css
+    includes:
+      after_body: ../../css/insert-logo.html
+    lib_dir: ../../libs
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    seal: false
+    
+
+    
+---
+class: title-slide
+
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+style_xaringan(text_color = "#d50006",inverse_text_color = "#FFFFFF",inverse_background_color = "#d50006", title_slide_background_color = "#d50006",header_background_color = "#d50006",header_color = "#FFFFFF",header_h1_font_size = "32px",
+  header_h2_font_size = "26px",link_color="#502479",
+  header_h3_font_size = "20px",text_slide_number_color = "#d50006",text_slide_number_font_size = "0.5em")
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_progress_bar(color = "#d50006", location = "bottom")
+xaringanExtra::use_xaringan_extra(c("tile_view","scribble","panelset","tachyons"))
+xaringanExtra::style_panelset_tabs(font_family = "inherit")
+#xaringanExtra::use_search(show_icon = TRUE)
+#weitere: "share_again","animate_css", "webcam","freezeframe","clipboard","fit_screen","extra-styles" 
+xaringanExtra::use_editable(expires = 1)
+xaringanExtra::use_freezeframe(trigger = "hover")
+``` 
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(latex2exp)
+library(fontawesome)
+library(emo)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           style = "markdown",
+           dashed = TRUE)
+file.name <- system.file("Bib", 
+                         "my_bib.bib", 
+                         package = "RefManageR")
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+```
+
+# ER014 - Data Science & Strategy for Business
+
+## PVA2
+
+### Teil 3: Stochastische Regressionsanalyse
+
+ 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+### FS 2024
+<br>
+### Prof. Dr. Jörg Schoder
+.mycontacts[
+`r fa('github')` @FFHS-EconomicResearch
+`r fa('linkedin')` @jfschoder
+]
+
+
+---
+layout: true
+
+<div class="my-footer"></div>       
+
+<div style="position: absolute;left:400px;bottom:10px;font-size:9px">`r fa('creative-commons')``r rmarkdown::metadata$author`</div>
+
+
+---
+name: agenda
+class: left
+
+.blockquote[Agenda]
+
+## Einführung in die Regressionsanalyse
+
+* Begriff und Grundlagen
+  
+
+
+* 
+
+---
+class: inverse, center, middle
+
+## Begriff und Grundlagen
+
+.blockquote[Korrelation vs. Kausalität]
+
+.blockquote[Exakte vs. statistische Zusammenhänge]
+
+.blockquote[Lineare vs. nicht-lineare Zusammenhänge]
+
+
+
+
+
+---
+class: left
+
+## Sampling
+
+```{r}
+#| echo: false
+#| message: false
+#| out-width: '90%'
+#| fig-align: 'center'
+library(tidyverse)
+## Import data -----
+my_in_file <- "autos_(StockerUIBK)_20240414.csv"
+tbl_autos <- read_csv2(xfun::from_root("data","raw",my_in_file))
+p <- tbl_autos %>% 
+          ggplot(aes(x=Alter,y=Preis)) + 
+              geom_point() + theme_light() + 
+              geom_smooth(method = "lm", se = FALSE) +
+              scale_x_continuous(limits=c(0,6),breaks=seq(0, 5, 1)) +
+              scale_y_continuous(limits=c(0,26000),breaks=seq(0, 25000, 5000)) + 
+              labs(x="Alter (in Jahren)",y="Preis",title="Gebrauchtwagen")
+
+set.seed(23)
+tbl_autos_sub1 <- tbl_autos %>% 
+                      sample_n(size=7,replace=FALSE)
+
+p_sub1 <- p +  geom_point(data=tbl_autos_sub1, color="#d50006") +
+              geom_smooth(data=tbl_autos_sub1, color="#d50006",method = "lm", se = FALSE)
+
+set.seed(9)
+tbl_autos_sub2 <- tbl_autos %>% 
+                      sample_n(size=7,replace=FALSE)
+p_sub2 <- p_sub1 +  geom_point(data=tbl_autos_sub2, color="#502479") +
+              geom_smooth(data=tbl_autos_sub2, color="#502479",method = "lm", se = FALSE)
+p_sub2
+```
+
+
+
+
+
+---
+class: inverse,center,middle
+
+# Wir brauchen eine Pause.
+
+---
+
+background-image: url("http://bit.ly/cs631-donkey")
+background-size: 80%
+
+
+
+
+
+---
+class: left
+
+## Quellenverzeichnis
+
+.ref-slide[
+```{r, results='asis', echo=FALSE, warning=FALSE}
+PrintBibliography(bib)
+```
+]

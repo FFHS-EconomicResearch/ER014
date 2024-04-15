@@ -245,7 +245,7 @@ Der Fehler, eine wahre Nullhypothse zu verwerfen, wird auch als **Fehler 1. Art*
             <tr>
                 <th>$H_0$ verwerfen</th>
                 <td>Fehler 1. Art ($\alpha$-Fehler)</td>
-                <td>richtig Entscheidung</td>
+                <td>richtige Entscheidung</td>
             </tr>
       </tbody>
     </table>

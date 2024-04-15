@@ -1,0 +1,831 @@
+---
+title: "Deskriptive Regressionsanalyse"
+subtitle: "Grundlagen und Beispiel"
+author: "Prof. Dr. Jörg Schoder"
+date: "2023-05-20"
+language:
+  label:
+    fig: 'Abbildung '
+    tab: 'Tabelle '
+bibliography: ../../lit/Statistics.json
+reference-section-title: Quellenverzeichnis
+output:
+    bookdown::html_document2:
+      css: ../../css/styles.css
+      code_folding: hide
+      number_section: true
+      toc: true
+      toc_float: true
+      toc_depth: 3
+      mathjax: default
+
+
+---
+
+```{r ,include=FALSE}
+source(xfun::from_root("R/00_setup.R"))
+library(fontawesome)
+```
+
+# Deskriptive Regressionsanalyse
+
+
+* Etymologie: Ableitung vom lateinischen Verb "regredi" ("umkehren",
+"zurückführen/-gehen")
+* Begriff findet sich in zahlreichen wissenschaftlichen Disziplinen:
+Psychologie, Geologie,. . .
+* Einführung in die Statisik durch **Francis Galton (1822-1911)**:
+
+> "the average regression of the offspring is a constant fraction of their
+respective mid-parental deviations" (Quelle: Wikipedia).
+
+`r fa('circle-right')` extreme Characteristika (hier: Körpergröße) der Eltern werden nicht vollständig an die Nachkommen weitergegeben. Vielmehr gibt es eine Regression (Tendenz der Rückkehr) zu einem mittleren Wert.
+Deskriptive vs. induktive/stochastische Regressionsanalyse.
+
+
+
+## Grundlagen
+
+
+### Korrelation vs. Kausalität
+
+
+* Allein auf Basis einer Korrelationsanalyse können keine Aussagen über Kausalität (Ursache-Wirkungs-Zusammenhang) gemacht werden:
+
+  * Möglichkeit der Diskrepanz von Formallogik und Sachlogik
+  * Scheinkorrelation (third-variable problem): Die Korrelation kann durch einen dritten, nicht beobachteten, Faktor
+bestehen, der auf beide Variablen einwirkt
+  * Richtung der Kausalität: Der Korrelationskoeffizient sagt nichts darüber aus, ob $X$ von $Y$ verursacht wird oder vice versa.
+
+
+```{r}
+#| label: spurious-corr
+#| echo: false
+#| fig-align: center
+knitr::include_url('https://www.tylervigen.com/spurious-correlations')
+```
+
+
+* Bei statistischen Untersuchungen von Zusammenhängen zwischen Merkmalen ist besonders auf die sachliche Seite der Fragestellung zu
+achten ("theoriegeleitet statt datengetrieben").
+
+
+### Korrelation vs. Regression
+
+* Bei der Korrelation geht es um **Richtung und Stärke des Zusammenhangs** zwischen zwei Variablen. Es wird ein linearer Zusammenhang unterstellt.
+
+* Bei der Regression geht es um die Vorhersage/Prognose von Werten einer Variable auf Basis einer anderen Variablen (bspw. Umsatzprognose auf Basis des Produktpreises).
+  * hypothetisches Modell der Beziehung zwischen zwei oder mehr Variablen.
+  * Abbildung des Zusammenhangs durch eine (möglichst einfache) Regressionsfunktion.
+  * Einfachregression (bivariater Fall) vs. Mehrfachregression (Multiple Regression):
+      * abhängige Variable: Regressand
+      * unabhängige Variable(n): Regressor(en)
+
+* Deskriptive Regressionsanalyse als Verallgemeinerung der Methode zur Berechnung einfacher Mittelwerte.
+
+`r fa('circle-right')` bedingter Mittelwert (Nutzung von Informationen aus der unabhängigen Variable)
+
+
+
+
+
+### Exakter vs. statistischer Zusammenhang
+
+```{r}
+#| echo: false
+#| label: "exakter Zusammenhang"
+p1 <- ggplot() +  xlim(0, 55) +
+        stat_function(fun = function(x) (1.5*x),linewidth=1.1) + 
+        labs(x="Liter Benzin",y="Rechnungsbetrag",title = "Tankstelle")
+  
+
+```
+
+```{r}
+#| echo: false
+#| label: "statistischer Zusammenhang"
+## Daten erzeugen -----
+set.seed(23)
+e <- rnorm(50,0,2500)
+x <- seq(0,11,length.out=50)
+tbl_usedcars <- tibble(x=x,e=e,y=22130-1370*x+e)
+## Plot erzeugen -----
+p2 <- tbl_usedcars %>% 
+          ggplot(aes(x=x,y=y)) + 
+           geom_point() + 
+           geom_smooth(method = "lm", se = FALSE) +
+           scale_x_continuous(limits=c(0,11),breaks=seq(0, 10, 1)) +
+           scale_y_continuous(limits=c(0,26000),breaks=seq(0, 25000, 5000)) + 
+           labs(x="Alter (in Jahren)",y="Preis",title="Gebrauchtwagen")
+
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: "exakter vs. statistischer Zusammenhang"
+#| fig-caption: "Exakter vs. statistischer Zusammenhang"
+#| fig.align: center
+library(patchwork)
+p1+p2
+```
+
+* Statistischer Zusammenhang ergibt sich aus **Sachzusammenhang**!
+
+* Statistischer Zusammenhang und Mängel bei der Beobachtung (Meßfehler, **unbeobachtete Einflussgrößen**)!
+
+
+### Lineare vs. nicht-lineare Zusammenhänge
+
+
+```{r}
+#| label: datasaurus
+datasauRus::datasaurus_dozen %>%
+                    ggplot(aes(x, y)) +
+                        geom_point() +
+                        facet_wrap(~dataset)
+```
+
+
+### Funktionstypen im bivariaten Fall
+
+Im Folgenden sei $X$ der Regressor (unabhängige Variable) und $Y$ der Regressand (abhängige Variable) bzw. "Regression von Y auf X": (y-x-Regression $\hat{y}=f(x)$).^[Umgekehrt $\hat{x}=h(y)$ als Regression von X auf Y (x-y-Regression).]
+
+* Gerade: $y=b_1+b_2x$	
+* Parabel: $y=b_1+b_2x+b_3x^2$	
+* Potenzfunktion: $y=b_1x^{b_2}$
+* Exponentialfunktion: $y=b_1b_2^x$	
+* logistische Funktion: $y=\frac{k}{1+e^{b_1+b_2x}},~b_2<0.$	
+* ...
+
+
+Im Folgenden Betrachtung des einfachsten Falls: $y=b_1+b_2x$, mit:
+
+* $b_1$: Interzept/Konstante
+* $b_2$: Steigungskoeffizient
+
+
+
+
+## Regressionsfunktion (bivariater Fall) 
+
+
+### Residuen
+
+\begin{aligned}[t]
+	y_i&=\underbrace{b_1+b_2x_i}_{\mbox{systematische Komponente}}+\underbrace{e_i}_{\mbox{unsystematische Komponente}}\\
+	&=\underbrace{\hat{y}}_{\mbox{Regressionsfunktion}}+\underbrace{e_i}_{\mbox{Residuum}}
+\end{aligned}
+
+
+* Obs! $\hat{y}$ (lies: "y Dach") verdeutlicht, dass die **Regressionsfunktion** ($\hat{y}=b_1+b_2x_i$) nicht die tatsächlichen Wertepaare ($x_i,y_i$) abbildet, sondern *jedem beobachteten* x-Wert einen *"durchschnittlichen" y-Wert ($\hat{y}$)} zuordnet, der \emph{auf der Regressionsfunktion* liegt.
+
+:::d-box
+`r fa('tag')`	Die Differenzen zwischen den beobachteten Werten $y_i$ des metrisch messbaren Merkmals Y und den mittels Regressionsfunktion vorhergesagten Werten $\hat{y_i}$ heißen **Residuen** (von Residualgröße, engl. residuals) $e_i$ bezeichnet. Für das Residuum der Beobachtung $i$ gilt: $e_i = y_i - \hat{y}_i ~\mbox{für}~i = 1,\dots, n$. 
+:::
+
+
+### Methode der kleinsten Quadrate
+
+* Es gibt diverse Möglichkeiten, um eine Gerade durch eine Punktwolke im Streudiagramm zu legen.
+
+```{r}
+#| label: Abstände
+#| echo: false
+#| warning: false
+#| message: false
+#| fig-cap: "Alternative Distanzmaße"
+set.seed(23)
+IQ = rnorm(50, 100, 15)
+GPA = pmax(1, pmin(4.3, round((IQ-100)/15*0.5+2.8+rnorm(length(IQ),0,0.7), 1)))
+iq_gpa = tibble(iq=IQ, gpa=GPA)
+
+m_y = mean(iq_gpa$gpa)
+m_x = mean(iq_gpa$iq)
+s_y = sd(iq_gpa$gpa)
+s_x = sd(iq_gpa$iq)
+
+
+lm_g_i = lm(data=iq_gpa, gpa~iq) 
+
+b1_y_x = coef(lm_g_i)['iq']
+b0_y_x = coef(lm_g_i)['(Intercept)']
+
+lm_i_g = lm(data=iq_gpa, iq~gpa) 
+
+b1_x_y = 1/coef(lm_i_g)['gpa']
+b0_x_y = m_y - b1_x_y*m_x
+
+pc_load = prcomp(iq_gpa, scale=T, retx=T)
+b1_yx = pc_load$rotation[2,1]/pc_load$rotation[1,1]*s_y/s_x
+b0_yx = m_y - b1_yx*m_x
+
+iq_gpa$yh_y_x = b1_y_x*iq_gpa$iq + b0_y_x
+iq_gpa$xh_x_y = coef(lm_i_g)['gpa']*iq_gpa$gpa + coef(lm_i_g)['(Intercept)']
+iq_gpa$xh_yx  = pc_load$x[,1]*pc_load$rotation[2,1]*s_x+m_x
+iq_gpa$yh_yx  = pc_load$x[,1]*pc_load$rotation[1,1]*s_y+m_y
+
+
+g2 <- ggplot(iq_gpa, aes(x=iq, y=gpa))+
+  geom_abline(intercept = b0_y_x, slope=b1_y_x, color="blue", size=1.5)+
+  geom_segment(aes(x=iq, y=gpa, xend=iq, yend=yh_y_x), color="blue") +
+  labs(x="x",y="y") +
+  geom_point(size=2.5)
+g3 <- ggplot(iq_gpa, aes(x=iq, y=gpa))+
+  geom_abline(intercept = b0_x_y, slope=b1_x_y, color="red", size=1.5)+
+  geom_segment(aes(x=iq, y=gpa, yend=gpa, xend=xh_x_y), color="red")+
+  labs(x="x",y="y") +
+  geom_point(size=2.5)
+g4 <- ggplot(iq_gpa, aes(x=iq, y=gpa))+
+  geom_abline(intercept = b0_yx, slope=b1_yx, color="gray", size=1.5)+
+  geom_segment(aes(x=iq, y=gpa, yend=yh_yx, xend=xh_yx), color="gray")+
+  labs(x="x",y="y") +
+  geom_point(size=2.5)
+
+library(gridExtra)
+grid.arrange(g2,g3,g4,ncol=3)
+```
+
+
+
+* Naheliegend: Gerade, welche einen möglichst großen (geringen) Anteil der systematischen (unsystematischen Komponente) mit sich bringt: Maximierung (Minimierung) der (durch die Regressionsfunktion $\hat{y}$)  erklärten (nicht erklärten) Streuung der beobachteten $y$-Werte.
+
+* Obs! Unsystematische Komponente entspricht dem Teil der Gesamtstreuung der y-Werte, der nicht durch die Regressionsfunktion ($\hat{y}$) erklärt ist; mithin: Residuen als nicht erklärte Streuung.
+
+* Operationalisierung "`möglichst geringer Anteil nicht erklärter Streuung"'? Absolute Abweichung, Gewichtete Abweichungen (quadratisch, konstant)?
+
+* Methode der kleinsten Quadrate (Ordinary Least Squares, OLS):
+		
+\begin{equation}
+\min_{b_1,b_2}\sum_{i=1}^ne_i^2=\sum_{i=1}^n(y_i-\hat{y})^2=\sum_{i=1}^n(y_i-b_1-b_2x_i)^2
+(\#eq:KQ)
+\end{equation}
+
+
+```{r}
+#| label: shiny-OLS
+#| echo: false
+#| fig-align: center
+#| out-width: "100%"
+knitr::include_url('https://tomicapretto.shinyapps.io/LeastSquaresRegression/',height = '800px')
+``` 
+
+
+Obs! Die Regressionsgerade ist diejenige Gerade, welche die Summe der quadrierten Vorhersagefehler (Residuen) minimiert.
+
+### Ermittlung der Parameter des Regressionsmodells
+
+* Bedingungen erster Ordnung:
+
+
+\begin{equation} 
+\frac{\partial\sum_ie_i^2}{\partial b_1}=-2\sum_i(y_i-b_1-b_2x_i)=-2\sum_i e_i\stackrel{!}{=}0
+(\#eq:OLS-FOC1)
+\end{equation}
+
+\begin{equation} 
+\frac{\partial\sum_ie_i^2}{\partial b_2}=-2\sum_i(y_i-b_1-b_2x_i)x_i=-2\sum_i x_ie_i\stackrel{!}{=}0 
+(\#eq:OLS-FOC2)
+\end{equation}
+
+* Umstellung von Gleichung \@ref(eq:OLS-FOC1) liefert **Bestimmungsgleichung für $b_1$**: 
+
+\begin{equation}
+\sum y_i=n b_1+b_2\sum x_i\implies b_1=\bar{y}-b_2\bar{x}
+(\#eq:OLS2)
+\end{equation}.
+
+
+* Einsetzen von \@ref(eq:OLS2) in \@ref(eq:OLS-FOC2) liefert **Bestimmungsgleichung für $b_2$**:
+
+\begin{equation*}
+b_2=\frac{\sum_i(x_i-\bar{x})(y_i-\bar{y})}{\sum_i(x_i-\bar{x})^2} \iff 	b_2=\frac{\frac{1}{n}\sum_i(x_i-\bar{x})(y_i-\bar{y})}{\frac{1}{n}\sum_i(x_i-\bar{x})^2}
+\end{equation*}
+
+
+* Damit:
+
+\begin{equation}
+b_2=\frac{\mbox{COV}(y,x)}{\mbox{Var}(x)}
+(\#eq:b2)
+\end{equation}
+
+### Exkurs: Multiple Regression
+
+
+```{r}
+#| label: mult-reg-graph
+#| echo: false
+knitr::include_graphics('https://i.stack.imgur.com/3pmXi.png')
+
+```
+
+
+* Von der Geradengleichung zur Linearkombination:
+
+$$y_i=b_{i1}x_{i1}+b_{i2}x_{i2}+b_{i3}x_{i3}+\dots+b_{ik}x_{ik}+e_i$$
+
+
+* Matrizendarstellung:
+
+$$\begin{pmatrix}
+y_1 \\
+y_2 \\
+\vdots \\
+y_i 
+\end{pmatrix}
+=
+\begin{pmatrix}
+x_{1,1} & x_{1,2} & \cdots & x_{1,k} \\
+x_{2,1} & x_{2,2} & \cdots & x_{2,k} \\
+\vdots  & \vdots  & \ddots & \vdots  \\
+x_{i,1} & x_{i,2} & \cdots & x_{i,k} 
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+b_1 \\
+b_2 \\
+\vdots \\
+b_k
+\end{pmatrix}
++
+\begin{pmatrix}
+e_1 \\
+e_2 \\
+\vdots \\
+e_i
+\end{pmatrix}$$
+
+
+* Kompakte Matrizen-Schreibweise:
+
+$$\textbf{y}=\textbf{X}\cdot b+e$$
+
+
+
+Analog zur linearen Einfachregression sollen die quadrierten Residuen minimiert werden:
+
+$$\begin{eqnarray}\min_\beta(e'e)&=&\min_\beta(y-X\beta)'(y-X\beta)\\
+&=&\min_\beta[y'y-2\beta'X'y+\beta'X'X\beta]\,
+\end{eqnarray}$$
+
+* Bedingung erster Ordnung (FOC):
+
+$$\frac{\partial(e'e)}{\partial b}=-2X'y+2X'X b\stackrel{!}{=}0$$
+\item Damit folgt für die Koeffizienten:
+
+$$b=(X'X)^{-1}X'y$$
+
+
+### Interpretation einer linearen KQ-Regressionsfunktion
+
+* Ist $b_1$ im Verhältnis zu den beobachteten x-Werten klein, besteht zwischen $X$ und $Y$ ein annähernd proportionaler Zusammenhang
+* Obs! Regression ohne Interzept ($b_1 = 0$) entspricht einer Ursprungsgerade `r fa('circle-right')` Gefahr der Verzerrung (Bias)!
+* Die Regressionskoeffizienten geben keine Auskunft über Ausgeprägtheit/Stärke des (linearen) Zusammenhangs, sondern nur die Tendenz! `r fa('circle-right')` Stärke des Zusammenhangs: Korrelationsanalyse.
+* Obs! Für inferenzstatistische Zwecke (vgl. Stichproben und Inferenz) müssen diverse Annahmen getroffen werden (Ökonometrie).
+
+
+## Eigenschaften und Einordnung von Regressionsparametern
+
+### Eigenschaften der KQ-Residuen
+
+* Aus Gleichung \@ref(eq:OLS-FOC1) folgt: $\sum_i(y_i-b_1-b_2x_i)=\sum_i(y_i-\hat{y}_i)=\sum_ie_i=0.$
+`r fa('circle-right')` Für eine lineare KQ-Regressionsfunktion ist die **Summe der Residuen gleich Null**.
+
+* Damit haben lineare KQ-Regressionsfunktionen (mit Interzept) stets ein  **arithemetisches Mittel der Residuen von Null** ($\hat{e}=0$).
+
+
+* Damit gilt für die Varianz der Residuen: $s_e^2=\frac{1}{n}\sum_ie_i^2$. Gemäß Gleichung\@ref(eq:KQ) entspricht dies aber gerade der Zielfunktion der KQ-Methode: $\min_{b_1,b_2}\sum_{i=1}^ne_i^2$. `r fa('circle-right')` Das Kriterium der Kleinsten KQ entspricht bei linearen Regressionsfunktionen (mit Interzept) der **Minimierung der Varianz der Residuen**.
+
+
+Obs! Diese Ergebnisse lassen sich noch verallgemeinern. Sie gelten für alle Regressionsfunktionen der Form $f(x)=b_1+f^\ast(x)$, wobei $f^\ast(x)$ keine additive Konstante mehr hat.
+
+### Regressionskoeffizient vs. Korrelationskoeffizient
+
+* Korrelationskoeffizient nach Bravais-Pearson: 
+\begin{equation*}
+r_{XY}=\frac{s_{XY}}{s_X\cdot s_Y}
+\end{equation*} 
+
+* Auflösen nach $s_{XY}=r_{XY}\cdot s_X\cdot s_Y$ und Einsetzen in \@ref(eq:b2):
+\begin{equation*}
+b_2=\frac{r_{XY}\cdot s_X\cdot s_Y}{s_X^2}=r_{XY}\frac{s_Y}{s_X}
+\end{equation*}  
+
+* Steigung ist somit direkt proportional zur Korrelation. Die Steigung ist positiv (negativ), wenn die Korrelation positiv (negativ) ist.
+* Obs! Wert der Steigung abhängig von den Standardabweichungen von Regressand und Regressor: Steigung ($b_2$) kein standardisiertes Maß für den Einfluss von X auf Y!
+
+
+
+### Goodness-of-Fit und Bestimmtheitsmaß
+https://www.uibk.ac.at/econometrics/einf/kap02_ols.pdf
+
+```{r}
+#| label: Varianzzerlegung
+#| echo: false
+#| fig-align: center
+#| fig-cap: "Varianzzerlegung; Quelle: @stocker_grundlagen_2023."
+
+knitr::include_graphics(xfun::from_root('img','PVA2','Varianzzerlegung_(Stocker).png'))
+```
+
+* Abweichung einer einzelnen Beobachtung vom Mittelwert $\bar{y}$:
+
+\begin{equation}
+  y_i-\bar{y}=(\hat{y}_i-\bar{y})+(y_i-\hat{y}_i)
+(\#eq:MeanDev)
+\end{equation}
+
+
+* Ermittlung der Gesamtstreuung von $y$ um den Mittelwert $\bar{y}$ durch quadrieren von Gleichung \@ref(eq:MeanDev) und aufsummieren über alle Beobachtungen sowie diverse Umformungen:
+
+\begin{equation*}
+		\sum_i(y_i-\bar{y})^2=\sum_i(\hat{y}_i-\bar{y})^2+\sum_i(y_i-\hat{y})^2
+\end{equation*}
+bzw.
+\begin{equation*}
+	\underbrace{\sum_i(y_i-\bar{y})^2}_{\mbox{TSS}}=\underbrace{\sum_i(\hat{y}_i-\bar{y})^2}_{\mbox{ESS}}+\underbrace{\sum_i e_i^2}_{\mbox{SSR}}
+\end{equation*}	
+
+* Die Gesamtstreuung ("Total Sum Squared", TSS) ergibt sich als Summe aus erklärter Streuung ("Explained Sum Squared", ESS) und nicht erklärter Streuung ("Sum of Squared Residuals", SSR).
+
+:::d-box
+`r fa('tag')` Das Bestimmtheitsmaß $R^2$ (engl. R squared) ist definiert als Anteil der durch die Regressionsgerade erklärten Streuung (ESS) an der gesamten Streuung (TSS):
+\begin{equation*}
+	R^2 =\frac{\mbox{ESS}}{\mbox{TSS}}=\frac{\mbox{TSS}-\mbox{SSR}}{TSS}=1-\frac{\mbox{SSR}}{TSS}=1-\frac{\sum_i e_i^2}{\sum_i(y_i-\bar{y})^2}
+\end{equation*}
+:::
+
+Obs! Für Regressionsgleichungen mit Interzept gilt: $0\leq R^2\leq 1$.
+
+
+```{r}
+#| echo: false
+
+knitr::include_graphics('https://imgs.xkcd.com/comics/linear_regression.png')
+```
+
+
+* Das Bestimmtheitsmaß (auch Determinationskoeffizient) enstspricht der quadrierten Korrelation zwischen beobachtetem und vorhergesagtem Wert:
+
+\begin{equation*}
+		R^2 = r_{y,\hat{y}}^2
+\end{equation*}
+
+* Spezialfall lineare Einfachregression (eine unabhängige Variable)
+
+  * Obs! Im Fall der linearen **Einfach**regression sind die vorhergesagten Werte ($\hat{y}$)  eine  lineare Transformation des Regressors ($\hat{y}=b_1+b_2x$)
+  * Außerdem: Die Korrelation $r$ ist invariant gegenüber linearen Transformationen der Variablen
+  * Mithin kann **im Fall der einfachen linearen Regression** das Bestimmtheitsmaß auch via Quadrieren der Korrelation zwischen Regressor und Regressand bestimmt werden:
+
+$$R^2=r_{x,y}^2$$
+
+
+
+# Regressionsanalyse in `r fa('r-project')`
+
+## Beispiel
+
+```{r}
+# Beispiel: Werbung-Umsatz
+## Eingabe Urliste ----
+#als tibble-Objekt
+tbl_marketing<-tibble(Werbung=c(4,4,5,6,8,8,10,11),
+                      Umsatz=c(4,5,6,6,8,10,12,13))
+```
+
+Für die Analyse werden die in Aufgabe 6 (Übungsblatt 5) gegebenen Daten zu Werbung und Umsatz eines Unternehmens verwendet (Angaben in 1.000€):
+
+```{r,echo=FALSE,fig.align='center'}
+## Ausgabe als Tabelle ----
+tbl_marketing %>% 
+          t() %>% #transponieren, um eine Tabelle mit zwei Zeilen (statt 2 Spalten) zu erhalten
+          kable(table.attr = "style='width:67%;'") %>% 
+          kable_styling()
+```
+
+Beide Merkmale werden auf der Verhältnisskala gemessen, somit konnten wir bereits arithmetische Mittelwerte, Varianzen, Kovarianz berechnen. Der folgende Pipe-Workflow diente im Rahmen der bereits durchgeführten Korrelationsanalyse der Untersuchung des statistischen Zusammenhangs zwischen Umsatz und Werbung anhand des Pearson-Korrelationskoeffizienten: 
+
+```{r,message=FALSE,echo=TRUE}
+## Korrelation -----
+#Berechnung Pearson-Korrelationskoeffizient
+r_p <- tbl_marketing %>% 
+            corrr::correlate() %>% 
+            corrr::shave() %>% 
+            select(Werbung) %>% 
+            filter(!is.na(Werbung))
+r_p
+```
+
+Mit einem Wertebeich $-1\leq r\leq 1$ zeigt das Ergebnis des Korrelationskoeffizienten $r=$ `r round(r_p,3)`, dass zwischen Umsatz und Werbung ein *stark positiver* Zusammenhang besteht.
+
+Nun stellt sich die Frage, *ob dieser Zusammenhang als Ursache-Wirkungs-Beziehung*, also im Sinne einer Kausalität *interpretiert werden kann*. Dabei macht es offensichtlich einen Unterschied, ob hohe Werbeausgaben durch einen hohen Umsatz belohnt werden, oder ob ein hoher Umsatz zu einer Ausweitung der Werbeausgaben führt. Denn nur im ersten Fall können wir hoffen, dass eine Werbekampagne nicht nur zusätzliche Kosten bedeutet sondern auch für zusätzlichen Umsatz sorgt.
+
+
+Im Unterschied zur Korrelationsanalyse geht es bei der **Regressionsanalyse** um die Analys von **Ursache-Wirkungsbeziehungen**. Mit den vorhandenen Daten können wir allerdings über die Ursache-Wirkungs-Beziehung nichts aussagen. Die Richtung der Kausalität (was ist Ursache, was ist Wirkung?) kann nur auf Basis theoretischer Argumente **behauptet** werden. Bestenfalls kann diese Theorie dann mit geeigneten Methoden überprüft werden. Ohne in die betriebswirtschaftliche Theorie weiter einzugehen **unterstellen** wir im folgenden, dass der Umsatz durch Werbung beeinflusst werden kann und formulieren dies durch folgende Regressionsgleichung:
+
+$$Umsatz=\beta_1+\beta_2\cdot Werbung$$
+
+
+
+## Datenvisualisierung (Teil 1)
+
+Für die grafische Darstellung der Daten folgen wir der Konvention, dass unabhängige Variablen (hier Umsatz als Regressand) auf der Abszisse und abhängige Variablen (hier Werbung als Regressor) auf der Ordinate abgetragen werden.
+
+
+
+```{r,echo=FALSE,fig.align='center',out.width='70%'}
+## Dataviz ----
+
+### Plot-Objekt erzeugen ------
+#inkl. Mappings (Abszisse und Ordinate festlegen)
+p<-ggplot(tbl_marketing,aes(x=Werbung,y=Umsatz))
+#Layer hinzufügen - hier Punkte für das Streudiagramm
+p<-p+geom_point()
+#Achsenlabel
+p<-p+labs(title='Streudiagramm von Werbeausgaben und Umsatz',
+          x='Werbeausgaben (in 1.000 Euro)',
+          y='Umsatz (in 1.000 Euro)')
+#Theme modifizieren, bspw. light ohne grauen Hintergrund
+p<-p+theme_light()
+p
+```
+
+Eine kompakte Darstellung, die neben dem Streudiagramm auch die univariaten Verteilungen und den Korrelationskoeffizient zeigt, ist mit dem GGally-Paket möglich:
+
+```{r}
+#| echo: true
+#| message: false
+#| fig-align: 'center'
+#| out-width: '70%'
+### GGally-Matrixplot -----
+GGally::ggpairs(tbl_marketing) +
+        theme_light()
+```
+
+Diese Matrix-Darstellung ist besonders im Kontext der multiplen Regressionsanalyse hilfreich, weil sie einen guten Überblick über die Daten im Sinne einer explorativen Datenanalyse (EDA) ermöglicht. Im Hinblick auf die induktive Interpretation von Regressionsergebnissen können dabei bereits mögliche Verletzungen der Annahmen entdeckt werden. Bspw. ist in unserem Fall weder bei Regressor noch beim Regressand von einer (univariaten) Normalverteilung der Daten auszugehen. Im Fall der induktiven Statistik bzw. der stochastischen Regressionsanalyse wäre dies problematisch.
+
+In der hier vorgenommenen **deskriptiven** Regressionsanalyse werden die Daten jedoch als Daten zur **Grundgesamtheit (nicht als Stichprobe)** interpretiert. Somit sind wir nicht an Schlüssen im Sinne von Verallgemeinerungen interessiert.
+
+## Deskriptive Regression 
+
+### R als Taschenrechner
+
+Im Rahmen der **deskriptiven** Regressionsanalyse ist bei Nutzung von Base-R-Funktionen im Rahmen der folgenden Berechnungen ggf. die bereits bekannte *Korrektur der Freiheitsgrade* vorzunehmen: teilen durch n und nicht durch (n-1). Wir werden jedoch sehen, dass dies für die Berechnung der Regressionskoeffizienten letztlich nicht erforderlich ist (s.u.).
+
+```{r,echo=TRUE}
+## Deskriptive Regressionsanalyse ------
+### R als Taschenrechner -----
+# n ermitteln 
+n <- tbl_marketing %>% 
+            summarise(n=n()) %>% 
+            pull()
+# Varianz-Kovarianz-Matrix
+cov(tbl_marketing)*(n-1)/n # mit Korrektur der Freiheitsgrade - Varianz-Kovarianz-Matrix der Grundgesamtheit!
+
+var(tbl_marketing)*(n-1)/n # mit Korrektur der Freiheitsgrade
+
+cov_matrix<-cov(tbl_marketing)*(n-1)/n
+# Regressionskoeffizienten berechnen
+b_2<-cov_matrix[1,2]/cov_matrix[1,1]
+b_2
+
+b_1<-mean(tbl_marketing$Umsatz)-b_2*mean(tbl_marketing$Werbung)
+b_1
+```
+
+### Nutzung der `lm()`-Funktion (Base R)
+
+In Base R kann die Regressionsgerade direkt mit Hilfer der Funktion lm() für *linear model* berechnet werden. Diese Funktion erzeugt ein Objekt, das wir unter dem Namen reg_model speichern. In der lm()-Funktion müssen wir neben den Daten auch die Regressionsgleichung spezifizieren:
+    * Dabei erfolgt die Eingabe des Regressanden (der abhängigen Variable) vor einem Tilde-Zeichen (~). 
+    * Nach diesem Zeichen wird im vorliegenden Fall einer **linearen Einfachregresion** der Regressor eingegeben. Im Fall der sog. multiplen Regression können auch mehrere Regressoren additiv verknüpft werden.
+
+```{r, echo=TRUE}
+### lm()-Funktion ------
+reg_model <- lm(Umsatz ~ Werbung, data = tbl_marketing)
+class(reg_model)
+reg_model
+b_1<-reg_model$coefficients[1]
+b_2<-reg_model$coefficients[2]
+```
+
+Die `lm()`-Funktion erzeugt also ein Objekt aus der Klasse *lm*, das sämtliche Informationen zur durchgeführten Regression enthält. Der Aufruf des Objekts *reg_model* führt zur Ausgabe der den Berechnungen zugrundeliegenden Regressionsgleichung und den Koeffizienten. Der Achsenabschnitt der berechneten Regressionsgerade ist im vorliegenden Fall mit $\beta_1=$`r b_1` negativ und entzieht sich somit einer sinnvollen inhaltlichen Interpretation: ein negativer Umsatz ist per definition ausgeschlossen.
+
+Der Achsenabschnitt ist generell eher eine technische Größe, sodass die Interpretation sich primär auf den Steigungsparameter konzentrieren sollte. Grundsätzlich wird mit der Regressionsgleichung ein bedingter Mittelwert beschrieben. Mithin bedeutet der Steigungsparamater $\beta_1=$ `r b_2`, dass eine Steigerung der Werbeausgaben um 1.000€ *im Durchschnitt* mit einem um $1.000\cdot\beta_2=$ `r 1000*b_2`€ höheren Umsatz verbunden ist. 
+
+
+Obs! Die mit der `lm()`-Funktion ermittelten Koeffizienten entsprechen den oben mit R als Taschenrechner berechneten Werten. Eine Korrektur der Freiheitsgrade ist nicht notwendig, weil die Berechnung des Steigungskoeffizienten als Verhältnis von Kovarianz und Varianz erfolgt.
+
+
+
+
+### Regression vs. Korrelation (Teil 1)
+
+Im Fall der linearen Einfachregression können wir den Regressionskoeffizienten
+
+$$\beta_2=\frac{s_{UW}}{s_W^2}$$
+ 
+durch Umformung in den Pearson-Korrelationskoeffizienten überführen:
+
+$$\beta_2\cdot\frac{s_W}{s_U}=r_{UW}$$
+
+```{r,echo=TRUE}
+### Variante summarise()-Funktion ----
+tbl_marketing %>% 
+          summarise(b1=b_2*sd(Werbung)/sd(Umsatz))
+```
+
+Dies entspricht unserem oben mit der `correlate()`-Funktion ermittelten Ergebnis für den Korrelationskoeffizienten.
+
+
+### Datenvisualisierung (Teil 2) 
+
+
+### Plot mit Regressionsgerade 
+
+In das obige Streudiagramm können wir die eben bestimmte Regressionsgerade unkompliziert einzeichnen, indem wir einen Layer hinzufügen. Im **ggplot2**-Paket kann der zusätzliche Layer mit der `geom_smooth()`-Funktion erzeugt werden. Weil wir die Regressionsgerade oben mit der Methode der kleinsten Quadrate bestimmt haben, wählen wir analog zur Base-R-Funktion `lm()` die Option `method="lm"`. Standardmäßig wird dann in ggplot ein sog. Konfidenzintervall eingezeichnet. Da wir im Fall der empirischen Regression allerdings die Daten als Grundgesamtheit behandeln, wählen wir die Darstellung ohne Konfidenzintervall. Dies wird durch die Option `se=FALSE` umgesetzt, wobei *se* für standard error (Standardfehler) steht. Hierzu mehr, wenn wir die stochastische Regressionsanalyse behandeln.
+
+
+```{r,echo=FALSE,fig.align='center',out.width='70%'}
+### Dataviz Regressionsgerade -----
+#p+geom_smooth(method='lm') #standardmäßig mit Konfidenzintervall (macht für deskriptive Regression keinen Sinn)
+p+geom_smooth(method='lm',se=FALSE) #ohne Konfidenzintervall
+```
+
+
+
+
+### Plot mit Residuen
+
+Die Regressionsgerade wird mit der Methode der kleinsten Quadrate "gefittet". Dies bedeutet, dass die Gerade in die Punktwolke gelegt wird, die mit der kleinstmöglichen Summe der quadrierten Residuen verbunden ist. Residuen sind dabei als Differenz aus beobachtetem und vorhergesagtem Wert (bzw. bedingtem Mittelwert) definiert.
+
+Um dies grafisch darzustellen müssen wir das bisher verwendete ggplot-Objekt neu definieren. Dieses wurde mit den Daten des tibble-Objekts tbl_marketing erzeugt. Dieses tibble-Objekt enthält jedoch nur die Angaben zu Werbung und Umsatz, nicht aber zu den bedingten Mittelwerten und Residuen. Zur Erweiterung unseres ursprünglichen tibble-Objekts nutzen wir das mit der `lm()`-Funktion definierte Objekt `reg_model` mit den Angaben zu unserem Regressionsmodell. Die bedingten Mittelwerte und die Residuen können aus diesem Objekt mit den Funktionen `predict()` und `residuals()` ermittelt werden.
+
+
+```{r,echo=TRUE}
+### Plot mit Residuen -----
+tbl_marketing <- tbl_marketing %>%
+                        mutate(vorhersage = predict(reg_model),
+                               residuum = residuals(reg_model))
+tbl_marketing
+```
+
+Die beiden neu erzeugten Spalten `vorhersage` und `residuum` wurden offensichtlich unter Rückgriff auf das Regressionsmodell berechnet. So ergibt sich der vorhergesagte Umsatz von `r tbl_marketing$predicted[1]*1000` € in der ersten Zeile durch Einsetzen des Wertes für Werbung (4.000€) in die Regressionsgleichung:
+
+$$\hat{u}_1=\beta_1+\beta_2\cdot w_1$$
+
+```{r,echo=TRUE}
+### Ermittlung u_dach ----
+u_hat <- tbl_marketing %>% 
+                mutate(u_hat=b_1+b_2*Werbung) %>% 
+                pull(u_hat)
+u_hat[1]
+```
+
+Der durchschnittliche Umsatz bei Werbeausgaben in Höhe von 4.000€ beträgt somit `r u_hat[1]*1000`€. Tatsächlich lag der Umsatz in der ersten Zeile aber lediglich bei 4.000€. Die Differenz von `r (tbl_marketing$Umsatz[[1]]*1000)-(u_hat[1]*1000)`€ zeigt sich im negativen Residuum von $e_1=$ `r tbl_marketing$residuum[[1]]`. Im Unterschied zu $e_1$  ist $e_2$ mit `r tbl_marketing$residuum[[2]]` positiv, weil der tatsächliche Umsatz (`r tbl_marketing$Umsatz[[2]]*1000`€) um `r (tbl_marketing$Umsatz[[2]]*1000)-(u_hat[2]*1000)` € über dem bedingten Mittelwert von `r u_hat[2]*1000`€ liegt.
+
+
+```{r,echo=FALSE,fig.align='center',out.width='70%'}
+### final plot -----
+# Erzeugung plot-Objekt mit erweitertem Objekt tbl_marketing
+p <- ggplot(tbl_marketing, aes(x=Werbung,y=Umsatz))
+p <- p + labs(title='Streudiagramm von Werbeausgaben und Umsatz',
+          x='Werbeausgaben (in 1.000 Euro)',
+          y='Umsatz (in 1.000 Euro)')
+#Theme modifizieren, bspw. light ohne grauen Hintergrund
+p <- p + theme_light()
+p+geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +  # Plot regression slope
+  geom_segment(aes(xend = Werbung, yend = vorhersage), alpha = .2) +  # alpha to fade lines
+  geom_point() +
+  geom_point(aes(y = vorhersage), shape = 1) +
+  theme_bw()
+```
+
+Für die Residuen einer KQ-Regression mit Interzept gilt:
+
+* Die Summe der Residuen ist Null.
+* Damit ist auch das arithmetische Mittel der Residuen Null (Erwartungstreue).
+* Die Varianz der Residuen ist minimal (Effizienzeigenschaft)
+
+
+### Ausblick: Regressionsdiagnostik
+
+Im (mit der `lm()`-Funktion erzeugten) Objekt `reg_model` werden wichtige Informationen zur Regressionsdiagnostik gespeichert, die benötigt werden, wenn das Regressionsmodell auf Basis einer Stichprobe "geschätzt" wurde und die Ergebnisse auf die Grundgesamtheit übertragen werden sollen (vgl. induktive Statistik!). Damit eine Verallgemeinerung von der Stichprobe auf die Grundgesamtheit erfolgen kann, müssen vier wesentliche Annahmen erfüllt sein, die auch grafisch überprüft werden können. Die dazu notwendigen Diagramme können mit der `autoplot()`-Funktion aus dem **ggfortify**-Paket als **ggplots** erzeugt werden.^[Die Informationen können auch direkt in Base R geplottet werden. Die Eingabe von `plot(reg_model)` erzeugt eine Reihe von Abbildungen. Bei Eingabe in der R-Console erscheint die Aufforderung zur Betätigung der Enter-Tase, um von einer Abbildung zur nächsten zu gelangen. Die Abbildungen können auch auf einmal angezeigt werden, indem mit `par(mfrow = c(2,2))` ein Gitter (sog. grid) mit 4 Feldern (2x2 grid) erzeugt wird.] Die Interpretation dieser Diagramme wird erst in der induktiven Statistik relevant und daher hier nicht weiter thematisiert.
+
+```{r,echo=TRUE}
+### Ausblick Regressionsdiagnostik -----
+#install.packages("ggfortify")
+####  ggfortify package ----
+library(ggfortify) 
+
+#### Plot erzeugen ----
+autoplot(reg_model) + theme_light()
+
+
+#### Base R -----
+#par(mfrow = c(2,2)) # Der Befehl erzeugt das 2x2-Gitter
+#plot(reg_model)
+```
+
+### Bestimmtheitsmaß
+
+Es ist naheliegend, dass die Aussagekraft des Regressionsmodells umso größer ist, je näher die Beobachtungen im Streudiagramm an der Regressionsgeraden liegen bzw. je geringer die Werte der Residuen sind. Dabei wissen wir bereits, dass die KQ-Residuen die Eigenschaft der minimalen Varianz besitzen. Diese Varianz der Residuen ist ein Maß für die Streuung der Daten (in unserem Fall des Umsatzes), der nicht durch das Regressionsmodell erklärt werden kann. Erklärt wird nur die Streuung, die sich aus dem Unterschied von bedingtem und unbedingtem Mittelwert ergibt.
+
+Als Maß für die Aussagekraft des Regressionsmodells (die **Goodness of Fit**) dient das sog. Bestimmtheitsmaß $R^2$, das sich als Anteil von erklärter Streuung (ESS - Explained Sum Squared) an der Gesamtstreuung (TSS - Total Sum Squared) ergibt:
+
+$$R^2=\frac{ESS}{TSS}=\frac{\sum_i(y_i-\bar{y})^2}{\sum_i(\hat{y}_i-\bar{y})^2}=\frac{TSS-ESS}{TSS}=1-\frac{SSR}{TSS}=1-\frac{\sum_i e_i^2}{\sum_i(y_i-\bar{y})^2}$$
+
+
+```{r,echo=TRUE}
+## Goodness of Fit -----
+### Gemäß Definition -----
+SSQ<-tbl_marketing %>% 
+        summarise(TSS=sum((Umsatz-mean(Umsatz))^2),ESS=sum(residuum^2))
+R_sq<-1-SSQ$ESS/SSQ$TSS
+R_sq
+```
+
+Im Fall der einfachen linearen Regression (**und nur in diesem Fall!**) entspricht das Bestimmtheitsmaß dem quadrierten Pearson-Korrelationsquotienten:
+
+$$R^2=r_{x,y}^2$$
+
+```{r, echo=TRUE}
+### Sonderfall Einfachregression ------
+r_p^2
+```
+
+In Fall unserer Analyse bedeutet ein Bestimmtheitsmaß $R^2=$ `r round(R_sq,4)`, dass `r round(R_sq*100,2)` % der Gesamtstreuung durch das Regressionsmodell erklärt werden. 
+
+
+## Regression vs. Korrelation (Teil 2)
+
+
+```{r,echo=FALSE}
+# Regression vs. Korrelation -----
+#Daten importieren (Daten sind in Base-R integriert)
+data<-anscombe
+#Überführung in das tidy-Format
+anscombe_tidy <- data %>%
+                      mutate(observation = seq_len(n())) %>%
+                      gather(key, value, -observation) %>%
+                      separate(key, c("variable", "set"), 1, convert = TRUE) %>%
+                      mutate(set = c("I", "II", "III", "IV")[set]) %>%
+                      spread(variable, value)
+```
+
+Korrelationen zwischen $x$ und $y$ in allen 4 Teilmengen quasi identisch.
+
+```{r,message=FALSE}
+anscombe_tidy %>% 
+  group_by(set) %>% 
+  summarise(cor(x,y))
+```
+
+
+Das Streudiagramm des Anscombe-Quartetts offenbart jedoch sehr unterschiedliche Muster. So deutet Panel II auf einen nicht-linearen Zusammenhang hin, in Panel III und IV führen Ausreißer zu Verzerrungen des Steigungsparameters.   Damit wird die Bedeutung der gründlichen Explorativen Datenanalyse mittels Datenvisualisierung deutlich. Durch rein optische Wahrnehmung sind wir in der Lage Muster zu erkennen und 
+
+```{r,echo=FALSE,message=FALSE,fig.align='center',out.width='70%'}
+anscombe_tidy %>%
+    ggplot(aes(x, y)) +
+        geom_point() +
+        facet_wrap(~ set) +
+        geom_smooth(method = "lm", se = FALSE) + 
+        theme_light()
+```
+
+
+
+
+
+## Regression mit dem moderndive-Paket
+
+Die `lm()`-Funktion erzeugt wie o.a. ein Objekt der Klasse *lm*, die bei der Verwendung mit Pipes zu Problemen führen können. Das Paket **moderndive** bietet einige Wrapper-Funktionen, die mit tibbles arbeiten und so auch in *Pipes* verwendet werden können (vgl. @ismay_statistical_2023).
+
+
+
+Als Alternative zur `correlate()`-Funktion bietet das **moderndive**-Paket die `get_correlation()`-Funktion. Die Eingabe erfolgt wie im Fall der `lm()`-Funktion, sodass eine einheitliche Syntax für Korrelations- und Regressionsanalyse möglich wird.
+
+```{r}
+# Regression mit moderndive-Paket ------
+library(moderndive)
+tbl_marketing %>% 
+    get_correlation(formula = Umsatz ~ Werbung)
+```
+
+Oben haben wir das Objekt `tbl_marketing` mit den vorhergesagten Werten und Residuen ergänzt, indem wir die Base-R-Funktionen `predict()` und `residuals()` in einer `mutate()`-Funktion genutzt haben. Hier bietet die Funktion `get_regression_points()` im moderndive-Paket einen deutlich komfortableren Weg, um die vorhergesagten Werte und Residuen zu ermitteln und in einem tibble-Objekt zu speichern.
+
+
+```{r,echo=TRUE}
+moderndive::get_regression_points(reg_model)
+```
+
+Weitere praktische Funktionen des **moderndive**-Pakets werden wir vor allem im Rahmen der stochastischen Regressionsanalyse nutzen.
+
+
+
+# Explorative Datenanalyse
+
+
+Beipsiel [Horror Movies & Profit](https://stephenturner.github.io/workshops/r-refresher-tidy-eda.html)
