@@ -53,7 +53,7 @@ Deskriptive vs. induktive/stochastische Regressionsanalyse.
 * Allein auf Basis einer Korrelationsanalyse können keine Aussagen über Kausalität (Ursache-Wirkungs-Zusammenhang) gemacht werden:
 
   * Möglichkeit der Diskrepanz von Formallogik und Sachlogik
-  * Scheinkorrelation (third-variable problem): Die Korrelation kann durch einen dritten, nicht beobachteten, Faktor
+  * Scheinkorrelation (third-variable problem): Die Korrelation kann durch einen dritten (nicht beobachteten) Faktor
 bestehen, der auf beide Variablen einwirkt
   * Richtung der Kausalität: Der Korrelationskoeffizient sagt nichts darüber aus, ob $X$ von $Y$ verursacht wird oder vice versa.
 
@@ -66,8 +66,7 @@ knitr::include_url('https://www.tylervigen.com/spurious-correlations')
 ```
 
 
-* Bei statistischen Untersuchungen von Zusammenhängen zwischen Merkmalen ist besonders auf die sachliche Seite der Fragestellung zu
-achten ("theoriegeleitet statt datengetrieben").
+* Bei statistischen Untersuchungen von Zusammenhängen zwischen Merkmalen ist besonders auf die sachliche Seite der Fragestellung zu achten ("theoriegeleitet statt datengetrieben").
 
 
 ### Korrelation vs. Regression
