@@ -324,19 +324,28 @@ class: left
 
 .blockquote[Einfache Regression]
 
-## Lineare Regressionsgleichung und Residuen
+## Methode der kleinsten Quadrate (Ordinary Least Squares, OLS)
+
+* Geradengleichung:
 
 $$\begin{aligned}[t]
 	y_i&=\underbrace{b_1+b_2x_i}_{\mbox{systematische Komponente}}+\underbrace{e_i}_{\mbox{unsystematische Komponente}}\\
 	&=\underbrace{\hat{y}}_{\mbox{Regressionsfunktion}}+\underbrace{e_i}_{\mbox{Residuum}}
 \end{aligned}$$
 
+--
+$$\iff e_i = y_i - \hat{y}_i ~\mbox{für}~i = 1,\dots, n$$
 
 .blockquote[
-`r fa('tag')`	Die Differenzen zwischen den beobachteten Werten $y_i$ des metrisch messbaren Merkmals Y und den mittels Regressionsfunktion vorhergesagten Werten $\hat{y_i}$ heißen **Residuen** (von Residualgröße, engl. residuals) $e_i$. Für das Residuum der Beobachtung $i$ gilt: $e_i = y_i - \hat{y}_i ~\mbox{für}~i = 1,\dots, n$.
+`r fa('tag')`	Differenzen zwischen beobachteten Werten $y_i$ und den Werten auf der Regressionsgeraden $\hat{y_i}$ heißen **Residuen** (von Residualgröße, engl. residuals) $e_i$. 
 ]
 
-`r fa('circle-right')` Residuen als nicht erklärte Streuung.
+
+* Idee: 
+  * Wähle die Gerade, die von Streuung der beobachteten $y$-Werte möglichst viel "erklärt"
+  * Minimiere den Anteil der unsystematischen Komponente $(e)$ (nicht erklärte Streuung)
+
+
 
 ???
 
@@ -347,33 +356,12 @@ $$\begin{aligned}[t]
   * wobei $\hat{y}$ *auf der Regressionsfunktion* liegt.
 
 
-
 ---
 class: left
 
 .blockquote[Einfache Regression]
 
-## Methode der kleinsten Quadrate
-
-
-* Idee: 
-  * Wähle die Gerade, die soviel wie möglich von Streuung der beobachteten $y$-Werte "erklärt"
-  * Minimiere den Anteil der unsystematischen Komponente $(e)$ in der Regressionsgleichung $\hat{y}$
-
-
-* Methode der kleinsten Quadrate (Ordinary Least Squares, OLS):
-		
-$$\begin{equation}
-\min_{b_1,b_2}\sum_{i=1}^ne_i^2=\sum_{i=1}^n(y_i-\hat{y})^2=\sum_{i=1}^n(y_i-b_1-b_2x_i)^2
-\end{equation}$$
-
-
----
-class: left
-
-.blockquote[Einfache Regression]
-
-## Regressionsgerade grafisch ermitteln
+## OLS-Regressionsgerade grafisch bestimmen
 
 ```{r}
 #| label: shiny-OLS
@@ -397,6 +385,15 @@ class: left
 
 ## Regressionsgerade analytisch ermitteln
 
+* Residuen als nicht erklärte Streuung
+
+* Optimierungsproblem:
+	
+$$\begin{equation}
+\min_{b_1,b_2}\sum_{i=1}^ne_i^2=\sum_{i=1}^n(y_i-\hat{y})^2=\sum_{i=1}^n(y_i-b_1-b_2x_i)^2
+\end{equation}$$
+
+--
 
 * Bedingungen erster Ordnung:
 
@@ -427,9 +424,9 @@ $$\begin{equation}
 (3)
 \end{equation}$$
 
+--
 
-
-* Einsetzen von (3) ind (2) liefert *Bestimmungsgleichung für* $b_2$:
+* Einsetzen von (3) in (2) liefert *Bestimmungsgleichung für* $b_2$:
 
 $$\begin{equation*}
 b_2=\frac{\sum_i(x_i-\bar{x})(y_i-\bar{y})}{\sum_i(x_i-\bar{x})^2} \iff 	b_2=\frac{\frac{1}{n}\sum_i(x_i-\bar{x})(y_i-\bar{y})}{\frac{1}{n}\sum_i(x_i-\bar{x})^2}
@@ -443,10 +440,9 @@ $$\begin{equation}
 b_2=\frac{s_{y,x}}{s^2_x}
 \end{equation}$$
 
+--
 
 `r fa('exclamation-circle')` **Interpretation** des Steigungskoeffizienten $b_2$ **als marginaler Effekt**. 
-
-
 
 
 
@@ -736,7 +732,7 @@ dp2
 
 * Vergleich mit den Daten
 ```{r}
-tbl_autos %>% filter(Alter>=.5&Alter<2.5) %>% 
+tbl_autos %>% filter(Alter>1.5&Alter<2.5) %>% 
           summarise(d_preis_neuwagen=mean(Preis)) %>% pull()
 ```
 
@@ -1071,7 +1067,7 @@ class: left
 ## Beispiel Lehrevaluation (moderndive): EDA
 
 ```{r}
-evals_ch6 %>% select(score, age, gender) %>% skim()
+evals_ch6 %>% select(score, age, gender) %>% skim() %>% yank("numeric")
 ```
 
 ```{r}
@@ -1529,11 +1525,18 @@ class: left
 
 
 .panelset[
-.panel[.panel-name[Datenquelle]
+.panel[.panel-name[Modell]
+* Modell: 
+  * Eine numerische Ergebnisvariable $y$: Kreditkartenschulden des Karteninhabers
+  * Zwei erklärende Variablen:
+    * Erste numerische erklärende Variable $x1$: Kreditlimit des Karteninhabers
+    * Zweite numerische erklärende Variable $x2$: Einkommen des Karteninhabers
+    
 * Daten aus [An Introduction to Statistical Learning with Applications in R (ISLR)](https://www.statlearning.com/) im R-Paket `ISLR`
 
 * Im Lehrbuch werden mit den Daten diverse Machine Learning Modelle erarbeitet
-
+]
+.panel[.panel-name[Daten]
 ```{r}
 #| message: false
 #| warning: false
@@ -1543,18 +1546,6 @@ library(ISLR)
 credit_ch6 <- Credit %>% as_tibble() %>% 
   select(ID, debt = Balance, credit_limit = Limit, 
          income = Income, credit_rating = Rating, age = Age)
-```
-
-* Modell: 
-  * Eine numerische Ergebnisvariable $y$: Kreditkartenschulden des Karteninhabers
-  * Zwei erklärende Variablen:
-    * Erste numerische erklärende Variable $x1$: Kreditlimit des Karteninhabers
-    * Zweite numerische erklärende Variable $x2$: Einkommen des Karteninhabers
-]
-.panel[.panel-name[Daten]
-```{r}
-#| message: false
-#| warning: false
 glimpse(credit_ch6)
 ```
 
@@ -1756,6 +1747,8 @@ knitr::include_graphics('https://moderndive.com/ModernDive_files/figure-html/cre
 #| fig-align: 'center'
 knitr::include_graphics('https://moderndive.com/ModernDive_files/figure-html/2numxplot4-1.png')
 ```
+
+`r fa('exclamation-circle')` *Störvariablen* (hier: Kreditlimit) sollten im Regressionsmodell unbedingt als *Kontrollvariablen* berücksichtigt werden!
 ]
 ]
 
