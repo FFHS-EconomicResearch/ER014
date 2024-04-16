@@ -49,6 +49,7 @@ xaringanExtra::use_freezeframe(trigger = "hover")
 options(htmltools.dir.version = FALSE)
 library(latex2exp)
 library(fontawesome)
+library(htmlwidgets)
 library(emo)
 source(xfun::from_root("lit","helper.R"))
 library(RefManageR)
@@ -106,10 +107,9 @@ class: left
 
 * Methode der Kleinsten Quadrate (KQ-Methode)
 
-* Goodness of Fit
+* Einfache (deskriptive) Regressionsanalyse
 
-
-
+* Multiple (deskriptive) Regressionanalyse
 
 
 
@@ -259,9 +259,9 @@ class: inverse, center, middle
 
 ## Methode der kleinsten Quadrate
 
-.blockquote[Bivariate Regression]
+.blockquote[Einfache Regression]
 
-.blockquote[Multivariate Regression]
+.blockquote[Multiple Regression]
 
 
 
@@ -269,20 +269,24 @@ class: inverse, center, middle
 ---
 class: left
 
-.blockquote[Bivariater Fall]
+.blockquote[Einfache Regression]
 
 ## Grundidee: Zusammenhänge mit Funktionen beschreiben
 
-* Einfachster Fall: 1 Regressand $Y$, 1 Regressor $X$ (bivariater Fall)
+* Einfach(st)er Fall: 1 Regressand $Y$, 1 Regressor $X$ (bivariater Fall)
+
 
 --
 * "Regression von Y auf X": (y-x-Regression $\hat{y}=f(x)$)
 
+
 --
 * $f(x)$?
 
+
 --
   * Linear: $y=b_1+b_2x$
+  
       * $b_1$: Interzept/Konstante
       * $b_2$: Steigungskoeffizient
 
@@ -318,7 +322,7 @@ class: left
 ---
 class: left
 
-.blockquote[Bivariate Regression]
+.blockquote[Einfache Regression]
 
 ## Lineare Regressionsgleichung und Residuen
 
@@ -347,7 +351,7 @@ $$\begin{aligned}[t]
 ---
 class: left
 
-.blockquote[Bivariate Regression]
+.blockquote[Einfache Regression]
 
 ## Methode der kleinsten Quadrate
 
@@ -367,7 +371,7 @@ $$\begin{equation}
 ---
 class: left
 
-.blockquote[Bivariate Regression]
+.blockquote[Einfache Regression]
 
 ## Regressionsgerade grafisch ermitteln
 
@@ -389,7 +393,7 @@ Obs! Die Regressionsgerade ist diejenige Gerade, welche die Summe der quadrierte
 ---
 class: left
 
-.blockquote[Bivariate Regression]
+.blockquote[Einfache Regression]
 
 ## Regressionsgerade analytisch ermitteln
 
@@ -412,7 +416,7 @@ $$\begin{equation}
 ---
 class: left
 
-.blockquote[Bivariate Regression]
+.blockquote[Einfache Regression]
 
 ## Regressionsgerade analytisch ermitteln (cont'd)
 
@@ -440,6 +444,9 @@ b_2=\frac{s_{y,x}}{s^2_x}
 \end{equation}$$
 
 
+`r fa('exclamation-circle')` **Interpretation** des Steigungskoeffizienten $b_2$ **als marginaler Effekt**. 
+
+
 
 
 
@@ -447,26 +454,64 @@ b_2=\frac{s_{y,x}}{s^2_x}
 ---
 class: left
 
-.blockquote[Multivariate Regression]
+.blockquote[Multiple Regression]
 
-## Zwei Regressoren
-
+## Zwei (numerische) Regressoren
 
 ```{r}
-#| label: mult-reg-graph
 #| echo: false
-#| out-width: '85%'
+#| warning: false
+#| message: false
 #| fig-align: 'center'
-knitr::include_graphics('https://i.stack.imgur.com/3pmXi.png')
+library(ggplot2)
+library(plotly)
+# Beispieldaten generieren
+set.seed(23)
+x1 <- rnorm(100)
+x2 <- rnorm(100)
+y <- 2 * x1 - 3 * x2 + rnorm(100)
+data <- data.frame(x1 = x1, x2 = x2, y = y)
+# OLS-Modell anpassen
+model <- lm(y ~ x1 + x2, data = data)
 
+# Extrahieren der Koeffizienten des Modells
+intercept <- coef(model)[1]
+coef_x1 <- coef(model)[2]
+coef_x2 <- coef(model)[3]
+
+# Berechnen der Werte für die Regressionsfläche basierend auf den Modellkoeffizienten
+x_grid <- seq(min(data$x1), max(data$x1), length.out = 30)
+y_grid <- seq(min(data$x2), max(data$x2), length.out = 30)
+z <- outer(x_grid, y_grid, function(x1, x2) intercept + coef_x1 * x1 + coef_x2 * x2)
+
+# 3D-Diagramm mit Beobachtungen und Regressionsfläche erstellen
+p <- plot_ly() %>%
+        add_trace(data = data, x = ~x1, y = ~x2, z = ~y, type = "scatter3d", 
+                    mode = "markers", marker = list(size = 5)) %>%
+        add_surface(x = x_grid, y = y_grid, z = z, 
+                    colorscale = "Blues", opacity = 0.6) %>%
+        layout(scene = list(xaxis = list(title = "x1"), 
+                            yaxis = list(title = "x2"), 
+                            zaxis = list(title = "y")))
+
+# Anzeigen des interaktiven 3D-Diagramms
+#p
+knitr::include_url(xfun::from_root('figs','3Dreg.html'),height = "470px")
 ```
+.quelle[Eigene Darstellung.]
+
+
+???
+
+
+
 
 
 
 ---
 class: left
 
-.blockquote[Multivariate Regression]
+.blockquote[Multiple Regression]
 
 ## Mehr als zwei  Regressoren
 
@@ -515,7 +560,7 @@ $$\textbf{y}=\textbf{X}\cdot b+e$$
 ---
 class: left
 
-.blockquote[Multivariate Regression]
+.blockquote[Multiple Regression]
 
 ## Optimierungsproblem
 
@@ -534,15 +579,25 @@ $$\frac{\partial(e'e)}{\partial b}=-2X'y+2X'X b\stackrel{!}{=}0$$
 
 $$b=(X'X)^{-1}X'y$$
 
+`r fa('exclamation-circle')` Lineare Regressionskoeffizienten sind partielle Ableitungen (`r fa('circle-right')` **ceteris-paribus-Interpretation** der marginalen Effekte)!
 
 
+???
 
+* Ein wesentlicher Teil des Charmes linearer Regressionsmodelle liegt in der einfachen
+Interpretation der Koeffizienten als marginale Effekte, denn **aufgrund der linearen
+Funktionsform sind die Regressionskoeffizienten** einfach die **partiellen Ableitungen**
+und können als solche interpretiert werden. 
+
+* Das einzig Neue, was dazukommt, ist die ceteris paribus Interpretation.
+
+vgl. [Stocker, Kap. 2, S. 41](https://www.uibk.ac.at/econometrics/einf/kap02_ols.pdf)
 
 
 ---
 class: inverse, center, middle
 
-## Lineare Einfachregression
+## Einfache (deskriptive) Regressionsanalyse
 
 
 .blockquote[Bedingte Mittelwerte]
@@ -566,15 +621,11 @@ tbl_autos %>%
       summarise(d_alter=mean(Alter),
                 d_preis=mean(Preis),
                 med_alter=median(Alter),
-                med_preis=median(Preis))
+                med_preis=median(Preis),
+                r = cor(Alter, Preis))
 ```
 
-* Korrelationskoeffizient:
 
-```{r}
-tbl_autos %>% 
-  summarise(correlation = cor(Alter, Preis))
-```
 
 ???
 
@@ -598,6 +649,7 @@ class: left
 ```{r}
 #| label: "Reg-Autos"
 #| echo: true
+#| message: false
 #| fig-show: "hide"
 tbl_autos %>% 
           ggplot(aes(x=Alter,y=Preis)) + 
@@ -636,7 +688,8 @@ tidy(model) %>%
 #| message: false
 #| warning: false
 library(moderndive)
-get_regression_table(model)
+get_regression_table(model) %>% 
+                select(term,estimate)
 ```
 ]
 
@@ -815,8 +868,51 @@ SSQ <- regression_points  %>%
 * moderndive `get_regression_summaries()`
 
 ```{r}
-get_regression_summaries(model)
+get_regression_summaries(model) %>% pull(r_squared)
 ```
+
+
+
+---
+class: left
+
+.blockquote[Bestimmtheitsmaß]
+
+## Bestimmtheitsmaß und Korrelationskoeffizient
+
+* Das Bestimmtheitsmaß (auch Determinationskoeffizient) enstspricht der quadrierten Korrelation zwischen beobachtetem und vorhergesagtem Wert:
+
+$$\begin{equation*}
+	R^2 = r_{y,\hat{y}}^2
+\end{equation*}$$
+
+* Im Fall der linearen Einfachregression sind die vorhergesagten Werte $(\hat{y})$ eine lineare Transformation des Regressors $(\hat{y}=b_1+b_2x)$
+
+* Weil $r$ invariant gegenüber linearen Transformationen der Variablen kann das Bestimmtheitsmaß im Fall der linearen Einfachregression (und nur in diesem Fall!) auch als quadrierte Korrelation zwischen Regressor und Regressand bestimmt werden:
+
+$$\begin{equation*}
+	R^2=r_{x,y}^2
+\end{equation*}$$
+
+* Beweis: vgl. [Stocker, Kap. 2, S. 37](https://www.uibk.ac.at/econometrics/einf/kap02_ols.pdf)
+
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer Regressor]
+
+## Sonderfall Einfachregression
+
+
+```{r}
+tbl_autos %>% 
+  summarise(r=cor(Preis,Alter),
+            RSq=(cor(Preis,Alter)^2))
+```
+
+`r fa('circle-right')` Pearson-Korrelationskoeffizient ist lineares Konzept (vgl. Anscombe-Quartett).
 
 
 
@@ -939,10 +1035,13 @@ get_regression_table(lifeExp_model)
 54.8+25.9=80.7.
 
 
+
+
+
 ---
 class: inverse, center, middle
 
-## Multiple Regression
+## Multiple (deskriptive) Regression
 
 .blockquote[Ein kategorialer und ein numerischer Regressor]
 
@@ -955,8 +1054,739 @@ class: left
 
 .blockquote[Ein kategorialer und ein numerischer Regressor]
 
-## Beispiel
+## Beispiel Lehrevaluation (moderndive): Daten UT Austin
 
+```{r}
+evals_ch6 <- evals %>%
+                select(ID, score, age, gender)
+glimpse(evals_ch6)
+```
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Lehrevaluation (moderndive): EDA
+
+```{r}
+evals_ch6 %>% select(score, age, gender) %>% skim()
+```
+
+```{r}
+evals_ch6 %>% 
+  get_correlation(formula = score ~ age)
+```
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Lehrevaluation (moderndive): EDA mittels Dataviz
+
+.pull-left[
+```{r}
+#| label: UTAustin-interaction
+#| message: false
+#| fig-show: 'hide'
+ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
+  geom_point() +
+  labs(x = "Alter", y = "Bewertung", color = "Geschlecht") +
+  geom_smooth(method = "lm", se = FALSE)
+```
+]
+.pull-right[
+![](`r knitr::fig_chunk("UTAustin-interaction", "png")`)
+
+]
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Lehrevaluation (moderndive):  Modell mit Interaktion
+
+* Regressionsgleichung
+
+$$y=b_1+b_2\cdot \mbox{Alter}+b_3\cdot \mbox{Geschlecht}+ b_4\cdot \mbox{Alter}\cdot\mbox{Geschlecht}$$
+* Umsetzung in R:
+
+```{r}
+# Fit regression model:
+score_model_interaction <-  evals_ch6 %>% 
+                                lm(score ~ age * gender, data = .)
+```
+
+
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+##  Modell mit Interaktion: Ergebnisse und Interpretation
+
+```{r}
+# Get regression table:
+get_regression_table(score_model_interaction)
+```
+--
+* Vergleichsgruppe?
+--
+
+
+| Geschlecht | Achsenabschnitt | Steigung Alter |
+|------------|:---------------:|:--------------:|
+| weiblich   |      4.883      |     -0.018     |
+| männlich   |      4.437      |     -0.004     |
+
+
+
+???
+
+* Betrachtet man die Ausgabe der Regressionstabelle, so findet man in der 
+  * Spalte Schätzung vier Zeilen mit Werten. Auch wenn es nicht sofort ersichtlich ist, können wir mit Hilfe dieser vier Werte die Gleichungen der beiden Linien im Streudiagramm aufstellen.
+
+  * Erstens: Da das Wort "weiblich" (female!) in der alphabetischen Reihenfolge vor "männlich" (male) steht, sind **weibliche Lehrkräfte die "Vergleichsgruppe"**. 
+  
+ * Mithin Dummy-Variable (0=weiblich, 1=männlich)
+    * Daher ist der Achsenabschnitt nur für die weiblichen Lehrkräfte.
+    * Dies gilt in ähnlicher Weise für das **Alter**. Es ist die **Steigung** für das Alter **nur für die weiblichen** Lehrkräfte. 
+    * Somit hat die **rote Regressionslinie** im Streudiagramm: 
+        * Achsenabschnitt von 4,883 und eine 
+        * Steigung für das Alter von -0,018.
+        
+* Obs! **Achsenabschnitt** hat zwar eine mathematische/geometrische, aber **keine praktische/inhaltliche Bedeutung** hat, da das Alter der Ausbilder nicht gleich Null sein kann.
+* Was ist mit dem Achsenabschnitt und der Steigung für das Alter der **männlichen Ausbilder** (**blaue Linie im Streudiagramm)? 
+  * "Offsets": Der Wert für Geschlecht: männlich von -0,446 ist nicht der Achsenabschnitt für die männlichen Ausbilder, sondern der Offset des Achsenabschnitts für männliche Ausbilder im Verhältnis zu den weiblichen Ausbildern.
+   * Somit Intercept für die männlichen Lehrkräfte ist intercept + gender: male = 4,883 + (-0,446) = 4,883 - 0,446 = 4,437.
+   * Ähnlich: age:gendermale = 0,014 nicht die Steigung für das Alter der männlichen Ausbilder, sondern die Verschiebung der Steigung für die männlichen Ausbilder. Daher ist die **Steigung für das Alter der männlichen Ausbilder Alter + Alter:Geschlecht =-0,018+0,014=-0,004=-0,018+0,014=-0,004**. 
+   * Somit hat die **blaue Regressionslinie** im Streudiagramm hat einen Achsenabschnitt von 4,437 und eine Steigung für das Alter von -0,004.
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Lehrevaluation (moderndive): Modell ohne Interaktion
+
+* Regressionsgleichung
+
+$$y=b_1+b_2\cdot \mbox{Alter}+b_3\cdot \mbox{Geschlecht}$$
+
+```{r}
+# Fit regression model:
+score_model_parallel_slopes <- lm(score ~ age + gender, data = evals_ch6)
+# Get regression table:
+get_regression_table(score_model_parallel_slopes)
+```
+
+???
+
+* Referenz wieder weiblich
+
+* männlicher Achsenabschnitt: 4,484+0,191=4,675
+
+| Geschlecht | Achsenabschnitt | Steigung Alter |
+|------------|:---------------:|:--------------:|
+| weiblich   |      4.484      |     -0.009     |
+| männlich   |      4.675      |     -0.009     |
+
+???
+
+* Wichtig: Die Regressionsgeraden folgen hier nicht aus den Daten sondern sind die Folge einer Modellannahme (gleiche Steigungen)
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Modell ohne Interaktion (Parallel Slopes)
+
+.pull-left[
+```{r}
+#| label: UTAustin-parallelslopes
+#| message: false
+#| fig-show: 'hide'
+ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
+  geom_point() +
+  labs(x = "Age", y = "Bewertung", color = "Geschlecht") +
+  geom_parallel_slopes(se = FALSE)
+```
+]
+.pull-right[
+![](`r knitr::fig_chunk("UTAustin-parallelslopes", "png")`)
+]
+
+???
+
+
+Modellannahme Parallel slopes
+
+Zwei Varianten zur Konstruktion der Abbildung, vgl. [Wolf Riepl](https://www.youtube.com/watch?v=ntrjjNXNJCY)
+
+
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Lehrevaluation (moderndive): Vergleich der Modelle
+
+.pull-left[
+```{r}
+#| echo: false
+#| message: false
+#| out-width: '100%'
+#| fig-align: 'center'
+ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
+  geom_point() +
+  labs(x = "Alter", y = "Bewertung", color = "Geschlecht",
+       title="Interaktionsmodell") +
+  geom_smooth(method = "lm", se = FALSE) 
+```
+]
+.pull-right[
+```{r}
+#| echo: false
+#| message: false
+#| out-width: '100%'
+#| fig-align: 'center'
+ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
+  geom_point() +
+  labs(x = "Age", y = "Bewertung", color = "Geschlecht",
+       title="Parellel Slopes Model") +
+  geom_parallel_slopes(se = FALSE)
+```
+
+]
+
+???
+
+* Was spricht für parallel slope? Einfachheit!
+* Die Antwort liegt in einem philosophischen Grundsatz, der als "Occam's Razor" bekannt ist. Es besagt, dass "unter sonst gleichen Bedingungen einfachere Lösungen wahrscheinlicher sind als komplexe". In Bezug auf die Modellierung lässt sich Occams Razor wie folgt umformulieren: **"Unter sonst gleichen Bedingungen sind einfachere Modelle komplexen vorzuziehen."** Mit anderen Worten: Wir sollten das komplexere Modell nur dann bevorzugen, wenn die zusätzliche Komplexität gerechtfertigt ist.
+
+* "Lässt sich die zusätzliche Komplexität des Interaktionsmodells rechtfertigen?"
+  * In diesem Fall kann man argumentieren, dass diese zusätzliche Komplexität gerechtfertigt ist, wie das eindeutige x-förmige Muster der beiden Regressionslinien in der linken Grafik zeigt
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Schulen MA: Wahl eines Modells
+
+* Beispiel Schulergebnisse in Massachussetts
+
+* Variablen:
+  * Regressand: SAT-Score
+  * metrischer Regressor: Anteil wirtschaftlich benachteiligter Schüler
+  * kategorialer Regresor: Schulgröße (klein, mittel groß)
+
+???
+
+* Betrachten wir jedoch ein Beispiel, bei dem die zusätzliche Komplexität möglicherweise nicht gerechtfertigt ist. 
+
+* Betrachten wir die MA_schools-Daten, die im moderndive-Paket enthalten sind und 2017 Daten zu öffentlichen High Schools in Massachusetts enthalten, die vom Massachusetts Department of Education bereitgestellt werden. Weitere Einzelheiten finden Sie in der Hilfedatei für diese Daten, indem Sie ?MA_schools in der Konsole ausführen.
+
+* Modellieren wir die numerische Ergebnisvariable y, die durchschnittliche SAT-Mathe-Punktzahl für eine bestimmte High School, als 
+
+* Funktion von zwei erklärenden Variablen:
+  * Eine numerische erklärende Variable x1, der Prozentsatz der Schülerschaft dieser High School, die wirtschaftlich benachteiligt sind, und
+  * eine kategoriale erklärende Variable x2, die Schulgröße, gemessen an der Schülerzahl: klein (13-341 Schüler), mittel (342-541 Schüler) und groß (542-4264 Schüler).
+
+* Erstellen wir noch einmal Visualisierungen sowohl des Interaktions- als auch des parallelen Steigungsmodells und zeigen die Ergebnisse in Abbildung 6.8. Erinnern Sie sich an Unterabschnitt 6.1.3, dass die Funktion geom_parallel_slopes() eine spezielle Funktion des Pakets moderndive ist, da die Methode geom_smooth() des Pakets ggplot2 keine bequeme Möglichkeit zur Darstellung von Modellen mit parallelen Steigungen bietet.
+
+
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Schulen MA: Datenvisualisierung Modelle und "Eyeball-Test" 
+
+.pull-left[
+
+```{r}
+#| echo: false
+#| message: false
+#| out-width: '100%'
+#| fig-align: 'center'
+ggplot(MA_schools, 
+       aes(x = perc_disadvan, y = average_sat_math, color = size)) +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Anteil wirtschaftlich Benachteiligte", y = "SAT-Punktzahl Mathematik", 
+       color = "Größe der Schule", title = "Modell mit Interaktion")
+```
+
+]
+.pull-right[
+
+```{r}
+#| echo: false
+#| message: false
+#| out-width: '100%'
+#| fig-align: 'center'
+# Parallel slopes model
+ggplot(MA_schools, 
+       aes(x = perc_disadvan, y = average_sat_math, color = size)) +
+  geom_point(alpha = 0.25) +
+  geom_parallel_slopes(se = FALSE) +
+  labs(x = "Anteil wirtschaftlich Benachteiligte", y = "SAT-Punktzahl Mathematik", 
+       color = "Größe der Schule", title = "Modell ohne Interaktion")
+```
+]
+
+???
+
+* left plot: While the **slopes** are indeed different, they **do not differ by much and are nearly identical**. Now compare the left-hand plot with the right-hand plot corresponding to a parallel slopes model. The **two models don’t appear all that different.**
+
+* So in this case, it **can be argued** that the additional complexity of the **interaction model is not warranted**.
+
+* **"Eyeball-Test"** als qualitative Betrachtung von Visualisierungen zur Auswahl eines Modells:
+  * ermöglicht **rudimentäre Vorauswahl** der Modelle 
+  * Auswahl des Modells, das am besten zu den Daten passt, aus einer Reihe von Modellkandidaten. 
+
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Schulen MA: Koeffizienten der Modelle 
+
+.pull-left[
+```{r}
+model_2_interaction <- lm(average_sat_math ~ perc_disadvan * size, 
+                          data = MA_schools)
+get_regression_table(model_2_interaction) %>% 
+                          select(term, estimate)
+```
+]
+--
+.pull-right[
+
+
+```{r}
+model_2_parallel_slopes <- lm(average_sat_math ~ perc_disadvan + size, 
+                              data = MA_schools)
+get_regression_table(model_2_parallel_slopes) %>% 
+                          select(term, estimate)
+```
+
+]
+
+???
+
+* Eyeball Test in Zahlen durch Vergleich der numerischen Koeffizienten
+
+* Zunächst fällt auf
+  * Regressionstabelle für das Interaktionsmodell hat 2 Zeilen mehr (6 vs. 4). 
+  * Dies spiegelt die **zusätzliche "Komplexität" des Interaktionsmodells** gegenüber dem Modell mit parallelen Steigungen wider.
+
+* Bzgl. der Koeffizienten sehen wir, dass die **Offsets** für die Steigungen *perc_disadvan:sizemedium* (0,146) und *perc_disadvan:sizelarge* (0,189) **im Vergleich zur Steigung für die Basisgruppe** der kleinen Schulen von -2,932 **gering** sind. 
+
+* Mit anderen Worten: Alle drei Steigungen sind ähnlich negativ:
+  * -2,932 für kleine Schulen, 
+  * -2,786(=-2,932+0,146) für mittlere Schulen und
+  * -2,743(=-2,932+0,189) für große Schulen. 
+  
+* Damit deuten die Ergebnisse darauf hin, dass unabhängig von der Schulgröße die Beziehung zwischen den durchschnittlichen SAT-Ergebnissen in Mathematik und dem Anteil der wirtschaftlich benachteiligten Schülerschaft ähnlich ist - gesellschaftlich gesehen leider ziemlich negativ 
+
+* Eyeball-Test zwar intuitiv überzeugend, aber wir würden es gern mit Kennzahlen untermauern. Dazu können wir das Bestimmtheitsmaß nutzen (sprich "R-Quadrat").
+
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Schulen MA: Vergleich Bestimmtheitsmaße
+
+.pull-left[
+```{r}
+model_2_interaction %>% 
+  get_regression_points() %>% 
+          select(average_sat_math,residual) %>% 
+          summarise(TSS=sum((average_sat_math-mean(average_sat_math))^2),
+                    SSR=sum(residual^2),
+                    RSq=1-SSR/TSS)
+
+```
+]
+.pull-right[
+```{r}
+model_2_parallel_slopes %>% 
+  get_regression_points() %>% 
+          select(average_sat_math,residual) %>% 
+          summarise(TSS=sum((average_sat_math-mean(average_sat_math))^2),
+                    SSR=sum(residual^2),
+                    RSq=1-SSR/TSS)
+
+```
+]
+
+
+???
+
+* RSq identisch? Nicht ganz, wie wir an den unterschiedlichen SSR sehen
+
+* genau ist $R^2$
+  * im Interaktionmodell und 0.6990772	
+  * im Parallel Slopes Modell 0.6987588
+
+* also im Fall des Interaktionsmodells minimal höher.
+
+* Berücksichtigen wir aber, dass im Interaktionsmodell zwei Regressoren mehr benutzt werden, spricht das für das Modell ohne Interaktion (Einfachheit, Parsimony)
+
+* Auch dies lässt sich objektivieren. Tatsächlich steigt das $R^2$ immer mit zunehmender Zahl an Regressoren, deshalb macht es Sinn, das Bestimmtheitsmaß diesbezüglich anzupassen: $R^2$-adjusted
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Schulen MA: Modellwahl auf Basis $R^2$-Adjusted 
+
+
+.pull-left[
+```{r}
+model_2_interaction %>% 
+  get_regression_summaries() %>% 
+      select(r_squared, adj_r_squared)
+```
+]
+.pull-right[
+```{r}
+model_2_parallel_slopes %>% 
+  get_regression_summaries() %>% 
+      select(r_squared, adj_r_squared)
+```
+]
+
+???
+
+* Tatsächlich ist das $R^2$-adjusted im Parallel slopes model leicht höher
+
+* Wie sieht es in unserem Beispiel Lehrevaluation aus?
+
+
+---
+class: left
+
+.blockquote[Ein kategorialer und ein numerischer Regressor]
+
+## Beispiel Schulen MA: Modellwahl auf Basis $R^2$-Adjusted 
+
+
+.pull-left[
+```{r}
+score_model_interaction %>% 
+  get_regression_summaries() %>% 
+      select(r_squared, adj_r_squared)
+```
+]
+.pull-right[
+```{r}
+score_model_parallel_slopes %>% 
+  get_regression_summaries() %>% 
+      select(r_squared, adj_r_squared)
+```
+]
+
+
+???
+
+* hier ist tatsächlich das Interaktionsmodell "besser"!
+
+TODO: Zwei numerische Regressoren
+
+
+
+
+---
+class: left
+
+.blockquote[Zwei numerische Regressoren]
+
+## Beispiel Kreditkartendaten
+
+
+.panelset[
+.panel[.panel-name[Datenquelle]
+* Daten aus [An Introduction to Statistical Learning with Applications in R (ISLR)](https://www.statlearning.com/) im R-Paket `ISLR`
+
+* Im Lehrbuch werden mit den Daten diverse Machine Learning Modelle erarbeitet
+
+```{r}
+#| message: false
+#| warning: false
+#install.packages("ISLR") #ggf. Paket installieren
+library(ISLR)
+# Datensatz laden und Variablen auswählen ----
+credit_ch6 <- Credit %>% as_tibble() %>% 
+  select(ID, debt = Balance, credit_limit = Limit, 
+         income = Income, credit_rating = Rating, age = Age)
+```
+
+* Modell: 
+  * Eine numerische Ergebnisvariable $y$: Kreditkartenschulden des Karteninhabers
+  * Zwei erklärende Variablen:
+    * Erste numerische erklärende Variable $x1$: Kreditlimit des Karteninhabers
+    * Zweite numerische erklärende Variable $x2$: Einkommen des Karteninhabers
+]
+.panel[.panel-name[Daten]
+```{r}
+#| message: false
+#| warning: false
+glimpse(credit_ch6)
+```
+
+]
+]
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Zwei numerische Regressoren]
+
+## Beispiel Kreditkartendaten: Zusammenfassende Statistiken
+
+```{r}
+skim <- credit_ch6 %>% select(debt, credit_limit, income) %>% skim()
+skim %>% yank("numeric")
+```
+
+
+???
+
+* Kennzahlen besprechen
+
+
+---
+class: left
+
+.blockquote[Zwei numerische Regressoren]
+
+## Beispiel Kreditkartendaten: Streudiagramm-Matrix
+
+
+```{r}
+#| out-width: '45%'
+#| fig-align: 'center'
+credit_ch6 %>% select(debt, credit_limit, income) %>% GGally::ggpairs()
+```
+
+`r fa('exclamation-circle')` Hohes Maß na Kollinearität zwischen den Regressoren (vgl. Teil 3).
+
+
+???
+
+* Sehr hohe Korrelation zwischen den Regressoren (Einkommen und Kreditlimit): 0,792
+
+* Wir sagen, dass ein **hohes Maß an Kollinearität** zwischen den erklärenden Variablen Kredit_Limit und Einkommen besteht. Kollinearität (oder Multikollinearität) ist ein Phänomen, bei dem eine erklärende Variable in einem multiplen Regressionsmodell stark mit einer anderen korreliert ist.
+
+* Diese beiden Variablen liefern also gewissermaßen **redundante Informationen**. Die Erörterung der Arbeit mit kollinearen erklärenden Variablen überlassen wir jedoch einem Buch über Regressionsmodellierung auf mittlerem Niveau.
+
+* Hierzu mehr in Teil 3
+
+
+
+---
+class: left
+
+
+.blockquote[Zwei numerische Regressoren]
+
+## Beispiel Kreditkartendaten: Dataviz Regressionsmodell (Partialbetrachtung)
+
+.pull-left[
+```{r}
+#| echo: false
+#| message: false
+#| out-width: '100%'
+#| fig-align: 'center'
+ggplot(credit_ch6, aes(x = credit_limit, y = debt)) +
+  geom_point() +
+  labs(x = "Einkommen (in $1000)", y = "Kreditkartenschulden (in $)", 
+       title = "Schulden und Einkommen") +
+  geom_smooth(method = "lm", se = FALSE)
+```
+]
+
+.pull-right[
+```{r}
+#| echo: false
+#| message: false
+#| #| out-width: '100%'
+#| fig-align: 'center'
+ggplot(credit_ch6, aes(x = income, y = debt)) +
+  geom_point() +
+  labs(x = "Einkommen (in $1000)", y = "Kreditkartenschulden (in $)", 
+       title = "Schulden und Einkommen") +
+  geom_smooth(method = "lm", se = FALSE)
+```
+]
+
+---
+class: left
+
+.blockquote[Zwei numerische Regressoren]
+
+## Beispiel Kreditkartendaten: Regressionsmodel
+
+* Modellspezifikation
+
+```{r}
+debt_model <- lm(debt ~ credit_limit + income, data = credit_ch6)
+```
+
+* Koeffizienten
+
+
+```{r}
+get_regression_table(debt_model) %>% 
+            select(term, estimate)
+```
+
+
+???
+
+Interpretation
+
+* Interzept: -385.179USD. 
+  * Dieser Abschnittswert stellt die Kreditkartenschulden einer Person dar, die ein Kreditlimit von 0 USD und ein Einkommen von 0 USD hat. 
+  * In unseren Daten hat der Abschnittswert jedoch **keine praktische Bedeutung**, da keine Person ein Kreditlimit oder ein Einkommen von 0USD hat. 
+  * Abschnittswert ist eine technische Größe - dient dazu, die Regressionsebene im 3D-Raum zu verorten.
+  * Stellt Unverzerrtheit des Schätzers sicher (vgl. Teil 3)
+  
+* Koeffizient **credit_limit**: 0,264 USD.
+  * Bei Konstanz aller anderen erklärenden Variablen in unserem Modell, also **ceteris paribus** führt jeder **Anstieg des Kreditlimits um einen Dollar** zu einem *Anstieg der Kreditkartenschulden* um **durchschnittlich 0,26 Dollar.**
+  * Obs! Ohne Theorie können wir hier **keine Kausalität unterstellen** (Korrelation vs. Kausalität, vgl. Teil 1) 
+  * Wir stellen lediglich fest, dass es **im Durchschnitt** einen entsprechenden Anstieg gab.
+  * ceteris paribus: Wir tun dies, um zu betonen, dass wir nun den damit verbundenen Effekt mehrerer erklärender Variablen im selben Modell gleichzeitig interpretieren.
+
+* Koeffizient **Einkommen**: -7,66USD. ceteris paribus ergibt sich für jede Erhöhung des Einkommens um eine Einheit (also 1000 USD tatsächliches Einkommen) eine **Verringerung der Kreditkartenschulden um durchschnittlich 7,66 USD**.
+
+
+
+---
+class: left
+
+.blockquote[Zwei numerische Regressoren]
+
+## Beispiel Kreditkartendaten: Regressionsmodel
+
+$$\begin{eqnarray}\hat{y_i}&=&b_0+b_1\cdot x_{1,i}+b_2\cdot x_{2,i}\\
+\widehat{\mbox{Schulden_i}}&=&b_0 + b_{\mbox{limit}}\cdot \mbox{limit}+b_{\mbox{Einkommen}}\cdot \mbox{Einkommen}\\
+&=&-385.179+0.263\cdot\mbox{Limit}-7.663\cdot\mbox{Einkommen}\\
+\end{eqnarray}$$
+
+`r fa('exclamation-circle')` Widerspruch zur grafischen Partialbetrachtung 
+
+* Erklärung: Simpson's Paradoxon
+
+
+
+???
+
+Widerspruch: in der Grafik war die Steigung von Einkommen positiv
+
+
+Erklärung: Simpson's paradoxon
+
+Gesamttrends, die im Aggregat bestehen, entweder verschwinden oder sich umkehren, wenn die Daten in Gruppen unterteilt werden. In Unterabschnitt 6.3.4 wird dieser Gedanke weiter ausgeführt, indem die Beziehung zwischen Kreditlimit und Kreditkartenverschuldung untersucht wird, allerdings unterteilt nach verschiedenen Einkommensgruppen.
+
+
+Mit anderen Worten: Während die Beziehung zwischen Schulden und Einkommen isoliert betrachtet positiv sein mag, wird diese Beziehung negativ, wenn auch das Kreditlimit berücksichtigt wird. Diese scheinbar paradoxen Ergebnisse sind auf ein Phänomen zurückzuführen, das treffend als Simpson-Paradoxon bezeichnet wird. Das Simpson-Paradoxon tritt auf, wenn Trends, die für die Gesamtheit der Daten bestehen, entweder verschwinden oder sich umkehren, wenn die Daten in Gruppen aufgeteilt werden.
+
+
+
+
+---
+class: left
+
+.blockquote[Zwei numerische Regressoren]
+
+## Simpon's Paradoxon und Störvariable
+
+
+
+.panelset[
+.panel[.panel-name[Idee]
+.blockquote[
+Gesamttrends, die im Aggregat bestehen können verschwinden oder sich umkehren, wenn die Daten in Gruppen unterteilt werden.
+]
+
+* Verteilung der Kreditlimits 
+
+```{r}
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics('https://moderndive.com/ModernDive_files/figure-html/credit-limit-quartiles-1.png')
+```
+]
+.panel[.panel-name[Dataviz]
+
+```{r}
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics('https://moderndive.com/ModernDive_files/figure-html/2numxplot4-1.png')
+```
+]
+]
+
+
+
+???
+
+* Die **vertikalen gestrichelten Linien sind die Quartile**, die die Variable credit_limit in vier gleichgroße Gruppen unterteilen. Betrachten wir diese Quartile als Umwandlung unserer numerischen Variable credit_limit in eine kategoriale Variable "credit_limit bracket" mit vier Stufen. Dies bedeutet, dass
+  * 25% der Kreditlimits lagen zwischen 0 und 3088. Ordnen wir diese 100 Personen dem "niedrigen" Kreditlimitbereich zu.
+  * 25 % der Kreditlimits lagen zwischen 3088 und 4622. Ordnen wir diese 100 Personen der Gruppe der "mittel-niedrigen" Kreditlimits zu.
+  * 25 % der Kreditlimits lagen zwischen 4622 und 5873. Ordnen wir diese 100 Personen der Gruppe der "mittelhohen" Kreditlimits zu.
+  * 25 % der Kreditlimits lagen über 5873 $. Ordnen wir diese 100 Personen der Gruppe "hohe" Kreditlimits zu.
+
+
+* PANEL WECHSELN
+
+* Links das bekannte Streudiagramm (aggregierte Betrachtung)
+* rechts ein **disaggregiertes Streudiagramm**, das die Regressionen nach Quartilen berechnet
+
+Mit anderen Worten, die Lage der 400 Punkte ist in beiden Streudiagrammen gleich, aber das rechte Diagramm zeigt eine zusätzliche Informationsvariable: die Klammer credit_limit.
+
+* In der rechten Grafik ist zu erkennen, dass die 
+  * Beziehung zwischen Schulden und Einkommen für die "mittel-niedrigen" und "mittel-hohen" Kreditlimiten eindeutig negativ ist,
+  * während die Beziehung **für die "niedrige" Kreditlimitengruppe eher flach** ist. 
+  * Der **einzige Kreditlimitbereich**, in dem die Beziehung **positiv** bleibt, ist der **"hohe" Kreditlimitbereich**. 
+
+* Diese Beziehung ist jedoch **weniger positiv als die Beziehung insgesamt** (aggregiert), da die Steigung flacher ist als die Steigung der Regressionslinie in der linken Grafik.
+
+* In diesem Beispiel des Simpson'schen Paradoxons ist **credit_limit eine Störvariable** für die Beziehung zwischen Kreditkartenschulden und Einkommen!
+
+Daher **muss das Kreditlimit in jedem geeigneten Modell** für die Beziehung zwischen Schulden und Einkommen **berücksichtigt werden**.
 
 
 ---
