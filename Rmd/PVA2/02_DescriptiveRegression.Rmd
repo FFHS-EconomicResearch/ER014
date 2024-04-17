@@ -324,44 +324,7 @@ class: left
 
 .blockquote[Einfache Regression]
 
-## Methode der kleinsten Quadrate (Ordinary Least Squares, OLS)
-
-* Geradengleichung:
-
-$$\begin{aligned}[t]
-	y_i&=\underbrace{b_1+b_2x_i}_{\mbox{systematische Komponente}}+\underbrace{e_i}_{\mbox{unsystematische Komponente}}\\
-	&=\underbrace{\hat{y}}_{\mbox{Regressionsfunktion}}+\underbrace{e_i}_{\mbox{Residuum}}
-\end{aligned}$$
-
---
-$$\iff e_i = y_i - \hat{y}_i ~\mbox{für}~i = 1,\dots, n$$
-
-.blockquote[
-`r fa('tag')`	Differenzen zwischen beobachteten Werten $y_i$ und den Werten auf der Regressionsgeraden $\hat{y_i}$ heißen **Residuen** (von Residualgröße, engl. residuals) $e_i$. 
-]
-
-
-* Idee: 
-  * Wähle die Gerade, die von Streuung der beobachteten $y$-Werte möglichst viel "erklärt"
-  * Minimiere den Anteil der unsystematischen Komponente $(e)$ (nicht erklärte Streuung)
-
-
-
-???
-
-
-* $\hat{y}$ (lies: "y Dach"):
-  * **Regressionsfunktion** $(\hat{y}=b_1+b_2x_i)$ bildet nicht die tatsächlichen Wertepaare ($x_i,y_i$) ab,...
-  * ... *sondern ordnet jedem beobachteten* x-Wert einen *"durchschnittlichen" y-Wert ($\hat{y}$)} zu
-  * wobei $\hat{y}$ *auf der Regressionsfunktion* liegt.
-
-
----
-class: left
-
-.blockquote[Einfache Regression]
-
-## OLS-Regressionsgerade grafisch bestimmen
+## Lineare Regression und Methode der kleinsten Quadrate
 
 ```{r}
 #| label: shiny-OLS
@@ -378,6 +341,47 @@ Obs! Die Regressionsgerade ist diejenige Gerade, welche die Summe der quadrierte
 
 
 
+
+
+---
+class: left
+
+.blockquote[Einfache Regression]
+
+## Methode der kleinsten Quadrate (Ordinary Least Squares, OLS)
+
+* Lineare Funktion mit zwei Komponenten
+
+$$\begin{aligned}[t]
+	y_i&=\underbrace{b_1+b_2x_i}_{\mbox{systematische Komponente}}+\underbrace{e_i}_{\mbox{unsystematische Komponente}}\\
+	&=\underbrace{\hat{y}}_{\mbox{Regressionsfunktion}}+\underbrace{e_i}_{\mbox{Residuum}}
+\end{aligned}$$
+
+--
+
+$$\iff e_i = y_i - \hat{y}_i ~\mbox{für}~i = 1,\dots, n$$
+
+.blockquote[
+`r fa('tag')`	Differenzen zwischen beobachteten Werten $y_i$ und den Werten auf der Regressionsgeraden $\hat{y_i}$ heißen **Residuen** (von Residualgröße, engl. residuals) $e_i$. 
+]
+
+--
+
+* Residuen (unsystematischen Komponente $e$) als **nicht** erklärte Streuung
+
+
+
+
+???
+
+
+* $\hat{y}$ (lies: "y Dach"):
+  * **Regressionsfunktion** $(\hat{y}=b_1+b_2x_i)$ bildet nicht die tatsächlichen Wertepaare ($x_i,y_i$) ab,...
+  * ... *sondern ordnet jedem beobachteten* x-Wert einen *"durchschnittlichen" y-Wert ($\hat{y}$)} zu
+  * wobei $\hat{y}$ *auf der Regressionsfunktion* liegt.
+
+
+
 ---
 class: left
 
@@ -385,7 +389,9 @@ class: left
 
 ## Regressionsgerade analytisch ermitteln
 
-* Residuen als nicht erklärte Streuung
+* Idee: Wähle $b_1$ und $b_2$ so,...
+  * ...dass die Gerade einen möglichst großen Teil der Streuung der beobachteten $y$-Werte "erklärt" bzw.
+  * ...die durch die Gerade nicht erklärte Streuung minimal ist.
 
 * Optimierungsproblem:
 	
@@ -398,7 +404,7 @@ $$\begin{equation}
 * Bedingungen erster Ordnung:
 
 $$\begin{equation} 
-\frac{\partial\sum_ie_i^2}{\partial b_1}=-2\sum_i(y_i-b_1-b_2x_i)=-2\sum_i e_i\stackrel{!}{=}0~~~~~~
+\frac{\partial\sum_ie_i^2}{\partial b_1}=-2\sum_i(y_i-b_1-b_2x_i)=-2\sum_i e_i\stackrel{!}{=}0~~~~~~~
 (1)
 \end{equation}$$
 
@@ -928,6 +934,8 @@ gapminder2007 <- gapminder %>%
                     select(country, lifeExp, continent, gdpPercap)
 glimpse(gapminder2007)
 ```
+
+`r NoCite(bib,"ismay_statistical_2020-1")`
 
 
 ---
@@ -1589,7 +1597,7 @@ class: left
 credit_ch6 %>% select(debt, credit_limit, income) %>% GGally::ggpairs()
 ```
 
-`r fa('exclamation-circle')` Hohes Maß na Kollinearität zwischen den Regressoren (vgl. Teil 3).
+`r fa('exclamation-circle')` Hohes Maß an Kollinearität zwischen den Regressoren (vgl. Teil 3).
 
 
 ???
@@ -1696,9 +1704,12 @@ $$\begin{eqnarray}\hat{y_i}&=&b_0+b_1\cdot x_{1,i}+b_2\cdot x_{2,i}\\
 
 `r fa('exclamation-circle')` Widerspruch zur grafischen Partialbetrachtung 
 
+--
 * Erklärung: Simpson's Paradoxon
 
-
+.blockquote[
+Gesamttrends, die im Aggregat bestehen können verschwinden oder sich umkehren, wenn die Daten in Gruppen unterteilt werden.
+]
 
 ???
 
@@ -1722,15 +1733,10 @@ class: left
 
 ## Simpon's Paradoxon und Störvariable
 
-
-
 .panelset[
-.panel[.panel-name[Idee]
-.blockquote[
-Gesamttrends, die im Aggregat bestehen können verschwinden oder sich umkehren, wenn die Daten in Gruppen unterteilt werden.
-]
+.panel[.panel-name[Gruppenbildung]
 
-* Verteilung der Kreditlimits 
+* Verteilung Kreditkartenlimits: Histogramm mit Quartilen
 
 ```{r}
 #| echo: false
@@ -1739,11 +1745,11 @@ Gesamttrends, die im Aggregat bestehen können verschwinden oder sich umkehren, 
 knitr::include_graphics('https://moderndive.com/ModernDive_files/figure-html/credit-limit-quartiles-1.png')
 ```
 ]
-.panel[.panel-name[Dataviz]
+.panel[.panel-name[Vergleich]
 
 ```{r}
 #| echo: false
-#| out-width: '100%'
+#| out-width: '90%'
 #| fig-align: 'center'
 knitr::include_graphics('https://moderndive.com/ModernDive_files/figure-html/2numxplot4-1.png')
 ```
@@ -1760,7 +1766,7 @@ knitr::include_graphics('https://moderndive.com/ModernDive_files/figure-html/2nu
   * 25% der Kreditlimits lagen zwischen 0 und 3088. Ordnen wir diese 100 Personen dem "niedrigen" Kreditlimitbereich zu.
   * 25 % der Kreditlimits lagen zwischen 3088 und 4622. Ordnen wir diese 100 Personen der Gruppe der "mittel-niedrigen" Kreditlimits zu.
   * 25 % der Kreditlimits lagen zwischen 4622 und 5873. Ordnen wir diese 100 Personen der Gruppe der "mittelhohen" Kreditlimits zu.
-  * 25 % der Kreditlimits lagen über 5873 $. Ordnen wir diese 100 Personen der Gruppe "hohe" Kreditlimits zu.
+  * 25 % der Kreditlimits lagen über 5873 USD. Ordnen wir diese 100 Personen der Gruppe "hohe" Kreditlimits zu.
 
 
 * PANEL WECHSELN
