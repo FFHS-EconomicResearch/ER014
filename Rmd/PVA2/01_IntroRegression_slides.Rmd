@@ -118,6 +118,10 @@ class: left
 
 
 
+???
+
+ToDo: Ergänzung [Kane-Artikel](https://medium.com/the-stata-gallery/correlation-vs-regression-a-key-difference-that-many-analysts-miss-3770c9b368d9)
+
 
 ---
 class: left
