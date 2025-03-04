@@ -1,0 +1,16 @@
+---
+title: "myfirst"
+format: docx
+---
+
+# Test
+
+Das ist meine erste Quarto-datei mit Ausgabeformat MS-Word.
+
+Eine einfache Addition
+
+```{r}
+ergebnis_1 <- 2+4
+```
+
+Das Ergebnis meiner einfachen Addition ist `r ergebnis_1`.

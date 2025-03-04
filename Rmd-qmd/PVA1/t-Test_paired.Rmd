@@ -1,0 +1,336 @@
+---
+title: "t-Tests"
+author: "Prof. Dr. Jörg Schoder"
+date: "`r Sys.Date()`"
+output: slidy_presentation
+---
+
+# Eine Stichprobe
+
+## Daten
+
+```{r , echo=TRUE,message=FALSE}
+library(tidyverse)
+library(glue)
+library(kableExtra)
+# Beispiel GSS Wochenarbeitszeit ----
+library(infer)
+library(moderndive)
+
+## Mittelwert in den Daten ----
+m_hours <- gss %>% 
+              summarise(m_hours=mean(hours))
+m_hours
+```
+
+## Deskriptive Statistik
+
+```{r}
+## Annahme zum Erwartungswert ----
+E_hours<-40 #Annahme über den Erwartungswert der wöchentl. Arbeitszeit
+```
+
+
+
+```{r}
+## Modell spezifizieren und Annahmen treffen -----
+gss %>%
+  specify(response = hours) %>% # betrachtete Variable(n) festlegen
+  hypothesize(null = "point", mu = E_hours) #Annahme treffen
+```
+
+## Test mittels Randomisierung/Resampling
+
+
+```{r}
+## Zufallsstichproben erzeugen -----
+set.seed(23) # für reproduzierbare Ergebnisse
+gss %>%
+  specify(response = hours) %>%
+  hypothesize(null = "point", mu = E_hours) %>%
+  generate(reps = 1000, type = "bootstrap")  # Zufallsstichproben mit bootstrap
+```
+
+
+```{r}
+## Stichprobenverteilung -----
+### Ermittlung mit calculate -----
+set.seed(23) # für reproduzierbare Ergebnisse
+set.seed(23) # für reproduzierbare Ergebnisse
+null_dist <- gss %>%  # speichern im Objekt null_dist
+  specify(response = hours) %>%
+  hypothesize(null = "point", mu = E_hours) %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+
+null_dist
+```
+
+
+```{r}
+### Dataviz ----
+#### einfacher Plot ----
+null_dist %>%
+  visualize()
+```
+
+
+```{r}
+## p-Wert ermitteln -----
+p_value <- null_dist %>%
+                get_p_value(obs_stat = m_hours, direction = "two-sided")
+
+p_value
+p_value_percent <- glue(100*as.numeric(p_value),"%")
+```
+
+
+```{r}
+## Konfidenzintervall -----
+### Bootstrapping-Verteilung erzeugen -----
+# Im Unterschied zur Null-Verteilung wird hier auf die Annahme (Nullhypothese) verzichtet!
+boot_dist <- gss %>%
+                specify(response = hours) %>% #Obs! hypothesize() fehlt
+                generate(reps = 1000, type = "bootstrap") %>%
+                calculate(stat = "mean")
+### Konfidenzintervall berechnen -----
+
+ci <- boot_dist %>% # Ausgangspunkt bootstrap-Verteilung
+        
+          get_confidence_interval(point_estimate = m_hours,# Berechnung des KI um den Mittelwert der GSS-Daten (Stichprobenmittelwert)
+                          level = .95,# Festlegung: 95% Konfidenzniveau
+                          type = "se") # Methode: Standardfehler (standard error)
+ci
+```
+
+Grafisch
+
+```{r}
+### Dataviz-----
+boot_dist %>%
+  visualize() +
+  shade_confidence_interval(endpoints = ci)
+```
+
+
+## Traditioneller t-Test
+
+Wäre die wahre Standardabweichung bekannt, so wäre die normierte Abweichung des Mittelwerts unter der Annahme der Normalverteilung von X ebenfalls normalverteilt:
+$$Z=\frac{\bar{X}-\mu_0}{\sigma}\sim N$$  
+Weil jedoch in der Regel die wahre Standardabweichung unbekannt ist, liegt es nahe, diese mit der empirischen Standardabweichung $s$ zu *schätzen*. Die entsprechende standardisierte Schätzfunktion des Stichproben-Mittelwerts normalverteilter Daten ist dann jedoch nicht mehr normalverteilt, sondern t-verteilt:
+
+
+$$T=\frac{\bar{X}-\mu_0}{s}$$
+
+### R als Taschenrechner
+
+Ermittlung der T-Statistik:
+
+```{r}
+# Traditionelle Tests-----
+## t-Test -----
+### Teststatistik ermitteln ----
+#### R als Taschenrechner -----
+gss %>% 
+  summarise(t=(mean(hours)-40)/(sd(hours)/sqrt(n())))
+```
+
+### Nutzung der t_test()-Funktion
+
+```{r}
+#### t_test()-Funktion
+gss %>% 
+    t_test(response=hours, mu=40) %>% 
+    kable() %>% 
+    kable_styling()
+```
+
+
+
+
+# Zwei Stichproben
+
+
+## Unabhängig
+
+### Daten
+```{r}
+tbl_cities <- read_delim(xfun::from_root("data","tidy","CleSac.txt")) 
+tbl_cities <- tbl_cities %>% 
+                    rename(metro_area = Metropolitan_area_Detailed,
+                           income = Total_personal_income) %>%
+                           na.omit()
+
+```
+
+
+### Deskriptive Statistik
+
+```{r}
+inc_summ <- tbl_cities %>%
+                group_by(metro_area) %>%
+                summarize(sample_size = n(),
+                  mean = mean(income),
+                  sd = sd(income),
+                  minimum = min(income),
+                  lower_quartile = quantile(income, 0.25),
+                  median = median(income),
+                  upper_quartile = quantile(income, 0.75),
+                  max = max(income))
+                  
+inc_summ %>% 
+        kable()
+``` 
+
+```{r}
+tbl_cities %>% ggplot(aes(x = metro_area, y = income)) +
+                geom_boxplot() +
+                stat_summary(fun.y = "mean", geom = "point", color = "red")
+```
+
+```{r}
+observed_statistic <- tbl_cities %>%
+                           specify(income ~ metro_area) %>%
+  calculate(stat = "diff in means", order = c("Sacramento_ CA", "Cleveland_ OH"))
+
+observed_statistic
+```
+### Test mittels Randomisierung/Resampling
+
+```{r}
+set.seed(23)
+# generate the null distribution with randomization
+null_dist_2_sample <- tbl_cities %>%
+                          specify(income ~ metro_area) %>%
+                          hypothesize(null = "independence") %>%
+                          generate(reps = 1000, type = "permute") %>%
+                          calculate(stat = "diff in means", order = c("Sacramento_ CA", "Cleveland_ OH"))
+null_dist_2_sample
+```
+
+
+```{r}
+null_dist_2_sample %>%
+  visualize() + 
+  shade_p_value(observed_statistic,
+                direction = "two-sided")
+```
+
+```{r}
+# calculate the p value from the randomization-based null 
+# distribution and the observed statistic
+p_value_2_sample <- null_dist_2_sample %>%
+  get_p_value(obs_stat = observed_statistic,
+              direction = "two-sided")
+
+p_value_2_sample
+```
+
+## Tradioneller t-Test (unabhängige Stichproben)
+
+```{r}
+tbl_cities %>% t_test(formula = income ~ metro_area, 
+       order = c("Sacramento_ CA", "Cleveland_ OH"),
+       alternative = "two-sided")
+```
+
+
+
+## Abhängig
+
+### Daten
+
+```{r}
+library(tidyverse)
+zinc_tidy <- read_csv(xfun::from_root("data","tidy","zinc_tidy.csv")) 
+
+zinc_tidy <- zinc_tidy %>%
+  mutate(loc_id = as.factor(loc_id))
+
+zinc_wide <- zinc_tidy %>% 
+              pivot_wider(names_from = location,values_from = concentration)
+
+zinc_paired <- zinc_wide %>% 
+                   mutate(diff=surface-bottom)
+```
+### Deskriptive Statistik
+
+```{r}
+library(infer)
+observed_statistic <-  zinc_paired %>% 
+                          specify(response = diff) %>% 
+                          calculate(stat = "mean")
+observed_statistic
+```
+
+
+```{r}
+zinc_paired %>% ggplot(aes(x = diff)) +
+                    geom_histogram(binwidth = 0.04, color = "white")
+```
+
+
+
+### Test mittels Randomisierung/Resampling
+
+```{r}
+set.seed(23)
+null_dist <- zinc_paired %>% 
+   specify(response = diff) %>% 
+   hypothesize(null = "paired independence") %>%
+   generate(reps = 1000, type = "permute") %>%
+   calculate(stat = "mean")
+null_dist
+```
+
+
+
+```{r}
+null_dist %>%
+  visualize() + 
+  shade_p_value(observed_statistic,
+                direction = "two-sided")
+```
+
+
+```{r}
+null_dist %>% get_p_value(obs_stat = observed_statistic,
+                            direction = "two-sided")
+```
+
+```{r}
+boot_dist <- zinc_paired %>% 
+                 specify(response = diff) %>% 
+                 hypothesize(null = "paired independence") %>%
+                 generate(reps = 1000, type = "bootstrap") %>%
+                 calculate(stat = "mean")
+                 
+visualize(boot_dist)
+```
+```{r}
+confidence_interval <- boot_dist %>%
+                           get_confidence_interval(level = .95)
+
+confidence_interval
+```
+```{r}
+confidence_interval <- boot_dist %>%
+                           get_confidence_interval(type="se",
+                                                   point_estimate = observed_statistic,
+                                                   level = .95)
+
+confidence_interval
+```
+### Traditionell
+
+```{r}
+stats::t.test(x = zinc_paired$diff, 
+       alternative = "less",
+       mu = 0)
+```
+
+```{r}
+pt(-5, df = nrow(zinc_paired) - 1, lower.tail = TRUE)
+```
+
+
