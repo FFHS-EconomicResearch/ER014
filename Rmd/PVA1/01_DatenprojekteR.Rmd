@@ -1,7 +1,7 @@
 ---
 title: "Datenprojekte im R tidyverse"
 author: "Prof. Dr. Jörg Schoder"
-date: "2023-07-28"
+date: "`r Sys.Date()`"    #"2023-07-28"
 bibliography: ../../lit/Statistics.json
 reference-section-title: Quellenverzeichnis
 output:
@@ -262,7 +262,7 @@ x %>% log() %>%
 * Die **magrittr**-Pipe fügt grundsätzlich das mit der Funktion auf der linken Seite (oder in unserem Fall von oben) ermittelte Ergebnis in die Funktion auf der rechten Seite (oder in unserem Fall in den folgenden Code) ein. Das Ergebnis wird dabei *standardmäßig* an der **ersten Stelle** der Funktion eingefügt.
 
 ```{r, echo=FALSE}
-knitr::include_graphics('https://sandbox.dodona.be/en/activities/2127610019/description/xmzzEmCJNMmtBVVj/media/dplyr_pipe.png')
+knitr::include_graphics(xfun::from_root('img','PVA1','pipe_(dodona).png'))
 ```
 Quelle: [Dodona](https://dodona.be/en/activities/2127610019/)
 
@@ -541,9 +541,11 @@ Beispiel [Airbnb](http://insideairbnb.com/get-the-data)
 knitr::include_url('http://insideairbnb.com/get-the-data')
 ```
 
+Beispiel: Import von Airbnb-Daten für Zürich:
+
 ```{r,echo=TRUE}
 ### Daten importieren ----
-tbl_rbnb <- read_csv("http://data.insideairbnb.com/germany/be/berlin/2023-06-22/data/listings.csv.gz")
+tbl_rbnb <- read_csv("https://data.insideairbnb.com/switzerland/z%C3%BCrich/zurich/2024-06-29/data/listings.csv.gz")
 ```
 
 ### Webscraping und APIs

@@ -2,7 +2,7 @@
 title: "Stichprobenverteilung und Schätzung mittels (Re-)Sampling"
 subtitle: ""
 author: "Prof. Dr. Jörg Schoder"
-date: "2023-05-29"
+date: "`r Sys.Date()`"    #"2023-07-28"
 output: slidy_presentation
 
 ---

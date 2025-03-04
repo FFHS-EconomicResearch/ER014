@@ -2,7 +2,7 @@
 title: "Grundidee Statistischer Tests"
 subtitle: "Vorläufige Version"
 author: "Prof. Dr. Jörg Schoder"
-date: "`r Sys.Date()`"
+date: "`r Sys.Date()`"    #"2023-07-28"
 bibliography: ../../lit/Statistics.json
 reference-section-title: Quellenverzeichnis
 lang: de #Zitation in deutscher Sprache (und statt and)

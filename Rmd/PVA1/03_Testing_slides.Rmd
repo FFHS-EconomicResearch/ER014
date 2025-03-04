@@ -2,7 +2,7 @@
 title: "Hypothesentests mittels (Re-)Sampling"
 subtitle: ""
 author: "Prof. Dr. Jörg Schoder"
-date: "2023-05-29"
+date: "`r Sys.Date()`"    #"2023-07-28"
 
 bibliography: ../../lit/my_bib.bib
 reference-section-title: Quellenverzeichnis
