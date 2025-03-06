@@ -4,7 +4,7 @@ Materialien zum Modul ER014 - Data Science and Strategy for Business
 
 ## PVA1
 
-* Teil 1: Intro to R, RStudio and the tidyverse ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA1/01_Intro_R_tidy.html#1); [Manuskript](https://FFHS-EconomicResearch.github.io/ER014/Rmd/PVA1/01_DatenprojekteR.html#1))
+* Teil 1: Intro to R, RStudio and the tidyverse ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA1/01_Intro_R_tidy.html#1); [Manuskript](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA1/01_DatenprojekteR.html#1))
 
 * Teil 2: Zufallsvariable, Sampling und Resampling ([Foliensatz Resampling](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA1/02_Sampling_slides.html)); ([Manuskript Zufallsvariablen und theoretische Verteilungen](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA1/02_Zufallsvariablen.html))
 
