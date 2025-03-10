@@ -10,6 +10,7 @@ Materialien zum Modul ER014 - Data Science and Strategy for Business
 
 * Teil 3: Statistische Testverfahren zum Vergleich von Mittelwerten ([Foliensatz Tests](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA1/03_Testing_slides.html)) ([Manuskript](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA1/03_Tests.html#1))
 
+* Teil 4: Beispiel t-Tests ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA1/04_t-Tests_with_infer.html#1))
 ## PVA2
 
 Teil 1: Intro Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA2/01_IntroRegression_slides.html#1))

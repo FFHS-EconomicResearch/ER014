@@ -49,7 +49,7 @@ xaringanExtra::use_freezeframe(trigger = "hover")
 options(htmltools.dir.version = FALSE)
 library(latex2exp)
 library(fontawesome)
-library(emo)
+#library(emo)
 source(xfun::from_root("lit","helper.R"))
 library(RefManageR)
 BibOptions(check.entries = FALSE, 

@@ -168,7 +168,8 @@ knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/3c1a8244da7e0106e
 ```{r}
 #| echo: true
 #| message: false
-set.seed(23)
+# set.seed für reproduzierbare Ergebnisse
+set.seed(23) #why 23? see
 n <- 25
 rep <- 1000
 virtual_samples_25 <- bowl %>%  #Ziehung aus der Urne (Grundgesamtheit)

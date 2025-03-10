@@ -1,5 +1,6 @@
 ---
 title: "t-Tests"
+subtitle: "Randomisierung vs. traditionelle Methodik"
 author: "Prof. Dr. Jörg Schoder"
 date: "`r Sys.Date()`"
 output: slidy_presentation
@@ -155,7 +156,7 @@ gss %>%
 
 ### Daten
 ```{r}
-tbl_cities <- read_delim(xfun::from_root("data","tidy","CleSac.txt")) 
+tbl_cities <- read_delim(xfun::from_root("data","tidy","CleSac.txt"),show_col_types = FALSE) 
 tbl_cities <- tbl_cities %>% 
                     rename(metro_area = Metropolitan_area_Detailed,
                            income = Total_personal_income) %>%
@@ -185,7 +186,7 @@ inc_summ %>%
 ```{r}
 tbl_cities %>% ggplot(aes(x = metro_area, y = income)) +
                 geom_boxplot() +
-                stat_summary(fun.y = "mean", geom = "point", color = "red")
+                stat_summary(fun = mean, geom = "point", color = "red")
 ```
 
 ```{r}
@@ -226,7 +227,7 @@ p_value_2_sample <- null_dist_2_sample %>%
 p_value_2_sample
 ```
 
-## Tradioneller t-Test (unabhängige Stichproben)
+### Tradioneller t-Test (unabhängige Stichproben)
 
 ```{r}
 tbl_cities %>% t_test(formula = income ~ metro_area, 
@@ -241,8 +242,7 @@ tbl_cities %>% t_test(formula = income ~ metro_area,
 ### Daten
 
 ```{r}
-library(tidyverse)
-zinc_tidy <- read_csv(xfun::from_root("data","tidy","zinc_tidy.csv")) 
+zinc_tidy <- read_csv(xfun::from_root("data","tidy","zinc_tidy.csv"),show_col_types = FALSE) 
 
 zinc_tidy <- zinc_tidy %>%
   mutate(loc_id = as.factor(loc_id))
