@@ -1,0 +1,69 @@
+---
+title: "Übung Quarto und tidyverse"
+author: "JS"
+format: pptx
+editor: visual
+---
+
+# Elemente eines Quarto-Dokuments
+
+1.  YAML-Kopf
+2.  Text und Formatierung
+3.  Code (R, Python, Julia etc.)
+
+# Daten importieren
+
+```{r}
+#| echo: true
+library(infer)
+tbl_gss <- gss # Daten des General social Survey laden
+```
+
+# Verben und Pipes (dplyr und magrittr)
+
+## Aufgabe 1
+
+Bestimme das Durchschnittsalter der befragten Personen.
+
+```{r}
+#| echo: true
+library(tidyverse)
+mean_age <- tbl_gss %>% 
+                select(age) %>% 
+                summarise(Durchschnittsalter=mean(age)) %>% 
+                pull()
+```
+
+Antwort: Das Durchschnittsalter liegt bei `r round(mean_age, 1)` Jahre.
+
+#
+
+## Aufgabe 2
+
+Bestimme das Durchschnittsalter, getrennt für Frauen und Männer.
+
+```{r}
+#| echo: false
+mean_age_sex <- tbl_gss %>% 
+                select(age,sex) %>% 
+                group_by(sex) %>% 
+                summarise(Durchschnittsalter=mean(age)) 
+```
+
+Antwort: Das Durchschnittsalter liegt bei `r round(mean_age_sex$Durchschnittsalter[1], 1)` Jahre.
+
+
+
+
+# Diagramme (mit ggplot2)
+
+## Aufgabe 3
+
+Erstelle einen Dichteplot der Altersvariable.
+
+```{r}
+#| echo: true
+tbl_gss %>% 
+  ggplot(aes(x=age)) +
+  geom_density()
+```
