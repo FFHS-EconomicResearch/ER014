@@ -1,6 +1,6 @@
 ---
 title: "Übung Quarto und tidyverse"
-author: "JS"
+author: "Jörg Schoder"
 format: pptx
 editor: visual
 ---
