@@ -6,20 +6,39 @@ date: "`r Sys.Date()`"
 output: slidy_presentation
 ---
 
+# Einführung
+
+Liegen Daten zu Merkmalen auf **metrischer Skala** vor, interessieren häufig **Vergleiche von Mittelwerten**. In der *traditionellen Statistik* werden Mittelwertsunterschieden zwischen einer oder mehreren Stichproben dabei mit sog. t-Tests überprüft. Diese Tests sind essenziell für viele wissenschaftliche Untersuchungen und finden Anwendung in Bereichen wie Medizin, Psychologie und Wirtschaftsforschung.
+
+Nach der Struktur des betrachteten Problems werden in der Regel **drei Fälle** unterschieden:
+
+1.  Einstichproben-t-Test: Prüft, ob der Mittelwert einer Stichprobe von einem bekannten oder theoretischen Wert abweicht.
+
+2.  Zweistichproben-t-Tests...
+
+    -   ...mit abhängigen Stichproben: Wird verwendet, wenn Messwerte paarweise zusammenhängen, z. B. bei Vorher-Nachher-Messungen.
+
+    -   ...mit unabhängigen Stichproben: Vergleicht die Mittelwerte zweier unabhängiger Gruppen, um festzustellen, ob sie sich signifikant unterscheiden.
+
+Im folgenden werden Beispiele für Mittelwert-Tests für diese drei Fälle betrachtet. Die Tests erfolgen dabei zum einen mittels Randomisierung (moderner, nichtparametrischer Ansatz) und zum anderen mit Annahmen über theoretische Verteilungen (traditioneller, parametrischer Ansatz).
+
 # Eine Stichprobe
 
 ## Daten
 
-```{r , echo=TRUE,message=FALSE}
+```{r}
+#| echo: true
+#| message: false
 library(tidyverse)
 library(glue)
-library(kableExtra)
+library(gt)
 # Beispiel GSS Wochenarbeitszeit ----
 library(infer)
-library(moderndive)
+tbl_gss <- gss
 
+library(moderndive)
 ## Mittelwert in den Daten ----
-m_hours <- gss %>% 
+m_hours <- tbl_gss %>% 
               summarise(m_hours=mean(hours))
 m_hours
 ```
@@ -28,37 +47,32 @@ m_hours
 
 ```{r}
 ## Annahme zum Erwartungswert ----
-E_hours<-40 #Annahme über den Erwartungswert der wöchentl. Arbeitszeit
+E_hours<-40 #Annahme über den "wahren" Erwartungswert der wöchentl. Arbeitszeit
 ```
-
-
 
 ```{r}
 ## Modell spezifizieren und Annahmen treffen -----
-gss %>%
+tbl_gss %>%
   specify(response = hours) %>% # betrachtete Variable(n) festlegen
   hypothesize(null = "point", mu = E_hours) #Annahme treffen
 ```
 
 ## Test mittels Randomisierung/Resampling
 
-
 ```{r}
 ## Zufallsstichproben erzeugen -----
 set.seed(23) # für reproduzierbare Ergebnisse
-gss %>%
+tbl_gss %>%
   specify(response = hours) %>%
   hypothesize(null = "point", mu = E_hours) %>%
   generate(reps = 1000, type = "bootstrap")  # Zufallsstichproben mit bootstrap
 ```
 
-
 ```{r}
 ## Stichprobenverteilung -----
 ### Ermittlung mit calculate -----
 set.seed(23) # für reproduzierbare Ergebnisse
-set.seed(23) # für reproduzierbare Ergebnisse
-null_dist <- gss %>%  # speichern im Objekt null_dist
+null_dist <- tbl_gss %>%  # speichern im Objekt null_dist
   specify(response = hours) %>%
   hypothesize(null = "point", mu = E_hours) %>%
   generate(reps = 1000, type = "bootstrap") %>%
@@ -67,14 +81,12 @@ null_dist <- gss %>%  # speichern im Objekt null_dist
 null_dist
 ```
 
-
 ```{r}
 ### Dataviz ----
 #### einfacher Plot ----
 null_dist %>%
   visualize()
 ```
-
 
 ```{r}
 ## p-Wert ermitteln -----
@@ -85,12 +97,11 @@ p_value
 p_value_percent <- glue(100*as.numeric(p_value),"%")
 ```
 
-
 ```{r}
 ## Konfidenzintervall -----
 ### Bootstrapping-Verteilung erzeugen -----
 # Im Unterschied zur Null-Verteilung wird hier auf die Annahme (Nullhypothese) verzichtet!
-boot_dist <- gss %>%
+boot_dist <- tbl_gss %>%
                 specify(response = hours) %>% #Obs! hypothesize() fehlt
                 generate(reps = 1000, type = "bootstrap") %>%
                 calculate(stat = "mean")
@@ -113,13 +124,48 @@ boot_dist %>%
   shade_confidence_interval(endpoints = ci)
 ```
 
-
 ## Traditioneller t-Test
 
-Wäre die wahre Standardabweichung bekannt, so wäre die normierte Abweichung des Mittelwerts unter der Annahme der Normalverteilung von X ebenfalls normalverteilt:
-$$Z=\frac{\bar{X}-\mu_0}{\sigma}\sim N$$  
-Weil jedoch in der Regel die wahre Standardabweichung unbekannt ist, liegt es nahe, diese mit der empirischen Standardabweichung $s$ zu *schätzen*. Die entsprechende standardisierte Schätzfunktion des Stichproben-Mittelwerts normalverteilter Daten ist dann jedoch nicht mehr normalverteilt, sondern t-verteilt:
+Wie erwähnt handelt es sich bei den traditionellen Tests um parametrische Verfahren, die auf bestimmten Annahmen basieren. Nur wenn diese Annahmen erfüllt sind, können die Ergebnisse des Tests als valide gelten.
 
+### Annahmen prüfen
+
+Eine zentrale Voraussetzung für die Anwendbarkeit eins t-Tests ist die Normalverteilung der Daten, die zumindest annähernd gegeben sein muss, damit die Testergebnisse valide sind.
+
+Die Annahme der Normalverteilung kann häufig bereits durch Visualisierung der Daten beurteilt werden:
+
+```{r}
+# Histogramm mit Normalverteilungskurve 
+tbl_gss %>% 
+  ggplot(aes(x=hours)) + 
+    geom_histogram(aes(y = after_stat(density)),bins=10) +
+    geom_density(stat="density", color='blue') +
+    stat_function(fun = dnorm, args = list(mean = mean(tbl_gss$hours), sd = sd(tbl_gss$hours)),color='red')
+
+```
+
+Dem Augenschein nach ist die Verteilung zwar symmetrisch, wirkt aber verglichen mit der Normalverteilung (rot) sehr spitz. Entsprechend ist nicht von einer Normalverteilung auszugehen.
+
+Mit dem Shapiro-Wilk-Test kann diese optische Einschätzung noch objektiviert werden.
+
+```{r}
+# Shapiro-Wilk-Test auf Normalverteilung
+tbl_gss %>% 
+  select(hours) %>%
+  pull() %>% 
+  shapiro.test()
+```
+
+Der Shapiro-Wilk-Test bestätigt die optische Beurteilung: Auf dem 5%-Signifikanzniveau ist die Annahme der Normalverteilung zu verwerfen.
+
+Mithin erübrigt sich eigentlich die Durchführung des t-Tests, was zeigt, dass die modernen Verfahren des Resamplings deutliche Vorteile im Vergleich zu den traditionellen Verfahren haben.
+
+Im folgenden soll der t-Test dennoch durchgeführt werden, um die grundsätzliche Vorgehensweise bei einem traditionellen Test zu illustrieren.
+
+### Exkurs: t-Verteilung
+
+Wäre die wahre Standardabweichung bekannt, so wäre die normierte Abweichung des Mittelwerts unter der Annahme der Normalverteilung von X ebenfalls normalverteilt: $$Z=\frac{\bar{X}-\mu_0}{\sigma}\sim N$$\
+Weil jedoch in der Regel die wahre Standardabweichung unbekannt ist, liegt es nahe, diese mit der empirischen Standardabweichung $s$ zu *schätzen*. Die entsprechende standardisierte Schätzfunktion des Stichproben-Mittelwerts normalverteilter Daten ist dann jedoch nicht mehr normalverteilt, sondern t-verteilt:
 
 $$T=\frac{\bar{X}-\mu_0}{s}$$
 
@@ -132,29 +178,28 @@ Ermittlung der T-Statistik:
 ## t-Test -----
 ### Teststatistik ermitteln ----
 #### R als Taschenrechner -----
-gss %>% 
-  summarise(t=(mean(hours)-40)/(sd(hours)/sqrt(n())))
+T <- tbl_gss %>% 
+         summarise(T=(mean(hours)-40)/(sd(hours)/sqrt(n())))
+T
 ```
 
 ### Nutzung der t_test()-Funktion
 
+Natürlich besteht in R auch die Möglichkeit, die Teststatistik direkt mit speziellen Funktionen zu ermitteln. Das in jeder R-Session automatisch geladene **stats**-Paket stellt die Funktion `t.test()` zur Verfügung. Weil der Output dieser Funktion kein *tibble*-Objekt ist, empfiehlt sich aber die Verwendung der `t_test()`-Funktion aus dem **infer**-Paket, die sich nahtlos in tidy-workflows einbinden lässt.
+
 ```{r}
 #### t_test()-Funktion
-gss %>% 
+tbl_gss %>% 
     t_test(response=hours, mu=40) %>% 
-    kable() %>% 
-    kable_styling()
+    gt()
 ```
-
-
-
 
 # Zwei Stichproben
 
-
-## Unabhängig
+## Unabhängiger Fall
 
 ### Daten
+
 ```{r}
 tbl_cities <- read_delim(xfun::from_root("data","tidy","CleSac.txt"),show_col_types = FALSE) 
 tbl_cities <- tbl_cities %>% 
@@ -163,7 +208,6 @@ tbl_cities <- tbl_cities %>%
                            na.omit()
 
 ```
-
 
 ### Deskriptive Statistik
 
@@ -180,8 +224,8 @@ inc_summ <- tbl_cities %>%
                   max = max(income))
                   
 inc_summ %>% 
-        kable()
-``` 
+        gt()
+```
 
 ```{r}
 tbl_cities %>% ggplot(aes(x = metro_area, y = income)) +
@@ -196,6 +240,7 @@ observed_statistic <- tbl_cities %>%
 
 observed_statistic
 ```
+
 ### Test mittels Randomisierung/Resampling
 
 ```{r}
@@ -208,7 +253,6 @@ null_dist_2_sample <- tbl_cities %>%
                           calculate(stat = "diff in means", order = c("Sacramento_ CA", "Cleveland_ OH"))
 null_dist_2_sample
 ```
-
 
 ```{r}
 null_dist_2_sample %>%
@@ -235,8 +279,6 @@ tbl_cities %>% t_test(formula = income ~ metro_area,
        alternative = "two-sided")
 ```
 
-
-
 ## Abhängig
 
 ### Daten
@@ -253,6 +295,7 @@ zinc_wide <- zinc_tidy %>%
 zinc_paired <- zinc_wide %>% 
                    mutate(diff=surface-bottom)
 ```
+
 ### Deskriptive Statistik
 
 ```{r}
@@ -263,13 +306,10 @@ observed_statistic <-  zinc_paired %>%
 observed_statistic
 ```
 
-
 ```{r}
 zinc_paired %>% ggplot(aes(x = diff)) +
                     geom_histogram(binwidth = 0.04, color = "white")
 ```
-
-
 
 ### Test mittels Randomisierung/Resampling
 
@@ -283,15 +323,12 @@ null_dist <- zinc_paired %>%
 null_dist
 ```
 
-
-
 ```{r}
 null_dist %>%
   visualize() + 
   shade_p_value(observed_statistic,
                 direction = "two-sided")
 ```
-
 
 ```{r}
 null_dist %>% get_p_value(obs_stat = observed_statistic,
@@ -307,12 +344,14 @@ boot_dist <- zinc_paired %>%
                  
 visualize(boot_dist)
 ```
+
 ```{r}
 confidence_interval <- boot_dist %>%
                            get_confidence_interval(level = .95)
 
 confidence_interval
 ```
+
 ```{r}
 confidence_interval <- boot_dist %>%
                            get_confidence_interval(type="se",
@@ -321,6 +360,7 @@ confidence_interval <- boot_dist %>%
 
 confidence_interval
 ```
+
 ### Traditionell
 
 ```{r}
@@ -332,5 +372,3 @@ stats::t.test(x = zinc_paired$diff,
 ```{r}
 pt(-5, df = nrow(zinc_paired) - 1, lower.tail = TRUE)
 ```
-
-

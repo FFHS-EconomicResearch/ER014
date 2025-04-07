@@ -1,0 +1,165 @@
+---
+title: "Stochastische Regression"
+subtitle: "Übung mit Daten zur Fußball-Bundesliga"
+format: html
+---
+
+# Datenimport
+
+Daten zur Fussball-Bundesliga der Saison 2022-23. Datenquelle: [www.transfermarkt.de](https://www.transfermarkt.de/), importiert am 09.06.2023 mit dem R-Paket **worldfootballR**.
+
+```{r}
+#| echo: true
+#| message: false
+# Load libraries ----
+library(tidyverse)
+library(glue)
+library(gt)
+options(scipen=999) # Zahlenformat (kein wiss. Format)
+### load data -----
+date <- '2023-09-06' #oder: Sys.Date()
+my_in_file<-glue('buli_raw_{date}.rds')
+buli <- read_rds(file = xfun::from_root("data","raw",my_in_file))
+
+### Data Wrangling ----
+tbl_buli <- buli %>% 
+  mutate(age = lubridate::year("2022-07-31") - 
+           lubridate::year(player_dob),
+         pos_player = factor(player_position),
+         pos_bin = factor(if_else(player_position == "Goalkeeper", 
+                                  "Goalkeeper", 
+                                  "Fieldplayer")),
+         pos_cat = factor(case_when(
+           player_position == "Goalkeeper" ~ "Goalkeeper",
+           player_position %in% c("Centre-Back", "Left-Back", "Right-Back") ~ "Defense",
+           player_position %in% c("Central Midfield", "Defensive Midfield", 
+                                 "Left Midfield", "Right Midfield", 
+                                 "Attacking Midfield") ~ "Midfield",
+           player_position %in% c("Centre-Forward", "Left Winger", 
+                                 "Right Winger", "Second Striker") ~ "Offense",
+           TRUE ~ NA_character_
+         ))) %>%
+  rename(name = player_name,
+         mv = player_market_value_euro) %>% 
+  select(name,age,mv,pos_player,pos_bin,pos_cat,player_height_mtrs,player_foot)
+```
+
+# Blick in die Daten
+
+Anzahl Beobachtungen und Variablen sowie deskriptive Statistiken:
+
+```{r}
+summary(tbl_buli)
+```
+
+Struktur:
+
+```{r}
+head(tbl_buli) %>% 
+  gt()
+```
+
+Streudiagramm der Grundgesamtheit:
+
+```{r}
+#### ggplot ----
+tbl_buli %>% 
+    ggplot(aes(x=age,y=mv)) +
+    geom_point() + 
+    geom_smooth(method = "lm", se = FALSE)
+```
+
+# Aufgaben
+
+1.  Diskutiere, ob es sich bei den Daten um eine Grundgesamtheit oder um eine Stichprobe handelt.
+
+    Antwort: Grundsätzlich können die Daten als Grundgesamtheit aufgefasst werden, wenn es um die **Gruppe der Bundesligaprofis der Saison 2022-2023** geht, weil diese Spieler alle im Datensatz enthalten sind. Wenn aber die Grundgesamtheit der *Fußballprofis in Deutschland* interessiert, müssten auch Spieler der 2. Bundesliga enthalten sein bzw. bei der Grundgesamtheit *internationalen Fußballprofis* auch andere Ligen, wie bspw. die Super League, Premier League oder Seria A. In diesen Fällen wären die vorliegenden Daten also als Stichprobe zu sehen. Ebenso müssten die Daten als Stichprobe gesehen werden, wenn es um die Gruppe der Bundesligaprofis (ohne weitere Qualifizierung) gehen soll, weil die Daten sichh auf die Saison 2022-2023 beschränken.
+
+2.  Ausgehend von der Diskussion zu Grundgesamtheit und Stichprobe: Verwende die passende Notation zur Formulierung einer Regressionsgleichung für die Variablen Marktwert und Alter. Begründe die Wahl von abhängiger und unabhängiger Variable.
+
+    Antwort:
+
+    Variante 1: Entscheidung für Grundgesamtheit - also Bundesligaprofis der Saison 2022-2023. Sachlogisch kann das Alter nicht vom Marktwert beeinflusst werden, entsprechend ist nur die folgende Formulierung eines Regressionsmodells sinnvoll:
+
+    $$
+    \mbox{Marktwert}=\beta_0 + \beta_1\cdot\mbox{Alter} + \varepsilon
+    $$
+
+    Variante 2: Entscheidung für Stichprobe - bspw. aus der Grundgesamtheit der *Bundesligaprofis* (oder der *Fussballprofis weltweit*). Sachlogisch kann das Alter nicht vom Marktwert beeinflusst werden, entsprechend ist nur die folgende Formulierung eines Regressionsmodells sinnvoll:
+
+$$
+\mbox{Marktwert}=b_0 + b_1\cdot\mbox{Alter} + e
+$$
+
+3.  Gehe im folgenden davon aus, dass die vorliegenden Daten als Grundgesamtheit interpretiert werden können. Ermittle die Parameter der Regressionsgeraden für die Daten der Grundgesamtheit. Interpretiere die Werte.
+
+    ```{r}
+    lm_pop <- tbl_buli %>% 
+                  lm(mv ~ age, data=.)
+    library(moderndive)
+    reg_pop <- lm_pop %>% 
+                  get_regression_table()
+    ```
+
+    Der Achsenabschnitt hat keine sinnvolle inhaltliche Interpretation, weil ein Wert von Null für das Alter eines Fussballprofis nicht plausibel ist. Mithin ist der Achsenabschnitt $\beta_0=$ `r reg_pop$estimate[1]` als rein technische Größe zu sehen. Der Steigungsparamer $\beta_1=$= `r reg_pop$estimate[2]` bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers im Durchschnitt um `r abs(reg_pop$estimate[2])` € sinkt.
+
+4.  Nutze die Daten zu den 20 Spielern mit dem höchsten Marktwert und erstelle für diese Stichprobe ein Streudiagramm mit Regressionsgerade. Ermittle dann die OLS-Schätzer $b_0$ und $b_1$ als Schätzer für die wahren Parameter $\beta_0$ und $\beta_1$ des Regressionsmodells. Interpretiere die Ergebnisse und diskutiere insbesondere die Frage der Verzerrtheit der konkreten Parameter-Schätzungen.
+
+    Antwort:
+
+    ```{r}
+    tbl_buli %>%
+        slice_max(order_by = mv,n=20) %>% 
+        ggplot(aes(x=age,y=mv)) +
+          geom_point() + 
+          geom_smooth(method = "lm", se = FALSE)
+    ```
+
+    ```{r}
+    reg_top20 <- tbl_buli %>%
+                    slice_max(order_by = mv,n=20) %>%
+                    lm(mv~age,data=.) %>% 
+                    get_regression_table()
+    ```
+
+    Wie im Fall der für die Population ermittelten Parameter ist der Achsenabschnitt $b_0$ auch für die Stichprobe der Top20 Spieler eine rein technisch Größe. Der Steigungsparamer $b_1=$`r reg_top20$estimate[2]` bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers aus den Top 20 im Durchschnitt um `r abs(reg_top20$estimate[2])` € sinkt. Mithin ist die Schätzung von $b_1$ deutlich größer als der Parameter der Population $\beta_1$; dies allein ist aber keine Verzerrung, weil der Wert mit einem (grundsätzlich unverzerrten OLS-Schätzer ermittelt wurde. Weil die Schätzung aber auf Grundlage einer nicht zufälligen Stichprobe ermittelt wurde, sondern mit Daten einer systematisch verzerrte Stichprobe (**selection bias**), muss die Schätzung von $b_1$ als verzerrt gelten.
+
+5.  Ziehe nun mit Hilfe der `slice_sample()`-Funktion eine weitere Stichprobe vom Umfang $n=20$. Stelle die Reproduzierbarkeit durch `set.seed(23)`sicher. Erstelle erneut ein Diagramm, ermittle die Parameter der Regressionsgerade ($b_0'$ und $b_1'$) interpretiere. Beurteile insbesondere die Frage der (Un-)Verzerrtheit des Schätzers $b_1'$.
+
+    Antwort:
+
+    ```{r}
+    set.seed(23)
+    tbl_sample1 <- tbl_buli %>%
+                        slice_sample(n=20) 
+    tbl_sample1 %>% 
+        ggplot(aes(x=age,y=mv)) +
+          geom_point() + 
+          geom_smooth(method = "lm", se = FALSE)
+
+    reg_sample1 <- tbl_sample1 %>% 
+                      lm(mv~age, data=.) %>% 
+                      get_regression_table()
+    ```
+
+    Der Steigungsparamer $b_1'=$ `r reg_sample1$estimate[2]` bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers **aus der zufälligen Stichprobe** im Durchschnitt um `r abs(reg_sample1$estimate[2])` € **steigt**. Auch wenn der Wert von $b_1'$qualitativ diametral dem Parameter $\beta_1$ für die Grundgesamtheit entgegensteht (positiver vs. negativer Wert), handelt es sich um eine unverzerrte Schätzung, weil diese mit einem OLS-Schätzer und Daten einer **Zufallsstichprobe** berechnet wurde.
+
+6.  Ziehe eine weitere Stichprobe $(n=20)$, stelle diesmal die Reproduzierbarkeit mit `set.seed(9)` sicher. Erstelle ein letztes Diagramm, ermittle die Parameter ($b_0''$ und $b_1''$) der Regressionsgerade und interpretiere die Ergebnisse. Beurteile auch in diesem Fall die Frage der (Un-)Verzerrtheit des Schätzers $b_1''$.
+
+    ```{r}
+    set.seed(9)
+    tbl_sample2 <- tbl_buli %>%
+                        slice_sample(n=20) 
+    tbl_sample2 %>% 
+        ggplot(aes(x=age,y=mv)) +
+          geom_point() + 
+          geom_smooth(method = "lm", se = FALSE)
+
+    reg_sample2 <- tbl_sample2 %>% 
+                      lm(mv~age, data=.) %>% 
+                      get_regression_table()
+    ```
+
+    Der Steigungsparamer $b_1''=$ `r reg_sample2$estimate[2]` bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers **aus der zufälligen Stichprobe** im Durchschnitt um `r abs(reg_sample2$estimate[2])` € **sinkt**. Damit hat der Wert des Schätzers $b_1''$ zwar dasselbe Vorzeichen wie der Paramter $\beta_1$ der Grundgesamtheit, aber quantitativ fällt der auf Basis der Stichprobe geschätzte Wertverlust deutlich geringer aus als in der Population. Weil es sich auch hier um einen OLS-Schätzer (und damit ein unverzerrtes Schätzverfahren) sowie um Daten einer **Zufallsstichprobe** handelt, kann auch bei $b_1''$ von einer unverzerrten Schätzung ausgegangen werden.
+
+7.  wdw

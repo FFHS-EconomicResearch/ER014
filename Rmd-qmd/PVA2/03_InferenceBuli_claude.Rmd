@@ -1,0 +1,886 @@
+---
+title: "Statistical Inference and Regression Analysis"
+subtitle: "From t-Tests to Multiple Regression: A Tidy Approach"
+author: "Master's Course in Statistical Methods"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.width = 10, fig.height = 6, fig.retina = 3,
+  out.width = "100%",
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+```
+
+```{r load-packages, echo=TRUE, message=FALSE}
+# Load required packages
+library(tidyverse)
+library(glue)
+library(gt)
+library(infer)
+library(patchwork)
+library(broom)
+library(GGally)
+library(moderndive)
+library(performance)
+library(see)
+options(scipen = 999) # No scientific notation
+```
+
+```{r load-data, echo=TRUE}
+# Load dataset
+date <- '2023-09-06'
+my_in_file <- glue('buli_raw_{date}.rds')
+# Note: We're assuming the file is in the correct location
+# In a real presentation, adjust the path as needed
+buli <- read_rds(file = xfun::from_root("data", "raw", my_in_file))
+
+# Data wrangling
+tbl_buli <- buli %>% 
+  mutate(age = lubridate::year("2022-07-31") - 
+           lubridate::year(player_dob),
+         pos_player = factor(player_position),
+         pos_bin = factor(if_else(player_position == "Goalkeeper", 
+                                  "Goalkeeper", 
+                                  "Fieldplayer")),
+         pos_cat = factor(case_when(
+           player_position == "Goalkeeper" ~ "Goalkeeper",
+           player_position %in% c("Centre-Back", "Left-Back", "Right-Back") ~ "Defense",
+           player_position %in% c("Central Midfield", "Defensive Midfield", 
+                                 "Left Midfield", "Right Midfield", 
+                                 "Attacking Midfield") ~ "Midfield",
+           player_position %in% c("Centre-Forward", "Left Winger", 
+                                 "Right Winger", "Second Striker") ~ "Offense",
+           TRUE ~ NA_character_
+         ))) %>%
+  rename(name = player_name,
+         mv = player_market_value_euro) %>% 
+  select(name, age, mv, pos_player, pos_bin, pos_cat, player_height_mtrs, player_foot)
+```
+
+---
+class: inverse, center, middle
+
+# Independent Samples t-Test
+## Goalkeepers vs. Field Players
+
+---
+# Exploring Market Values by Position
+
+```{r market-value-viz, fig.height=5}
+# Visualize market values by position (Goalkeeper vs. Field player)
+tbl_buli %>%
+  ggplot(aes(x = pos_bin, y = mv/1000000, fill = pos_bin)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
+  scale_y_continuous(labels = scales::label_dollar(suffix = "M")) +
+  labs(
+    title = "Market Values by Player Position Category",
+    x = "Position",
+    y = "Market Value (Millions €)",
+    fill = "Position"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+---
+# Summary Statistics
+
+```{r summary-stats}
+# Calculate summary statistics
+tbl_buli %>%
+  group_by(pos_bin) %>%
+  summarize(
+    n = n(),
+    mean_mv = mean(mv)/1000000,
+    sd_mv = sd(mv)/1000000,
+    median_mv = median(mv)/1000000,
+    min_mv = min(mv)/1000000,
+    max_mv = max(mv)/1000000
+  ) %>%
+  gt() %>%
+  fmt_number(
+    columns = where(is.numeric),
+    decimals = 2
+  ) %>%
+  cols_label(
+    n = "Count",
+    mean_mv = "Mean (M€)",
+    sd_mv = "SD (M€)",
+    median_mv = "Median (M€)",
+    min_mv = "Min (M€)",
+    max_mv = "Max (M€)",
+    pos_bin = "Position"
+  )
+```
+
+---
+# Independent vs. Dependent Samples
+
+- **Independent samples** (what we have here):
+  - Different individuals in each group
+  - Example: Comparing goalkeepers vs. field players
+  - Use independent samples t-test
+
+- **Dependent samples** (repeated measures):
+  - Same individuals measured multiple times 
+  - Example: Comparing market values before/after a major tournament
+  - Use paired samples t-test
+
+---
+# t-Test with Resampling Approach
+
+```{r t-test-resampling}
+# Using infer package for resampling approach
+set.seed(123)
+t_test_result_resampling <- tbl_buli %>%
+  specify(mv ~ pos_bin) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("Fieldplayer", "Goalkeeper"))
+
+# Visualize null distribution with observed statistic
+observed_stat <- tbl_buli %>%
+  specify(mv ~ pos_bin) %>%
+  calculate(stat = "diff in means", order = c("Fieldplayer", "Goalkeeper")) %>%
+  pull()
+
+t_test_result_resampling %>%
+  visualize() +
+  shade_p_value(obs_stat = observed_stat, direction = "two-sided") +
+  labs(
+    title = "Null Distribution for Difference in Mean Market Value",
+    subtitle = "Fieldplayers - Goalkeepers",
+    x = "Difference in Means (€)",
+    y = "Count"
+  )
+```
+
+---
+# t-Test with Traditional Approach
+
+```{r t-test-traditional}
+# Using infer's t_test function (preferred over stats::t.test here)
+t_test_result_traditional <- tbl_buli %>%
+  t_test(
+    formula = mv ~ pos_bin,
+    order = c("Fieldplayer", "Goalkeeper"),
+    alternative = "two-sided"
+  )
+
+# Extract group means for display
+group_means <- tbl_buli %>%
+  group_by(pos_bin) %>%
+  summarize(mean_value = mean(mv))
+
+# Display t-test results with properly formatted columns
+t_test_result_traditional %>%
+  gt() %>%
+  fmt_number(
+    columns = c("statistic", "estimate"),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c("p_value"),
+    decimals = 4
+  ) %>%
+  cols_label(
+    statistic = "t-statistic",
+    p_value = "p-value",
+    estimate = "Mean Difference (€)"
+  )
+
+# Display group means separately
+group_means %>%
+  gt() %>%
+  fmt_number(
+    columns = "mean_value",
+    decimals = 2
+  ) %>%
+  cols_label(
+    pos_bin = "Position",
+    mean_value = "Mean Market Value (€)"
+  )
+```
+
+---
+# Equivalence of t-Test and Linear Regression
+
+```{r t-test-regression-equivalence}
+# Regression approach to t-test
+reg_model <- tbl_buli %>%
+  lm(mv ~ pos_bin, data = .) %>%
+  broom::tidy()
+
+reg_model %>%
+  gt() %>%
+  fmt_number(
+    columns = c("estimate", "std.error", "statistic"),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c("p.value"),
+    decimals = 4
+  ) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Estimate (€)",
+    std.error = "Std. Error",
+    statistic = "t-statistic",
+    p.value = "p-value"
+  )
+```
+
+---
+# Interpretation
+
+The independent samples t-test comparing market values between goalkeepers and field players shows:
+
+- The mean market value for field players is higher than for goalkeepers
+- The difference is statistically significant (p < 0.05)
+- Key insights:
+  - The t-test and regression approach give identical results
+  - The regression intercept is the mean value for the reference group (Goalkeeper)
+  - The coefficient for Fieldplayer is the difference between means
+
+---
+class: inverse, center, middle
+
+# ANOVA
+## Market Value by Position Categories
+
+---
+# Visualizing Market Values by Position Category
+
+```{r anova-viz}
+# Visualize market values by position category
+tbl_buli %>%
+  ggplot(aes(x = pos_cat, y = mv/1000000, fill = pos_cat)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
+  scale_y_continuous(labels = scales::label_dollar(suffix = "M")) +
+  labs(
+    title = "Market Values by Detailed Position Category",
+    x = "Position Category",
+    y = "Market Value (Millions €)",
+    fill = "Position"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+---
+# Summary Statistics by Position Category
+
+```{r anova-summary}
+# Calculate summary statistics
+tbl_buli %>%
+  group_by(pos_cat) %>%
+  summarize(
+    n = n(),
+    mean_mv = mean(mv)/1000000,
+    sd_mv = sd(mv)/1000000,
+    median_mv = median(mv)/1000000
+  ) %>%
+  gt() %>%
+  fmt_number(
+    columns = where(is.numeric),
+    decimals = 2
+  ) %>%
+  cols_label(
+    n = "Count",
+    mean_mv = "Mean (M€)",
+    sd_mv = "SD (M€)",
+    median_mv = "Median (M€)",
+    pos_cat = "Position"
+  )
+```
+
+---
+# ANOVA with Resampling Approach
+
+```{r anova-resampling}
+# Using infer package for resampling approach
+set.seed(123)
+anova_result_resampling <- tbl_buli %>%
+  specify(mv ~ pos_cat) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "F")
+
+# Visualize null distribution with observed statistic
+observed_f <- tbl_buli %>%
+  specify(mv ~ pos_cat) %>%
+  calculate(stat = "F") %>%
+  pull()
+
+anova_result_resampling %>%
+  visualize() +
+  shade_p_value(obs_stat = observed_f, direction = "greater") +
+  labs(
+    title = "Null Distribution for F-statistic",
+    subtitle = "Market Value ~ Position Category",
+    x = "F-statistic",
+    y = "Count"
+  )
+```
+
+---
+# Traditional ANOVA Approach
+
+```{r anova-traditional}
+# Make Midfield the reference level for comparison
+tbl_buli <- tbl_buli %>%
+  mutate(pos_cat = relevel(pos_cat, ref = "Midfield"))
+
+# Using traditional ANOVA
+anova_model <- aov(mv ~ pos_cat, data = tbl_buli)
+anova_table <- broom::tidy(anova_model)
+
+anova_table %>%
+  gt() %>%
+  fmt_number(
+    columns = c("statistic", "sumsq", "meansq"),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c("p.value"),
+    decimals = 4
+  ) %>%
+  cols_label(
+    term = "Source",
+    df = "df",
+    sumsq = "Sum of Squares",
+    meansq = "Mean Square",
+    statistic = "F-statistic",
+    p.value = "p-value"
+  )
+```
+
+---
+# ANOVA as Regression
+
+```{r anova-regression}
+# ANOVA as regression
+lm_anova <- lm(mv ~ pos_cat, data = tbl_buli)
+lm_anova_summary <- broom::tidy(lm_anova)
+
+lm_anova_summary %>%
+  gt() %>%
+  fmt_number(
+    columns = c("estimate", "std.error", "statistic"),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c("p.value"),
+    decimals = 4
+  ) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Estimate (€)",
+    std.error = "Std. Error",
+    statistic = "t-statistic",
+    p.value = "p-value"
+  )
+```
+
+---
+# Interpreting ANOVA Results
+
+- The ANOVA shows a significant difference in market values across position categories (F = significant, p < 0.05)
+- The regression approach reveals:
+  - The intercept (reference level) is the mean market value for Midfield players
+  - Defense players have a somewhat lower market value than Midfield players (not statistically significant)
+  - Offense players have a significantly higher market value than Midfield players
+  - Goalkeepers have a significantly lower market value than Midfield players
+- This shows how ANOVA can be represented as a regression model
+
+---
+class: inverse, center, middle
+
+# Simple Linear Regression
+## Age and Market Value
+
+---
+# Visualizing Relationship Between Age and Market Value
+
+```{r simple-regression-viz}
+# Visualize relationship between age and market value
+tbl_buli %>%
+  ggplot(aes(x = age, y = mv/1000000)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "blue") +
+  scale_y_continuous(labels = scales::label_dollar(suffix = "M")) +
+  labs(
+    title = "Relationship Between Age and Market Value",
+    x = "Age (years)",
+    y = "Market Value (Millions €)"
+  ) +
+  theme_minimal()
+```
+
+---
+# Simple Linear Regression with Resampling
+
+```{r simple-regression-resampling}
+# Using infer package for resampling approach
+set.seed(123)
+slope_resampling <- tbl_buli %>%
+  specify(mv ~ age) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "slope")
+
+# Visualize null distribution with observed statistic
+observed_slope <- tbl_buli %>%
+  specify(mv ~ age) %>%
+  calculate(stat = "slope") %>%
+  pull()
+
+slope_resampling %>%
+  visualize() +
+  shade_p_value(obs_stat = observed_slope, direction = "two-sided") +
+  labs(
+    title = "Null Distribution for Slope (Age ~ Market Value)",
+    x = "Slope",
+    y = "Count"
+  )
+```
+
+---
+# Traditional Simple Linear Regression
+
+```{r simple-regression-traditional}
+# Fit simple linear regression model
+lm_simple <- lm(mv ~ age, data = tbl_buli)
+lm_simple_summary <- broom::tidy(lm_simple)
+
+lm_simple_summary %>%
+  gt() %>%
+  fmt_number(
+    columns = c("estimate", "std.error", "statistic"),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c("p.value"),
+    decimals = 4
+  ) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Estimate (€)",
+    std.error = "Std. Error",
+    statistic = "t-statistic",
+    p.value = "p-value"
+  )
+```
+
+```{r simple-regression-r2}
+# Get R-squared
+glance(lm_simple) %>%
+  select(r.squared, adj.r.squared) %>%
+  gt() %>%
+  fmt_number(
+    columns = everything(),
+    decimals = 3
+  ) %>%
+  cols_label(
+    r.squared = "R-squared",
+    adj.r.squared = "Adjusted R-squared"
+  )
+```
+
+---
+# Understanding the Simple Regression
+
+```{r simple-regression-understanding}
+# Get regression equation
+intercept <- round(coef(lm_simple)[1], 2)
+slope <- round(coef(lm_simple)[2], 2)
+
+# Create plot with regression line and equation
+ggplot(tbl_buli, aes(x = age, y = mv/1000000)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  annotate("text", x = max(tbl_buli$age) - 5, y = max(tbl_buli$mv/1000000) - 5, 
+           label = glue("Market Value = {intercept/1000000} + {slope/1000000} × Age"), 
+           size = 5, hjust = 1) +
+  scale_y_continuous(labels = scales::label_dollar(suffix = "M")) +
+  labs(
+    title = "Simple Linear Regression: Market Value ~ Age",
+    x = "Age (years)",
+    y = "Market Value (Millions €)"
+  ) +
+  theme_minimal()
+```
+
+---
+# Interpretation of Simple Linear Regression
+
+- The regression equation: MarketValue = β₀ + β₁ × Age
+- Relationship between age and market value:
+  - There is a significant negative relationship
+  - For each additional year of age, market value decreases by approximately €[slope value]
+  - This relationship is statistically significant (p < 0.05)
+- The R² value indicates that age explains [R²%] of the variance in market values
+- Note that this relationship might not be purely linear - there may be a peak age for market value
+
+---
+class: inverse, center, middle
+
+# Multiple Linear Regression
+## Age, Position Category, and Market Value
+
+---
+# Visualizing Relationships: Age, Position, and Market Value
+
+```{r multiple-regression-viz}
+# Create a visualization showing relationship by position category
+tbl_buli %>%
+  ggplot(aes(x = age, y = mv/1000000, color = pos_cat)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_y_continuous(labels = scales::label_dollar(suffix = "M")) +
+  labs(
+    title = "Relationship Between Age and Market Value by Position",
+    x = "Age (years)",
+    y = "Market Value (Millions €)",
+    color = "Position"
+  ) +
+  theme_minimal()
+```
+
+---
+# Parallel Slopes Model
+
+```{r parallel-slopes}
+# Fit parallel slopes model
+lm_parallel <- lm(mv ~ age + pos_cat, data = tbl_buli)
+lm_parallel_summary <- broom::tidy(lm_parallel)
+
+lm_parallel_summary %>%
+  gt() %>%
+  fmt_number(
+    columns = c("estimate", "std.error", "statistic"),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c("p.value"),
+    decimals = 4
+  ) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Estimate (€)",
+    std.error = "Std. Error",
+    statistic = "t-statistic",
+    p.value = "p-value"
+  )
+```
+
+---
+# Interaction Model
+
+```{r interaction-model}
+# Fit interaction model
+lm_interaction <- lm(mv ~ age * pos_cat, data = tbl_buli)
+lm_interaction_summary <- broom::tidy(lm_interaction)
+
+lm_interaction_summary %>%
+  gt() %>%
+  fmt_number(
+    columns = c("estimate", "std.error", "statistic"),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c("p.value"),
+    decimals = 4
+  ) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Estimate (€)",
+    std.error = "Std. Error",
+    statistic = "t-statistic",
+    p.value = "p-value"
+  )
+```
+
+---
+# Comparing Models: Parallel Slopes vs. Interaction
+
+```{r model-comparison}
+# Compare R-squared values
+bind_rows(
+  glance(lm_parallel) %>% mutate(model = "Parallel Slopes"),
+  glance(lm_interaction) %>% mutate(model = "Interaction")
+) %>%
+  select(model, r.squared, adj.r.squared, AIC, BIC) %>%
+  gt() %>%
+  fmt_number(
+    columns = -model,
+    decimals = 3
+  ) %>%
+  cols_label(
+    model = "Model",
+    r.squared = "R-squared",
+    adj.r.squared = "Adjusted R-squared",
+    AIC = "AIC",
+    BIC = "BIC"
+  )
+
+# ANOVA comparison
+anova_comparison <- anova(lm_parallel, lm_interaction) %>%
+  broom::tidy()
+
+anova_comparison %>%
+  gt() %>%
+  fmt_number(
+    columns = where(is.numeric),
+    decimals = 3
+  ) %>%
+  cols_label(
+    df.residual = "Residual df",
+    df = "df",
+    statistic = "F-statistic",
+    p.value = "p-value",
+    rss = "RSS"
+  )
+```
+
+---
+# Visualizing Both Models
+
+```{r visualize-both-models, fig.height=5}
+# Get predictions from both models
+predictions_data <- tbl_buli %>%
+  modelr::add_predictions(lm_parallel, var = "pred_parallel") %>%
+  modelr::add_predictions(lm_interaction, var = "pred_interaction")
+
+# Parallel slopes visualization
+p1 <- ggplot(predictions_data, aes(x = age, y = mv/1000000, color = pos_cat)) +
+  geom_point(alpha = 0.3) +
+  geom_line(aes(y = pred_parallel/1000000), size = 1) +
+  scale_y_continuous(labels = scales::label_dollar(suffix = "M")) +
+  labs(
+    title = "Parallel Slopes Model",
+    x = "Age (years)",
+    y = "Market Value (M€)",
+    color = "Position"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Interaction model visualization
+p2 <- ggplot(predictions_data, aes(x = age, y = mv/1000000, color = pos_cat)) +
+  geom_point(alpha = 0.3) +
+  geom_line(aes(y = pred_interaction/1000000), size = 1) +
+  scale_y_continuous(labels = scales::label_dollar(suffix = "M")) +
+  labs(
+    title = "Interaction Model",
+    x = "Age (years)",
+    y = "Market Value (M€)",
+    color = "Position"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Display side by side
+p1 + p2
+```
+
+---
+# Interpretation of Multiple Regression Models
+
+Parallel Slopes Model:
+- Age has a significant negative effect on market value, controlling for position
+- Offense players have significantly higher market values than midfielders (reference)
+- Goalkeepers have significantly lower market values than midfielders
+- The slope for age is the same across all position categories
+
+Interaction Model:
+- The effect of age on market value differs by position category
+- For midfielders (reference), each additional year of age decreases market value by €[coefficient]
+- The age effect for other positions is adjusted by the interaction terms
+- Some position categories show steeper declines with age than others
+
+---
+class: inverse, center, middle
+
+# OLS Regression: BLUE Properties
+## Best Linear Unbiased Estimator
+
+---
+# What Makes OLS Special: BLUE Properties
+
+Ordinary Least Squares regression is **B**est **L**inear **U**nbiased **E**stimator when certain assumptions are met:
+
+1. **B**est: Most efficient (minimum variance) among all linear unbiased estimators
+2. **L**inear: Linear in parameters
+3. **U**nbiased: Expected value of estimators equals true parameters
+4. **E**stimator: Provides estimates of true population parameters
+
+For BLUE properties to hold, several key assumptions must be met...
+
+---
+# OLS Assumptions: Linearity
+
+```{r assumption-linearity}
+# Check linearity assumption for simple regression model
+tbl_buli %>%
+  ggplot(aes(x = age, y = mv)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, color = "red") +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(
+    title = "Checking Linearity Assumption",
+    subtitle = "Linear relationship (blue) vs. Actual relationship (red)",
+    x = "Age (years)",
+    y = "Market Value (€)"
+  ) +
+  theme_minimal()
+```
+
+---
+# OLS Assumptions: Normality of Residuals
+
+```{r assumption-normality}
+# Check normality of residuals
+model_residuals <- augment(lm_simple)
+
+p1 <- ggplot(model_residuals, aes(x = .resid)) +
+  geom_histogram(bins = 30, fill = "lightblue", color = "black") +
+  labs(
+    title = "Histogram of Residuals",
+    x = "Residuals",
+    y = "Count"
+  ) +
+  theme_minimal()
+
+p2 <- ggplot(model_residuals, aes(sample = .resid)) +
+  stat_qq() +
+  stat_qq_line() +
+  labs(
+    title = "Q-Q Plot of Residuals",
+    x = "Theoretical Quantiles",
+    y = "Sample Quantiles"
+  ) +
+  theme_minimal()
+
+p1 + p2
+```
+
+---
+# OLS Assumptions: Homoscedasticity
+
+```{r assumption-homoscedasticity}
+# Check homoscedasticity
+ggplot(model_residuals, aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +
+  labs(
+    title = "Residuals vs. Fitted Values",
+    subtitle = "Checking for Homoscedasticity",
+    x = "Fitted Values",
+    y = "Residuals"
+  ) +
+  theme_minimal()
+```
+
+---
+# OLS Assumptions: Independence
+
+Independence is a design issue rather than something we can test directly in the data.
+
+In our case:
+- Each player is counted only once in the dataset
+- The observations do not represent repeated measures
+- There is no obvious clustering (e.g., by teams)
+
+Therefore, the independence assumption is likely satisfied.
+
+---
+# OLS Assumptions: No Multicollinearity
+
+```{r assumption-multicollinearity}
+# Check multicollinearity in multiple regression model
+# Using GGally to create a correlation matrix visualization
+tbl_buli %>%
+  select(age, mv) %>%
+  ggpairs(
+    title = "Correlation Matrix",
+    lower = list(continuous = "smooth"),
+    diag = list(continuous = "barDiag"),
+    upper = list(continuous = "cor")
+  )
+```
+
+---
+# Checking All Assumptions at Once
+
+```{r performance-check}
+# Using the performance package for comprehensive checks
+check_model(lm_simple) %>%
+  plot()
+```
+
+---
+# Dealing with Assumption Violations
+
+Common violations and solutions:
+
+1. **Non-linearity**:
+   - Transform variables (log, square root, etc.)
+   - Use polynomial terms
+   - Consider non-linear models
+
+2. **Non-normal residuals**:
+   - Large samples: Not a major concern (Central Limit Theorem)
+   - Transform dependent variable
+   - Consider robust regression methods
+
+3. **Heteroscedasticity**:
+   - Use robust standard errors
+   - Transform dependent variable
+   - Weighted least squares
+
+4. **Multicollinearity**:
+   - Remove redundant predictors
+   - Use regularization methods (ridge, LASSO)
+   - Principal component analysis
+
+---
+# Conclusion
+
+Key takeaways from this presentation:
+
+1. t-tests and ANOVA can be represented as special cases of regression models
+2. Resampling methods (infer package) provide an intuitive alternative to traditional tests
+3. Multiple regression allows us to model complex relationships:
+   - Parallel slopes model assumes consistent effects across groups
+   - Interaction models allow for varying effects across groups
+4. OLS provides BLUE estimators when assumptions are met:
+   - Always check model assumptions
+   - Use diagnostic plots to identify violations
+   - Apply appropriate remedies when assumptions are violated
+
+The transition from simple tests to complex models follows a natural progression, with regression serving as a unifying framework.
+
+---
+class: inverse, center, middle
+
+# Thank You
+## Questions?

@@ -1,0 +1,116 @@
+---
+title: "t-Tests"
+subtitle: "Randomisierung vs. traditionelle Methodik"
+author: "Prof. Dr. Jörg Schoder"
+date: "`r Sys.Date()`"
+output: slidy_presentation
+---
+
+# Einführung
+
+Liegen Daten zu Merkmalen auf **metrischer Skala** vor, interessieren häufig **Vergleiche von Mittelwerten**. In der *traditionellen Statistik* werden Mittelwertsunterschiede zwischen einer oder mehreren Stichproben mit sog. t-Tests überprüft. Diese Tests sind essenziell für viele wissenschaftliche Untersuchungen und finden Anwendung in Bereichen wie Medizin, Psychologie und Wirtschaftsforschung.
+
+Nach der Struktur des betrachteten Problems werden in der Regel **drei Fälle** unterschieden:
+
+1. **Einstichproben-t-Test**: Prüft, ob der Mittelwert einer Stichprobe von einem bekannten oder theoretischen Wert abweicht.
+2. **Zweistichproben-t-Tests**:
+   - **Mit abhängigen Stichproben**: Wird verwendet, wenn Messwerte paarweise zusammenhängen, z. B. bei Vorher-Nachher-Messungen.
+   - **Mit unabhängigen Stichproben**: Vergleicht die Mittelwerte zweier unabhängiger Gruppen, um festzustellen, ob sie sich signifikant unterscheiden.
+
+Im Folgenden werden Beispiele für Mittelwert-Tests für diese drei Fälle betrachtet. Die Tests erfolgen dabei zum einen mittels Randomisierung (moderner, nichtparametrischer Ansatz) und zum anderen mit Annahmen über theoretische Verteilungen (traditioneller, parametrischer Ansatz).
+
+# Eine Stichprobe
+
+## Daten
+
+```{r}
+#| echo: true
+#| message: false
+library(tidyverse)
+library(glue)
+library(kableExtra)
+library(infer)
+library(moderndive)
+
+# Beispiel GSS Wochenarbeitszeit ----
+## Mittelwert in den Daten ----
+m_hours <- gss %>% summarise(m_hours=mean(hours))
+m_hours
+```
+
+## Deskriptive Statistik
+
+```{r}
+## Annahme zum Erwartungswert ----
+E_hours <- 40 # Annahme über den Erwartungswert der wöchentlichen Arbeitszeit
+```
+
+## Prüfung der Annahmen für den traditionellen t-Test
+
+### Normalverteilung prüfen
+
+```{r}
+# Shapiro-Wilk-Test auf Normalverteilung
+shapiro.test(gss$hours)
+
+# Histogramm mit Normalverteilungskurve
+hist(gss$hours, probability = TRUE, main = "Histogramm der Arbeitsstunden")
+lines(density(gss$hours), col = "blue")
+```
+
+**Erläuterung:** Ein t-Test setzt voraus, dass die Daten annähernd normalverteilt sind. Der Shapiro-Wilk-Test prüft diese Annahme, wobei ein p-Wert < 0.05 auf eine signifikante Abweichung von der Normalverteilung hindeutet.
+
+### Durchführung des Einstichproben-t-Tests
+
+```{r}
+t_test_result <- t.test(gss$hours, mu = E_hours)
+t_test_result
+```
+
+**Erläuterung:** Hier wird getestet, ob sich der Mittelwert der Arbeitsstunden signifikant von der Annahme \(E_{hours} = 40\) unterscheidet.
+
+# Zwei Stichproben (abhängige Stichproben)
+
+## Annahmen prüfen: Normalverteilung der Differenzen
+
+```{r}
+# Berechnung der Differenzen (falls Pre-Post-Design)
+differences <- gss$post_hours - gss$pre_hours
+shapiro.test(differences)
+```
+
+**Erläuterung:** Beim t-Test für abhängige Stichproben sollte die Differenz der Messwerte normalverteilt sein. Dies wird mit dem Shapiro-Wilk-Test geprüft.
+
+## Durchführung des gepaarten t-Tests
+
+```{r}
+t.test(gss$post_hours, gss$pre_hours, paired = TRUE)
+```
+
+# Zwei Stichproben (unabhängige Stichproben)
+
+## Annahmen prüfen: Normalverteilung & Varianzhomogenität
+
+```{r}
+# Normalverteilung für beide Gruppen prüfen
+shapiro.test(gss$hours[gss$group == "A"])
+shapiro.test(gss$hours[gss$group == "B"])
+
+# Levene-Test auf Varianzhomogenität
+library(car)
+leveneTest(hours ~ group, data = gss)
+```
+
+**Erläuterung:** Die Normalverteilung wird für beide Gruppen separat geprüft. Der Levene-Test testet, ob die Varianzen gleich sind – eine zentrale Annahme für den klassischen t-Test.
+
+## Durchführung des Zweistichproben-t-Tests
+
+```{r}
+t.test(hours ~ group, data = gss, var.equal = TRUE)
+```
+
+**Erläuterung:** Falls die Varianzen nicht gleich sind (Levene-Test p-Wert < 0.05), sollte der Test mit `var.equal = FALSE` durchgeführt werden, was die Welch-Korrektur verwendet.
+
+---
+
+Diese Ergänzungen stellen sicher, dass alle notwendigen Annahmen überprüft werden, bevor die klassischen t-Tests durchgeführt werden.

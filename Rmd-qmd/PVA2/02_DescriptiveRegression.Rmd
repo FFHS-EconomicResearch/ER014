@@ -49,8 +49,9 @@ xaringanExtra::use_freezeframe(trigger = "hover")
 options(htmltools.dir.version = FALSE)
 library(latex2exp)
 library(fontawesome)
+library(gt)
 library(htmlwidgets)
-library(emo)
+#library(emo)
 source(xfun::from_root("lit","helper.R"))
 library(RefManageR)
 BibOptions(check.entries = FALSE, 
@@ -78,7 +79,7 @@ bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
 <br>
 <br>
 <br>
-### FS 2024
+### FS 2025
 <br>
 ### Prof. Dr. Jörg Schoder
 .mycontacts[
@@ -233,10 +234,27 @@ class: left
 
 ## Explorative Datenanalyse mit einer Zeile R-Code
 
-.pull-left[
+.panelset[
+.panel[.panel-name[Matrix-Plot]
+```{r}
+#| echo: false
+#| message: false
+#| fig-align: 'center'
+#| out-width: '55%'
+# Import data -----
+my_in_file <- "autos_(StockerUIBK)_20240414.csv"
+tbl_autos <- read_csv2(xfun::from_root("data","raw",my_in_file))
+# GGally-Matrixplot -----
+library(GGally)
+tbl_autos %>% ggpairs() +
+                  theme_light()
+```
+]
+.panel[.panel-name[Code]
 ```{r}
 #| label: EDA-Autos
 #| echo: true
+#| eval: false
 #| message: false
 #| fig-show: 'hide'
 # Import data -----
@@ -247,11 +265,9 @@ library(GGally)
 tbl_autos %>% ggpairs() +
                   theme_light()
 ```
+]
+]
 
-]
-.pull-right[
-![](`r knitr::fig_chunk("EDA-Autos", "png")`)
-]
 
 
 ---
@@ -338,8 +354,6 @@ knitr::include_url('https://tomicapretto.shinyapps.io/LeastSquaresRegression/',h
 ???
 
 Obs! Die Regressionsgerade ist diejenige Gerade, welche die Summe der quadrierten Vorhersagefehler (Residuen) minimiert.
-
-
 
 
 
@@ -624,7 +638,8 @@ tbl_autos %>%
                 d_preis=mean(Preis),
                 med_alter=median(Alter),
                 med_preis=median(Preis),
-                r = cor(Alter, Preis))
+                r = cor(Alter, Preis)) %>% 
+      gt()
 ```
 
 
@@ -647,12 +662,14 @@ class: left
 
 ## Beispiel Autodaten: Regressionsgerade
 
-.pull-left[
+
+.panelset[
+.panel[.panel-name[Streudiagramm]
 ```{r}
-#| label: "Reg-Autos"
-#| echo: true
+#| echo: false
 #| message: false
-#| fig-show: "hide"
+#| fig-align: 'center'
+#| out-width: '55%'
 tbl_autos %>% 
           ggplot(aes(x=Alter,y=Preis)) + 
               geom_point() + theme_light() + 
@@ -662,8 +679,27 @@ tbl_autos %>%
               labs(x="Alter (in Jahren)",y="Preis",title="Gebrauchtwagen")
 ```
 ]
-.pull-right[
-![](`r knitr::fig_chunk("Reg-Autos", "png")`)
+.panel[.panel-name[Code]
+```{r}
+#| label: "Reg-Autos"
+#| echo: true
+#| eval: false
+#| fig-show: "hide"
+tbl_autos %>% 
+      ggplot(aes(x=Alter,y=Preis)) + 
+          geom_point() + theme_light() + 
+          geom_smooth(method = "lm", se = FALSE) +
+          scale_x_continuous(limits=c(0,6),
+                             breaks=seq(0, 5, 1)
+                             ) +
+          scale_y_continuous(limits=c(0,26000),
+                             breaks=seq(0, 25000, 5000)
+                             ) + 
+          labs(x="Alter (in Jahren)",y="Preis",
+               title="Gebrauchtwagen"
+               )
+```
+]
 ]
 
 
@@ -691,7 +727,7 @@ tidy(model) %>%
 #| warning: false
 library(moderndive)
 get_regression_table(model) %>% 
-                select(term,estimate)
+           select(term,estimate)
 ```
 ]
 
@@ -1013,13 +1049,13 @@ class: left
 
 ## Lineare Regression und Interpretation des Interzept-Terms
 
-
 ```{r}
 lifeExp_model <- gapminder2007 %>% 
                       lm(lifeExp ~ continent, data = .)
-get_regression_table(lifeExp_model)
+get_regression_table(lifeExp_model) %>% gt()
 ```
 `r fa('question-circle')` Interpretation Intercept?
+
 
 ???
 
@@ -1074,14 +1110,29 @@ class: left
 
 ## Beispiel Lehrevaluation (moderndive): EDA
 
-```{r}
-evals_ch6 %>% select(score, age, gender) %>% skim() %>% yank("numeric")
-```
+* Exkurs: Charakterisierung der Daten mit dem **skimr**-Paket:
 
 ```{r}
-evals_ch6 %>% 
-  get_correlation(formula = score ~ age)
+#| eval: false
+evals_ch6 %>% select(score, age, gender) %>% skim() 
 ```
+```{r}
+#| echo: false
+#| fig-align: 'center'
+#| out-width: '35%'
+knitr::include_graphics(xfun::from_root("img","PVA2","skimr.png"))
+```
+
+* Korrelation der numerischen Variablen (Bewertung und Alter):
+
+```{r}
+evals_ch6 %>% get_correlation(formula = score ~ age)
+```
+
+
+
+
+
 
 
 ---
@@ -1091,10 +1142,24 @@ class: left
 
 ## Beispiel Lehrevaluation (moderndive): EDA mittels Dataviz
 
-.pull-left[
+.panelset[
+.panel[.panel-name[Streudiagramm]
+```{r}
+#| echo: false
+#| message: false
+#| fig-align: 'center'
+#| out-width: '55%'
+ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
+  geom_point() +
+  labs(x = "Alter", y = "Bewertung", color = "Geschlecht") +
+  geom_smooth(method = "lm", se = FALSE)
+```
+]
+.panel[.panel-name[Code]
 ```{r}
 #| label: UTAustin-interaction
-#| message: false
+#| echo: true
+#| eval: false
 #| fig-show: 'hide'
 ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
   geom_point() +
@@ -1102,9 +1167,6 @@ ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
   geom_smooth(method = "lm", se = FALSE)
 ```
 ]
-.pull-right[
-![](`r knitr::fig_chunk("UTAustin-interaction", "png")`)
-
 ]
 
 ---
@@ -1137,10 +1199,12 @@ class: left
 
 ```{r}
 # Get regression table:
-get_regression_table(score_model_interaction)
+get_regression_table(score_model_interaction) %>% gt()
 ```
+
 --
 * Vergleichsgruppe?
+
 --
 
 
@@ -1188,7 +1252,7 @@ $$y=b_1+b_2\cdot \mbox{Alter}+b_3\cdot \mbox{Geschlecht}$$
 # Fit regression model:
 score_model_parallel_slopes <- lm(score ~ age + gender, data = evals_ch6)
 # Get regression table:
-get_regression_table(score_model_parallel_slopes)
+get_regression_table(score_model_parallel_slopes) %>% gt()
 ```
 
 ???
@@ -1214,9 +1278,24 @@ class: left
 
 ## Modell ohne Interaktion (Parallel Slopes)
 
-.pull-left[
+.panelset[
+.panel[.panel-name[Streudiagramm]
+```{r}
+#| echo: false
+#| message: false
+#| fig-align: 'center'
+#| out-width: '55%'
+ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
+  geom_point() +
+  labs(x = "Age", y = "Bewertung", color = "Geschlecht") +
+  geom_parallel_slopes(se = FALSE)
+```
+]
+.panel[.panel-name[Code]
 ```{r}
 #| label: UTAustin-parallelslopes
+#| echo: true
+#| eval: false
 #| message: false
 #| fig-show: 'hide'
 ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
@@ -1225,9 +1304,8 @@ ggplot(evals_ch6, aes(x = age, y = score, color = gender)) +
   geom_parallel_slopes(se = FALSE)
 ```
 ]
-.pull-right[
-![](`r knitr::fig_chunk("UTAustin-parallelslopes", "png")`)
 ]
+
 
 ???
 
@@ -1373,25 +1451,23 @@ class: left
 
 ## Beispiel Schulen MA: Koeffizienten der Modelle 
 
-.pull-left[
+.panelset[
+.panel[.panel-name[Interaktion]
 ```{r}
 model_2_interaction <- lm(average_sat_math ~ perc_disadvan * size, 
                           data = MA_schools)
 get_regression_table(model_2_interaction) %>% 
-                          select(term, estimate)
+                          select(term, estimate) %>% gt()
 ```
 ]
---
-.pull-right[
-
-
+.panel[.panel-name[Parallel-Slopes]
 ```{r}
 model_2_parallel_slopes <- lm(average_sat_math ~ perc_disadvan + size, 
                               data = MA_schools)
 get_regression_table(model_2_parallel_slopes) %>% 
-                          select(term, estimate)
+                          select(term, estimate) %>% gt()
 ```
-
+]
 ]
 
 ???
@@ -1422,33 +1498,37 @@ class: left
 
 ## Beispiel Schulen MA: Vergleich Bestimmtheitsmaße
 
-.pull-left[
+.panelset[
+.panel[.panel-name[Interaktion]
 ```{r}
 model_2_interaction %>% 
   get_regression_points() %>% 
-          select(average_sat_math,residual) %>% 
-          summarise(TSS=sum((average_sat_math-mean(average_sat_math))^2),
-                    SSR=sum(residual^2),
-                    RSq=1-SSR/TSS)
+      select(average_sat_math,residual) %>% 
+      summarise(TSS=sum((average_sat_math-mean(average_sat_math))^2),
+                SSR=sum(residual^2),
+                RSq=1-SSR/TSS) %>% gt()
 
 ```
 ]
-.pull-right[
+.panel[.panel-name[Parallel-Slopes]
 ```{r}
 model_2_parallel_slopes %>% 
   get_regression_points() %>% 
-          select(average_sat_math,residual) %>% 
-          summarise(TSS=sum((average_sat_math-mean(average_sat_math))^2),
-                    SSR=sum(residual^2),
-                    RSq=1-SSR/TSS)
+      select(average_sat_math,
+             residual) %>% 
+      summarise(TSS=sum((average_sat_math-mean(average_sat_math))^2),
+                SSR=sum(residual^2),
+                RSq=1-SSR/TSS) %>% gt()
 
 ```
 ]
+]
 
+`r fa('question-circle')` $R^2$ identisch?
 
 ???
 
-* RSq identisch? Nicht ganz, wie wir an den unterschiedlichen SSR sehen
+* RSq identisch? **Nicht ganz, wie wir an den unterschiedlichen SSR sehen**
 
 * genau ist $R^2$
   * im Interaktionmodell und 0.6990772	
@@ -1473,14 +1553,18 @@ class: left
 ```{r}
 model_2_interaction %>% 
   get_regression_summaries() %>% 
-      select(r_squared, adj_r_squared)
+      select(r_squared, 
+             adj_r_squared
+             )
 ```
 ]
 .pull-right[
 ```{r}
 model_2_parallel_slopes %>% 
   get_regression_summaries() %>% 
-      select(r_squared, adj_r_squared)
+      select(r_squared, 
+             adj_r_squared
+             )
 ```
 ]
 
@@ -1503,14 +1587,18 @@ class: left
 ```{r}
 score_model_interaction %>% 
   get_regression_summaries() %>% 
-      select(r_squared, adj_r_squared)
+      select(r_squared, 
+             adj_r_squared
+             )
 ```
 ]
 .pull-right[
 ```{r}
 score_model_parallel_slopes %>% 
   get_regression_summaries() %>% 
-      select(r_squared, adj_r_squared)
+      select(r_squared, 
+             adj_r_squared
+             )
 ```
 ]
 
@@ -1572,10 +1660,25 @@ class: left
 
 ## Beispiel Kreditkartendaten: Zusammenfassende Statistiken
 
+* skimr-Paket: Auswahl der Statistiken mit `yank()`-Funktion
+
+.panelset[
+.panel[.panel-name[Teil 1]
 ```{r}
 skim <- credit_ch6 %>% select(debt, credit_limit, income) %>% skim()
-skim %>% yank("numeric")
+skim %>% yank("numeric") %>% 
+  select(skim_variable,	n_missing,	complete_rate,	mean,	sd)
 ```
+]
+.panel[.panel-name[Teil 2]
+```{r}
+skim %>% yank("numeric") %>% 
+  select(skim_variable,	p25,  p50,  p75, p100, hist)
+```
+]
+]
+
+
 
 
 ???

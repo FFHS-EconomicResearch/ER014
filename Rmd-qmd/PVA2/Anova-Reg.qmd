@@ -1,0 +1,84 @@
+---
+title: "Inferenz und Regression mit Tidy-Methoden"
+format: revealjs
+---
+
+## Einführung in die Analyse mit Tidy-Ansätzen
+Moderne Datenanalyse in R nutzt zunehmend Tidyverse-Prinzipien für reproduzierbare und lesbare Analysen. Diese Präsentation vergleicht Resampling-Methoden (infer) mit traditionellen Tests und zeigt deren Äquivalenz zur Regression nach Andy Fields Didaktik.
+
+Verwendete Pakete:
+```r
+library(tidyverse)
+library(infer)
+library(openintro)
+library(broom)
+library(rstatix)
+```
+
+---
+
+## Datenexploration: Mario Kart Auktionen
+Arbeiten mit dem `mariokart`-Datensatz aus {openintro}:
+```r
+data("mariokart")
+glimpse(mariokart)
+
+# Bereinigen von Ausreißern
+mariokart_clean % 
+  filter(total_pr %
+  specify(total_pr ~ cond) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("new", "used"))
+
+obs_stat % 
+  calculate(stat = "diff in means", 
+            formula = total_pr ~ cond, 
+            order = c("new", "used"))
+
+get_p_value(null_dist, obs_stat, direction = "two_sided")
+```
+
+**Traditioneller t-Test:**
+```r
+mariokart_clean %>% 
+  t_test(total_pr ~ cond, 
+         order = c("new", "used"),
+         alternative = "two-sided")
+```
+
+---
+
+## Regression als verallgemeinerter Ansatz
+Andy Fields Äquivalenznachweis zwischen t-Test und linearer Regression:
+```r
+model_lm % 
+  group_by(cond) %>% 
+  summarize(mean_price = mean(total_pr))
+```
+
+Interpretation:
+- Intercept entspricht Mittelwert der Referenzkategorie (neu)
+- condused zeigt Mittelwertdifferenz zum t-Test
+
+---
+
+## ANOVA: Verallgemeinerung des t-Tests
+Analyse der Versandgeschwindigkeiten mit tidy-ANOVA:
+```r
+mariokart_clean %>% 
+  filter(!is.na(ship_sp)) %>% 
+  anova_test(total_pr ~ ship_sp)
+
+# Lineare Modelläquivalenz
+aov_model 2 Stufen
+
+3. **Tidy-Prinzipien**:
+   - Pipe-Operator für nachvollziehbare Analyseschritte
+   - Standardisierte Ausgaben mit {broom} und {rstatix}
+
+Vorteile des Ansatzes:
+- Einheitliche Syntax für verschiedene Testverfahren
+- Leichte Erweiterbarkeit auf komplexere Modelle
+- Transparente Dokumentation der Analyseschritte
+

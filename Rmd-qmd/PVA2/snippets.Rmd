@@ -1,0 +1,82 @@
+---
+title: "snippets"
+output: html_document
+---
+
+
+
+```{r}
+#| echo: false
+#| message: false
+#| out-width: '70%'
+#| fig-align: 'center'
+library(tidyverse)
+## Import data -----
+my_in_file <- "autos_(StockerUIBK)_20240414.csv"
+tbl_autos <- read_csv2(xfun::from_root("data","raw",my_in_file))
+p <- tbl_autos %>% 
+          ggplot(aes(x=Alter,y=Preis)) + 
+              geom_point() + theme_light() + 
+              geom_smooth(method = "lm", se = FALSE) +
+              scale_x_continuous(limits=c(0,6),breaks=seq(0, 5, 1)) +
+              scale_y_continuous(limits=c(0,26000),breaks=seq(0, 25000, 5000)) + 
+              labs(x="Alter (in Jahren)",y="Preis",title="Gebrauchtwagen")
+
+set.seed(23)
+tbl_autos_sub1 <- tbl_autos %>% 
+                      sample_n(size=7,replace=FALSE)
+
+p_sub1 <- p +  geom_point(data=tbl_autos_sub1, color="#d50006") +
+              geom_smooth(data=tbl_autos_sub1, color="#d50006",method = "lm", se = FALSE)
+
+set.seed(9)
+tbl_autos_sub2 <- tbl_autos %>% 
+                      sample_n(size=7,replace=FALSE)
+p_sub2 <- p_sub1 +  geom_point(data=tbl_autos_sub2, color="#502479") +
+              geom_smooth(data=tbl_autos_sub2, color="#502479",method = "lm", se = FALSE)
+p_sub2
+```
+
+.quelle[Eigene Darstellung.]
+
+
+---
+class: left
+
+```{r}
+#| eval: false
+#| message: false
+library(tidyverse)
+## Import data -----
+my_in_file <- "autos_(StockerUIBK)_20240414.csv"
+tbl_autos <- read_csv2(xfun::from_root("data","raw",my_in_file))
+p <- tbl_autos %>% 
+       ggplot(aes(x=Alter,y=Preis)) + 
+         geom_point() 
+
+
+
+## Regressionsgerade gesamt -----
+p + geom_smooth(method = "lm", se = FALSE) 
+
+## Stichproben ziehen ------
+### Stichprobe 1 -----
+set.seed(23)
+tbl_autos_sub1 <- tbl_autos %>% 
+                      sample_n(size=7,replace=FALSE)
+### Stichprobe 2 -------
+set.seed(9)
+tbl_autos_sub2 <- tbl_autos %>% 
+                      sample_n(size=7,replace=FALSE)
+## Streudiagramm ergänzen ----
+p + geom_point(data=tbl_autos_sub1, 
+               color="#d50006") +
+    geom_smooth(data=tbl_autos_sub1,
+                color="#d50006",method = "lm", 
+                se = FALSE) + 
+    geom_point(data=tbl_autos_sub2, 
+               color="#502479") +
+    geom_smooth(data=tbl_autos_sub2,
+                color="#502479",method = "lm", 
+                se = FALSE)
+```

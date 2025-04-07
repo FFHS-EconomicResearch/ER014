@@ -323,8 +323,43 @@ b_2=\frac{\mbox{COV}(y,x)}{\mbox{Var}(x)}
 ```{r}
 #| label: mult-reg-graph
 #| echo: false
-knitr::include_graphics('https://i.stack.imgur.com/3pmXi.png')
+#| warning: false
+#| message: false
+#| fig-align: 'center'
+library(ggplot2)
+library(plotly)
+# Beispieldaten generieren
+set.seed(23)
+x1 <- rnorm(100)
+x2 <- rnorm(100)
+y <- 2 * x1 - 3 * x2 + rnorm(100)
+data <- data.frame(x1 = x1, x2 = x2, y = y)
+# OLS-Modell anpassen
+model <- lm(y ~ x1 + x2, data = data)
 
+# Extrahieren der Koeffizienten des Modells
+intercept <- coef(model)[1]
+coef_x1 <- coef(model)[2]
+coef_x2 <- coef(model)[3]
+
+# Berechnen der Werte für die Regressionsfläche basierend auf den Modellkoeffizienten
+x_grid <- seq(min(data$x1), max(data$x1), length.out = 30)
+y_grid <- seq(min(data$x2), max(data$x2), length.out = 30)
+z <- outer(x_grid, y_grid, function(x1, x2) intercept + coef_x1 * x1 + coef_x2 * x2)
+
+# 3D-Diagramm mit Beobachtungen und Regressionsfläche erstellen
+p <- plot_ly() %>%
+        add_trace(data = data, x = ~x1, y = ~x2, z = ~y, type = "scatter3d", 
+                    mode = "markers", marker = list(size = 5)) %>%
+        add_surface(x = x_grid, y = y_grid, z = z, 
+                    colorscale = "Blues", opacity = 0.6) %>%
+        layout(scene = list(xaxis = list(title = "x1"), 
+                            yaxis = list(title = "x2"), 
+                            zaxis = list(title = "y")))
+
+# Anzeigen des interaktiven 3D-Diagramms
+#p
+knitr::include_url(xfun::from_root('figs','3Dreg.html'),height = "470px")
 ```
 
 

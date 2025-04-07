@@ -49,7 +49,7 @@ xaringanExtra::use_freezeframe(trigger = "hover")
 options(htmltools.dir.version = FALSE)
 library(latex2exp)
 library(fontawesome)
-library(emo)
+#library(emo)
 source(xfun::from_root("lit","helper.R"))
 library(RefManageR)
 BibOptions(check.entries = FALSE, 
@@ -78,7 +78,7 @@ bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
 <br>
 <br>
 <br>
-### FS 2024
+### FS 2025
 <br>
 ### Prof. Dr. Jörg Schoder
 .mycontacts[
@@ -440,7 +440,7 @@ class: left
 
 --
 
-`r fa('circle-right')` Problem der Identifikation
+`r fa('circle-right')` Problem der Identifikation (`r Citet(bib, "angrist_harmless_2008")`)
 
 ???
 
@@ -454,6 +454,31 @@ Maßnahmen tatsächlich die gewünschten Folgen haben?
 * Verweis auf A. Nobel Gedächtnispreis für Wirtschaftswissenschaften 2021 für Card und Angrist (Natürliche Experimente als identification strategy)
 
 * [ANSWERING CAUSAL QUESTIONS USING OBSERVATIONAL DATA](https://www.nobelprize.org/uploads/2021/10/advanced-economicsciencesprize2021.pdf)
+
+
+---
+class: left
+
+.blockquote[Kausalität]
+
+## Problem der Identifikation
+
+* Hauptursache: Endogenität (Korrelation von Regressor und Residuen) 
+
+* Dies wiederum ist möglich bei:
+  * Umgekehrter Kausalität (reverse causality)
+  * Ausgelassenen Variablen (omitted variable bias)
+  * Messfehlern (measurement error)
+
+* Konsequenz: verzerrte und inkonsistente Schätzer
+
+* Lösungsmöglichkeiten (Identification Strategies nach `r Citet(bib, "angrist_harmless_2008")`:
+  * Randomisierte Experimente
+  * Natürliche Experimente (Differenzen-in-Differenzen)
+  * Instrumentvariablen (IV): z.B. Zwei-Stufen-Least-Squares
+  * Fixed-Effects-Modelle
+  * ...
+
 
 
 ---

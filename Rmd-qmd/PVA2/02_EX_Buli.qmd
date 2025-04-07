@@ -1,0 +1,56 @@
+---
+title: "Stochastische Regression"
+subtitle: "Übung mit Daten zur Fußball-Bundesliga"
+format: html
+---
+
+# Datenimport
+
+Daten zur Fussball-Bundesliga der Saison 2022-23. Datenquelle: [www.transfermarkt.de](https://www.transfermarkt.de/), importiert am 09.06.2023 mit dem R-Paket **worldfootballR**.
+
+```{r}
+#| echo: true
+#| message: false
+# Load libraries ----
+library(tidyverse)
+library(glue)
+library(gt)
+options(scipen=999) # Zahlenformat (kein wiss. Format)
+### load data -----
+date <- '2023-09-06' #oder: Sys.Date()
+my_in_file<-glue('buli_raw_{date}.rds')
+buli <- read_rds(file = xfun::from_root("data","raw",my_in_file))
+
+### Data Wrangling ----
+tbl_buli <- buli %>% 
+             mutate(age=lubridate::year(Sys.Date())-
+                        lubridate::year(player_dob)) %>% 
+                  rename(name=player_name,
+                         mv=player_market_value_euro) %>% 
+                  select(name,age,mv)
+```
+
+# Blick in die Daten
+
+Anzahl Beobachtungen und Variablen sowie deskriptive Statistiken:
+
+```{r}
+summary(tbl_buli)
+```
+
+Struktur:
+
+```{r}
+head(tbl_buli) %>% 
+  gt()
+```
+
+Streudiagramm der Grundgesamtheit:
+
+```{r}
+#### ggplot ----
+tbl_buli %>% 
+    ggplot(aes(x=age,y=mv)) +
+    geom_point() + 
+    geom_smooth(method = "lm", se = FALSE)
+```
