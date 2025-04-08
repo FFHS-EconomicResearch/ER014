@@ -20,3 +20,5 @@ Teil 1: Intro Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.gi
 Teil 2: Deskriptive Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA2/02_DescriptiveRegression.html#1); [Manuskript](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA2/02_Intro_SimpleRegression.html))
 
 Teil 3: Stochastische Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA2/03_InferenceRegression.html#1))
+
+[Übungsblatt Präsenz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA2/02_EX_Buli.html)

@@ -142,11 +142,25 @@ window.Quarto = {
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="do">### Data Wrangling ----</span></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>tbl_buli <span class="ot">&lt;-</span> buli <span class="sc">%&gt;%</span> </span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>             <span class="fu">mutate</span>(<span class="at">age=</span>lubridate<span class="sc">::</span><span class="fu">year</span>(<span class="fu">Sys.Date</span>())<span class="sc">-</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                        lubridate<span class="sc">::</span><span class="fu">year</span>(player_dob)) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">rename</span>(<span class="at">name=</span>player_name,</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                         <span class="at">mv=</span>player_market_value_euro) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">select</span>(name,age,mv)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">age =</span> lubridate<span class="sc">::</span><span class="fu">year</span>(<span class="st">"2022-07-31"</span>) <span class="sc">-</span> </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>           lubridate<span class="sc">::</span><span class="fu">year</span>(player_dob),</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">pos_player =</span> <span class="fu">factor</span>(player_position),</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">pos_bin =</span> <span class="fu">factor</span>(<span class="fu">if_else</span>(player_position <span class="sc">==</span> <span class="st">"Goalkeeper"</span>, </span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"Goalkeeper"</span>, </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"Fieldplayer"</span>)),</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">pos_cat =</span> <span class="fu">factor</span>(<span class="fu">case_when</span>(</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>           player_position <span class="sc">==</span> <span class="st">"Goalkeeper"</span> <span class="sc">~</span> <span class="st">"Goalkeeper"</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>           player_position <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Centre-Back"</span>, <span class="st">"Left-Back"</span>, <span class="st">"Right-Back"</span>) <span class="sc">~</span> <span class="st">"Defense"</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>           player_position <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Central Midfield"</span>, <span class="st">"Defensive Midfield"</span>, </span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>                                 <span class="st">"Left Midfield"</span>, <span class="st">"Right Midfield"</span>, </span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>                                 <span class="st">"Attacking Midfield"</span>) <span class="sc">~</span> <span class="st">"Midfield"</span>,</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>           player_position <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Centre-Forward"</span>, <span class="st">"Left Winger"</span>, </span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>                                 <span class="st">"Right Winger"</span>, <span class="st">"Second Striker"</span>) <span class="sc">~</span> <span class="st">"Offense"</span>,</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>           <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>         ))) <span class="sc">%&gt;%</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">name =</span> player_name,</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>         <span class="at">mv =</span> player_market_value_euro) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(name,age,mv,pos_player,pos_bin,pos_cat,player_height_mtrs,player_foot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="blick-in-die-daten" class="level1">
@@ -156,13 +170,29 @@ window.Quarto = {
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tbl_buli)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     name                age              mv           
- Length:645         Min.   :19.00   Min.   :    50000  
- Class :character   1st Qu.:24.00   1st Qu.:   800000  
- Mode  :character   Median :27.00   Median :  2500000  
-                    Mean   :27.71   Mean   :  7346254  
-                    3rd Qu.:31.00   3rd Qu.:  7500000  
-                    Max.   :41.00   Max.   :120000000  
-                                    NA's   :11         </code></pre>
+ Length:645         Min.   :16.00   Min.   :    50000  
+ Class :character   1st Qu.:21.00   1st Qu.:   800000  
+ Mode  :character   Median :24.00   Median :  2500000  
+                    Mean   :24.71   Mean   :  7346254  
+                    3rd Qu.:28.00   3rd Qu.:  7500000  
+                    Max.   :38.00   Max.   :120000000  
+                                    NA's   :11         
+              pos_player         pos_bin          pos_cat    player_height_mtrs
+ Centre-Back       :116   Fieldplayer:564   Defense   :214   Length:645        
+ Centre-Forward    : 94   Goalkeeper : 81   Goalkeeper: 81   Class :character  
+ Goalkeeper        : 81                     Midfield  :175   Mode  :character  
+ Central Midfield  : 67                     Offense   :175                     
+ Attacking Midfield: 52                                                        
+ Right-Back        : 51                                                        
+ (Other)           :184                                                        
+ player_foot       
+ Length:645        
+ Class :character  
+ Mode  :character  
+                   
+                   
+                   
+                   </code></pre>
 </div>
 </div>
 <p>Struktur:</p>
@@ -170,23 +200,23 @@ window.Quarto = {
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tbl_buli) <span class="sc">%&gt;%</span> </span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div id="nfddukmnuw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#nfddukmnuw table {
+<div id="ocbekqyhts" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ocbekqyhts table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#nfddukmnuw thead, #nfddukmnuw tbody, #nfddukmnuw tfoot, #nfddukmnuw tr, #nfddukmnuw td, #nfddukmnuw th {
+#ocbekqyhts thead, #ocbekqyhts tbody, #ocbekqyhts tfoot, #ocbekqyhts tr, #ocbekqyhts td, #ocbekqyhts th {
   border-style: none;
 }
 
-#nfddukmnuw p {
+#ocbekqyhts p {
   margin: 0;
   padding: 0;
 }
 
-#nfddukmnuw .gt_table {
+#ocbekqyhts .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -212,12 +242,12 @@ window.Quarto = {
   border-left-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_caption {
+#ocbekqyhts .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#nfddukmnuw .gt_title {
+#ocbekqyhts .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -229,7 +259,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#nfddukmnuw .gt_subtitle {
+#ocbekqyhts .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -241,7 +271,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#nfddukmnuw .gt_heading {
+#ocbekqyhts .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -253,13 +283,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_bottom_border {
+#ocbekqyhts .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_col_headings {
+#ocbekqyhts .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -274,7 +304,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_col_heading {
+#ocbekqyhts .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -294,7 +324,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#nfddukmnuw .gt_column_spanner_outer {
+#ocbekqyhts .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -306,15 +336,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#nfddukmnuw .gt_column_spanner_outer:first-child {
+#ocbekqyhts .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#nfddukmnuw .gt_column_spanner_outer:last-child {
+#ocbekqyhts .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#nfddukmnuw .gt_column_spanner {
+#ocbekqyhts .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -326,11 +356,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#nfddukmnuw .gt_spanner_row {
+#ocbekqyhts .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#nfddukmnuw .gt_group_heading {
+#ocbekqyhts .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -356,7 +386,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#nfddukmnuw .gt_empty_group_heading {
+#ocbekqyhts .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -371,15 +401,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#nfddukmnuw .gt_from_md > :first-child {
+#ocbekqyhts .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#nfddukmnuw .gt_from_md > :last-child {
+#ocbekqyhts .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#nfddukmnuw .gt_row {
+#ocbekqyhts .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -398,7 +428,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#nfddukmnuw .gt_stub {
+#ocbekqyhts .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -411,7 +441,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#nfddukmnuw .gt_stub_row_group {
+#ocbekqyhts .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -425,15 +455,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#nfddukmnuw .gt_row_group_first td {
+#ocbekqyhts .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#nfddukmnuw .gt_row_group_first th {
+#ocbekqyhts .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#nfddukmnuw .gt_summary_row {
+#ocbekqyhts .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -443,16 +473,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#nfddukmnuw .gt_first_summary_row {
+#ocbekqyhts .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_first_summary_row.thick {
+#ocbekqyhts .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#nfddukmnuw .gt_last_summary_row {
+#ocbekqyhts .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -462,7 +492,7 @@ window.Quarto = {
   border-bottom-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_grand_summary_row {
+#ocbekqyhts .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -472,7 +502,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#nfddukmnuw .gt_first_grand_summary_row {
+#ocbekqyhts .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -482,7 +512,7 @@ window.Quarto = {
   border-top-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_last_grand_summary_row_top {
+#ocbekqyhts .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -492,11 +522,11 @@ window.Quarto = {
   border-bottom-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_striped {
+#ocbekqyhts .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#nfddukmnuw .gt_table_body {
+#ocbekqyhts .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -505,7 +535,7 @@ window.Quarto = {
   border-bottom-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_footnotes {
+#ocbekqyhts .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -519,7 +549,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_footnote {
+#ocbekqyhts .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -528,7 +558,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#nfddukmnuw .gt_sourcenotes {
+#ocbekqyhts .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -542,7 +572,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#nfddukmnuw .gt_sourcenote {
+#ocbekqyhts .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -550,72 +580,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#nfddukmnuw .gt_left {
+#ocbekqyhts .gt_left {
   text-align: left;
 }
 
-#nfddukmnuw .gt_center {
+#ocbekqyhts .gt_center {
   text-align: center;
 }
 
-#nfddukmnuw .gt_right {
+#ocbekqyhts .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#nfddukmnuw .gt_font_normal {
+#ocbekqyhts .gt_font_normal {
   font-weight: normal;
 }
 
-#nfddukmnuw .gt_font_bold {
+#ocbekqyhts .gt_font_bold {
   font-weight: bold;
 }
 
-#nfddukmnuw .gt_font_italic {
+#ocbekqyhts .gt_font_italic {
   font-style: italic;
 }
 
-#nfddukmnuw .gt_super {
+#ocbekqyhts .gt_super {
   font-size: 65%;
 }
 
-#nfddukmnuw .gt_footnote_marks {
+#ocbekqyhts .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#nfddukmnuw .gt_asterisk {
+#ocbekqyhts .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#nfddukmnuw .gt_indent_1 {
+#ocbekqyhts .gt_indent_1 {
   text-indent: 5px;
 }
 
-#nfddukmnuw .gt_indent_2 {
+#ocbekqyhts .gt_indent_2 {
   text-indent: 10px;
 }
 
-#nfddukmnuw .gt_indent_3 {
+#ocbekqyhts .gt_indent_3 {
   text-indent: 15px;
 }
 
-#nfddukmnuw .gt_indent_4 {
+#ocbekqyhts .gt_indent_4 {
   text-indent: 20px;
 }
 
-#nfddukmnuw .gt_indent_5 {
+#ocbekqyhts .gt_indent_5 {
   text-indent: 25px;
 }
 
-#nfddukmnuw .katex-display {
+#ocbekqyhts .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#nfddukmnuw div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#ocbekqyhts div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -626,38 +656,73 @@ window.Quarto = {
 <th id="name" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">name</th>
 <th id="age" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">age</th>
 <th id="mv" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">mv</th>
+<th id="pos_player" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">pos_player</th>
+<th id="pos_bin" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">pos_bin</th>
+<th id="pos_cat" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">pos_cat</th>
+<th id="player_height_mtrs" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">player_height_mtrs</th>
+<th id="player_foot" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">player_foot</th>
 </tr>
 </thead>
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_left" headers="name">Manuel Neuer</td>
-<td class="gt_row gt_right" headers="age">39</td>
+<td class="gt_row gt_right" headers="age">36</td>
 <td class="gt_row gt_right" headers="mv">7000000</td>
+<td class="gt_row gt_center" headers="pos_player">Goalkeeper</td>
+<td class="gt_row gt_center" headers="pos_bin">Goalkeeper</td>
+<td class="gt_row gt_center" headers="pos_cat">Goalkeeper</td>
+<td class="gt_row gt_right" headers="player_height_mtrs">1.93</td>
+<td class="gt_row gt_left" headers="player_foot">right</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="name">Yann Sommer</td>
-<td class="gt_row gt_right" headers="age">37</td>
+<td class="gt_row gt_right" headers="age">34</td>
 <td class="gt_row gt_right" headers="mv">5000000</td>
+<td class="gt_row gt_center" headers="pos_player">Goalkeeper</td>
+<td class="gt_row gt_center" headers="pos_bin">Goalkeeper</td>
+<td class="gt_row gt_center" headers="pos_cat">Goalkeeper</td>
+<td class="gt_row gt_right" headers="player_height_mtrs">1.83</td>
+<td class="gt_row gt_left" headers="player_foot">right</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="name">Sven Ulreich</td>
-<td class="gt_row gt_right" headers="age">37</td>
+<td class="gt_row gt_right" headers="age">34</td>
 <td class="gt_row gt_right" headers="mv">700000</td>
+<td class="gt_row gt_center" headers="pos_player">Goalkeeper</td>
+<td class="gt_row gt_center" headers="pos_bin">Goalkeeper</td>
+<td class="gt_row gt_center" headers="pos_cat">Goalkeeper</td>
+<td class="gt_row gt_right" headers="player_height_mtrs">1.92</td>
+<td class="gt_row gt_left" headers="player_foot">right</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="name">Johannes Schenk</td>
-<td class="gt_row gt_right" headers="age">22</td>
+<td class="gt_row gt_right" headers="age">19</td>
 <td class="gt_row gt_right" headers="mv">300000</td>
+<td class="gt_row gt_center" headers="pos_player">Goalkeeper</td>
+<td class="gt_row gt_center" headers="pos_bin">Goalkeeper</td>
+<td class="gt_row gt_center" headers="pos_cat">Goalkeeper</td>
+<td class="gt_row gt_right" headers="player_height_mtrs">1.91</td>
+<td class="gt_row gt_left" headers="player_foot">&nbsp;</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="name">Matthijs de Ligt</td>
-<td class="gt_row gt_right" headers="age">26</td>
+<td class="gt_row gt_right" headers="age">23</td>
 <td class="gt_row gt_right" headers="mv">75000000</td>
+<td class="gt_row gt_center" headers="pos_player">Centre-Back</td>
+<td class="gt_row gt_center" headers="pos_bin">Fieldplayer</td>
+<td class="gt_row gt_center" headers="pos_cat">Defense</td>
+<td class="gt_row gt_right" headers="player_height_mtrs">1.89</td>
+<td class="gt_row gt_left" headers="player_foot">right</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="name">Dayot Upamecano</td>
-<td class="gt_row gt_right" headers="age">27</td>
+<td class="gt_row gt_right" headers="age">24</td>
 <td class="gt_row gt_right" headers="mv">60000000</td>
+<td class="gt_row gt_center" headers="pos_player">Centre-Back</td>
+<td class="gt_row gt_center" headers="pos_bin">Fieldplayer</td>
+<td class="gt_row gt_center" headers="pos_cat">Defense</td>
+<td class="gt_row gt_right" headers="player_height_mtrs">1.86</td>
+<td class="gt_row gt_left" headers="player_foot">right</td>
 </tr>
 </tbody>
 </table>
@@ -694,22 +759,34 @@ window.Quarto = {
 </section>
 <section id="aufgaben" class="level1">
 <h1>Aufgaben</h1>
-<ol type="1">
-<li><p>Diskutiere, ob es sich bei den Daten um eine Grundgesamtheit oder um eine Stichprobe handelt.</p>
-<p>Antwort: Grundsätzlich können die Daten als Grundgesamtheit aufgefasst werden, wenn es um die <strong>Gruppe der Bundesligaprofis der Saison 2022-2023</strong> geht, weil diese Spieler alle im Datensatz enthalten sind. Wenn aber die Grundgesamtheit der <em>Fußballprofis in Deutschland</em> interessiert, müssten auch Spieler der 2. Bundesliga enthalten sein bzw. bei der Grundgesamtheit <em>internationalen Fußballprofis</em> auch andere Ligen, wie bspw. die Super League, Premier League oder Seria A. In diesen Fällen wären die vorliegenden Daten also als Stichprobe zu sehen. Ebenso müssten die Daten als Stichprobe gesehen werden, wenn es um die Gruppe der Bundesligaprofis (ohne weitere Qualifizierung) gehen soll, weil die Daten sichh auf die Saison 2022-2023 beschränken.</p></li>
-<li><p>Ausgehend von der Diskussion zu Grundgesamtheit und Stichprobe: Verwende die passende Notation zur Formulierung einer Regressionsgleichung. Begründe die Wahl von abhängiger und unabhängiger Variable.</p>
-<p>Antwort:</p>
+<section id="aufgabe-1" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-1">Aufgabe 1</h2>
+<p>Diskutiere, ob es sich bei den Daten um eine Grundgesamtheit oder um eine Stichprobe handelt.</p>
+<p><u>Antwort:</u></p>
+<p>Grundsätzlich können die Daten als Grundgesamtheit aufgefasst werden, wenn es um die <strong>Gruppe der Bundesligaprofis der Saison 2022-2023</strong> geht, weil diese Spieler alle im Datensatz enthalten sind. Wenn aber die Grundgesamtheit der <em>Fußballprofis in Deutschland</em> interessiert, müssten auch Spieler der 2. Bundesliga enthalten sein bzw. bei der Grundgesamtheit <em>internationalen Fußballprofis</em> auch andere Ligen, wie bspw. die Super League, Premier League oder Seria A. In diesen Fällen wären die vorliegenden Daten also als Stichprobe zu sehen. Ebenso müssten die Daten als Stichprobe gesehen werden, wenn es um die Gruppe der Bundesligaprofis (ohne weitere Qualifizierung) gehen soll, weil die Daten sichh auf die Saison 2022-2023 beschränken.</p>
+</section>
+<section id="aufgabe-2" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-2">Aufgabe 2</h2>
+<p>Diskutieren Sie die Skalenniveaus der Variablen <code>pos_bin</code>, <code>pos_cat</code>, <code>mv</code>, <code>player_foot</code>, <code>player_height_mtrs</code>. Begründen Sie Ihre Einordnung und geben Sie für jede Variable ein Beispiel für eine sinnvolle und eine nicht sinnvolle mathematische Operation an.</p>
+<p><u>Antwort:</u></p>
+</section>
+<section id="aufgabe-3" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-3">Aufgabe 3</h2>
+<p>Ausgehend von der Diskussion zu Grundgesamtheit und Stichprobe: Verwende die passende Notation zur Formulierung einer Regressionsgleichung für die Variablen Marktwert und Alter. Begründe die Wahl von abhängiger und unabhängiger Variable.</p>
+<p><u>Antwort:</u></p>
 <p>Variante 1: Entscheidung für Grundgesamtheit - also Bundesligaprofis der Saison 2022-2023. Sachlogisch kann das Alter nicht vom Marktwert beeinflusst werden, entsprechend ist nur die folgende Formulierung eines Regressionsmodells sinnvoll:</p>
 <p><span class="math display">\[
 \mbox{Marktwert}=\beta_0 + \beta_1\cdot\mbox{Alter} + \varepsilon
 \]</span></p>
-<p>Variante 2: Entscheidung für Stichprobe - bspw. aus der Grundgesamtheit der <em>Bundesligaprofis</em> (oder der <em>Fussballprofis weltweit</em>). Sachlogisch kann das Alter nicht vom Marktwert beeinflusst werden, entsprechend ist nur die folgende Formulierung eines Regressionsmodells sinnvoll:</p></li>
-</ol>
+<p>Variante 2: Entscheidung für Stichprobe - bspw. aus der Grundgesamtheit der <em>Bundesligaprofis</em> (oder der <em>Fussballprofis weltweit</em>). Sachlogisch kann das Alter nicht vom Marktwert beeinflusst werden, entsprechend ist nur die folgende Formulierung eines Regressionsmodells sinnvoll:</p>
 <p><span class="math display">\[
 \mbox{Marktwert}=b_0 + b_1\cdot\mbox{Alter} + e
 \]</span></p>
-<ol start="3" type="1">
-<li><p>Gehe im folgenden davon aus, dass die vorliegenden Daten als Grundgesamtheit interpretiert werden können. Ermittle die Parameter der Regressionsgeraden für die Daten der Grundgesamtheit. Interpretiere die Werte.</p>
+</section>
+<section id="aufgabe-4" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-4">Aufgabe 4</h2>
+<p>Gehe im folgenden davon aus, dass die vorliegenden Daten als Grundgesamtheit interpretiert werden können. Ermittle die Parameter der Regressionsgeraden für die Daten der Grundgesamtheit. Interpretiere die Werte.</p>
+<p><u>Antwort:</u></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>lm_pop <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span> </span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">lm</span>(mv <span class="sc">~</span> age, <span class="at">data=</span>.)</span>
@@ -717,17 +794,20 @@ window.Quarto = {
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>reg_pop <span class="ot">&lt;-</span> lm_pop <span class="sc">%&gt;%</span> </span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">get_regression_table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Der Achsenabschnitt hat keine sinnvolle inhaltliche Interpretation, weil ein Wert von Null für das Alter eines Fussballprofis nicht plausibel ist. Mithin ist der Achsenabschnitt <span class="math inline">\(\beta_0=\)</span> 13012052.417 als rein technische Größe zu sehen. Der Steigungsparamer <span class="math inline">\(\beta_1=\)</span>= -203727.1 bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers im Durchschnitt um 203727.1 € sinkt.</p></li>
-<li><p>Nutze die Daten zu den 20 Spielern mit dem höchsten Marktwert und erstelle für diese Stichprobe ein Streudiagramm mit Regressionsgerade. Ermittle dann die OLS-Schätzer <span class="math inline">\(b_0\)</span> und <span class="math inline">\(b_1\)</span> als Schätzer für die wahren Parameter <span class="math inline">\(\beta_0\)</span> und <span class="math inline">\(\beta_1\)</span> des Regressionsmodells. Interpretiere die Ergebnisse und diskutiere insbesondere die Frage der Verzerrtheit der konkreten Parameter-Schätzungen.</p>
-<p>Antwort:</p>
+<p>Der Achsenabschnitt hat keine sinnvolle inhaltliche Interpretation, weil ein Wert von Null für das Alter eines Fussballprofis nicht plausibel ist. Mithin ist der Achsenabschnitt <span class="math inline">\(\beta_0=\)</span> 12400871.117 als rein technische Größe zu sehen. Der Steigungsparamer <span class="math inline">\(\beta_1=\)</span>= -203727.1 bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers im Durchschnitt um 203727.1 € sink</p>
+</section>
+<section id="aufgabe-5" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-5">Aufgabe 5</h2>
+<p>Gehe weiter davon aus, dass es sich bei den Daten um eine Grundgesamtheit handelt. Formuliere ein Modell mit Marktwert als abhängiger und <code>pos_bin</code> als unabhängiger Variable. Erstelle ein geeignetes Diagramm, um zu prüfen, ob die Position einen Effekt auf den Marktwert hat. Interpretiere.</p>
+<p><u>Antwort:</u></p>
+<p>Modell:</p>
+<p><span class="math display">\[\mbox{mv} = \beta_0 + \beta_1\cdot\mbox{pos}\_\mbox{bin} + \varepsilon\]</span></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>tbl_buli <span class="sc">%&gt;%</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_max</span>(<span class="at">order_by =</span> mv,<span class="at">n=</span><span class="dv">20</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>age,<span class="at">y=</span>mv)) <span class="sc">+</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>tbl_buli <span class="sc">%&gt;%</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>pos_bin,<span class="at">y=</span>mv)) <span class="sc">+</span> <span class="fu">geom_boxplot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+<pre><code>Warning: Removed 11 rows containing non-finite outside the scale range
+(`stat_boxplot()`).</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -737,47 +817,2674 @@ window.Quarto = {
 </div>
 </div>
 </div>
+</section>
+<section id="aufgabe-6" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-6">Aufgabe 6</h2>
+<p>Formuliere die Regressionsgleichung für das Modell, das mit folgendem Diagramm dargestellt werden kann. Interpretiere die Koeffizienten.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>reg_top20 <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>                <span class="fu">slice_max</span>(<span class="at">order_by =</span> mv,<span class="at">n=</span><span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                <span class="fu">lm</span>(mv<span class="sc">~</span>age,<span class="at">data=</span>.) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                <span class="fu">get_regression_table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>tbl_buli <span class="sc">%&gt;%</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> mv, <span class="at">color =</span> pos_bin)) <span class="sc">+</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Alter"</span>, <span class="at">y =</span> <span class="st">"Marktwert"</span>, <span class="at">color =</span> <span class="st">"Position"</span>) <span class="sc">+</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
 </div>
-<p>Wie im Fall der für die Population ermittelten Parameter ist der Achsenabschnitt <span class="math inline">\(b_0\)</span> auch für die Stichprobe der Top20 Spieler eine rein technisch Größe. Der Steigungsparamer <span class="math inline">\(b_1=\)</span>-3416070.677 bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers aus den Top 20 im Durchschnitt um 3416070.677 € sinkt. Mithin ist die Schätzung von <span class="math inline">\(b_1\)</span> deutlich größer als der Parameter der Population <span class="math inline">\(\beta_1\)</span>; dies allein ist aber keine Verzerrung, weil der Wert mit einem (grundsätzlich unverzerrten OLS-Schätzer ermittelt wurde. Weil die Schätzung aber auf Grundlage einer nicht zufälligen Stichprobe ermittelt wurde, sondern mit Daten einer systematisch verzerrte Stichprobe (<strong>selection bias</strong>), muss die Schätzung von <span class="math inline">\(b_1\)</span> als verzerrt gelten.</p></li>
-<li><p>Ziehe nun mit Hilfe der <code>slice_sample()</code>-Funktion eine weitere Stichprobe vom Umfang <span class="math inline">\(n=20\)</span>. Stelle die Reproduzierbarkeit durch <code>set.seed(23)</code>sicher. Erstelle erneut ein Diagramm, ermittle die Parameter der Regressionsgerade (<span class="math inline">\(b_0'\)</span> und <span class="math inline">\(b_1'\)</span>) interpretiere. Beurteile insbesondere die Frage der (Un-)Verzerrtheit des Schätzers <span class="math inline">\(b_1'\)</span>.</p>
-<p>Antwort:</p>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 11 rows containing non-finite outside the scale range
+(`stat_smooth()`).</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 11 rows containing missing values or values outside the scale range
+(`geom_point()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02_EX_Buli_sol_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><u>Antwort:</u></p>
+<p><span class="math display">\[\mbox{mv} = \beta_0 + \beta_1\cdot\mbox{age} + \beta_2\cdot\mbox{pos}\_\mbox{bin} + \beta_3\cdot\mbox{age}\cdot\mbox{pos}\_\mbox{bin} + \varepsilon\]</span></p>
+<p>mit <span class="math inline">\(\beta_0\)</span> , <span class="math inline">\(\beta_1\)</span>, <span class="math inline">\(\beta_2\)</span>, <span class="math inline">\(\beta_3\)</span></p>
+</section>
+<section id="aufgabe-7" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-7">Aufgabe 7</h2>
+<p>Ermittle die Koeffizienten des Modells aus Aufgabe 6 und gib diese in Tabellenform aus.</p>
+<p><u>Antwort:</u></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">23</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>tbl_sample1 <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">slice_sample</span>(<span class="at">n=</span><span class="dv">20</span>) </span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>tbl_sample1 <span class="sc">%&gt;%</span> </span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>age,<span class="at">y=</span>mv)) <span class="sc">+</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>reg_interaction <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span> </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">lm</span>(mv<span class="sc">~</span>age<span class="sc">*</span>pos_bin, <span class="at">data=</span>.)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(moderndive)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>reg_interaction <span class="sc">%&gt;%</span> </span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_regression_table</span>() <span class="sc">%&gt;%</span> <span class="fu">select</span>(term, estimate) <span class="sc">%&gt;%</span> </span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="owcixxzafu" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#owcixxzafu table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#owcixxzafu thead, #owcixxzafu tbody, #owcixxzafu tfoot, #owcixxzafu tr, #owcixxzafu td, #owcixxzafu th {
+  border-style: none;
+}
+
+#owcixxzafu p {
+  margin: 0;
+  padding: 0;
+}
+
+#owcixxzafu .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#owcixxzafu .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#owcixxzafu .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#owcixxzafu .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#owcixxzafu .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#owcixxzafu .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#owcixxzafu .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#owcixxzafu .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#owcixxzafu .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#owcixxzafu .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#owcixxzafu .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#owcixxzafu .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#owcixxzafu .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#owcixxzafu .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#owcixxzafu .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#owcixxzafu .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#owcixxzafu .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#owcixxzafu .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#owcixxzafu .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#owcixxzafu .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#owcixxzafu .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#owcixxzafu .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#owcixxzafu .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#owcixxzafu .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#owcixxzafu .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#owcixxzafu .gt_left {
+  text-align: left;
+}
+
+#owcixxzafu .gt_center {
+  text-align: center;
+}
+
+#owcixxzafu .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#owcixxzafu .gt_font_normal {
+  font-weight: normal;
+}
+
+#owcixxzafu .gt_font_bold {
+  font-weight: bold;
+}
+
+#owcixxzafu .gt_font_italic {
+  font-style: italic;
+}
+
+#owcixxzafu .gt_super {
+  font-size: 65%;
+}
+
+#owcixxzafu .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#owcixxzafu .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#owcixxzafu .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#owcixxzafu .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#owcixxzafu .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#owcixxzafu .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#owcixxzafu .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#owcixxzafu .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#owcixxzafu div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="header gt_col_headings">
+<th id="term" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">term</th>
+<th id="estimate" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">estimate</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="term">intercept</td>
+<td class="gt_row gt_right" headers="estimate">14184939.6</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="term">age</td>
+<td class="gt_row gt_right" headers="estimate">-246224.0</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="term">pos_bin: Goalkeeper</td>
+<td class="gt_row gt_right" headers="estimate">-15260087.5</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="term">age:pos_binGoalkeeper</td>
+<td class="gt_row gt_right" headers="estimate">365742.5</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Bei dieser Regressionsanalyse handelt es sich um ein Interaktionsmodell, das den Zusammenhang zwischen Alter, Spielerposition und Marktwert für die vollständige Grundgesamtheit der Bundesligaspieler der Saison 2022/23 beschreibt. Die Koeffizienten zeigen die tatsächlichen Zusammenhänge in dieser Grundgesamtheit:</p>
+<ol type="1">
+<li><strong>intercept (14184940)</strong>: Dies ist der tatsächliche Basiswert in Euro für einen Feldspieler im Alter von 0 Jahren. Obwohl dieser Wert als theoretischer Ausgangspunkt dient, da es keine Spieler dieses Alters gibt, repräsentiert er den Y-Achsenabschnitt der Regressionsgeraden.</li>
+<li><strong>age (-246224)</strong>: Für Feldspieler in der Bundesliga beträgt der tatsächliche Rückgang des Marktwerts etwa 246224 Euro pro zusätzlichem Altersjahr. Dies ist keine Schätzung, sondern beschreibt den realen linearen Zusammenhang zwischen Alter und Marktwert bei Feldspielern.</li>
+<li><strong>pos_bin: Goalkeeper (-15260088)</strong>: Dies ist der tatsächliche Unterschied im Marktwert zwischen Torhütern und Feldspielern bei einem theoretischen Alter von 0 Jahren. Torhüter haben einen um 15,26 Millionen Euro niedrigeren Ausgangswert in der Marktwert-Alters-Beziehung.</li>
+<li><strong>age:pos_binGoalkeeper (365.743)</strong>: Der Interaktionsterm zeigt den tatsächlichen Unterschied im Alterseffekt zwischen Torhütern und Feldspielern. Während der Marktwert von Feldspielern pro Jahr um 246.224 Euro sinkt, ist dieser Effekt für Torhüter um 365.743 Euro positiver. Das bedeutet konkret: Torhüter in der Bundesliga gewinnen mit jedem zusätzlichen Altersjahr etwa 119.519 Euro an Marktwert (365.743 - 246.224 = 119.519).</li>
+</ol>
+<p>Weil wir mit der Grundgesamtheit arbeiten, ist die Betrachtung der p-Werte oder Konfidenzintervalle nicht notwendig. Die Koeffizienten repräsentieren die tatsächlichen linearen Zusammenhänge zwischen den Variablen in der untersuchten Population. Diese Zahlen beschreiben die reale Marktwertstruktur in der Bundesliga-Saison 2022/23 und können direkt für Marktanalysen und Entscheidungen genutzt werden.</p>
+</section>
+<section id="aufgabe-8" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-8">Aufgabe 8</h2>
+<p>Formuliere nun eine Regressionsgleichung für ein Modell mit <code>age</code> und <code>pos_bin</code> als unabhängigen Variablen ohne Einfüührung eines Interaktionsterms. Erzeuge ein passendes Diagramm und ermittle die Parameter für Daten der Grundgesamtheit.</p>
+<p><u>Antwort:</u></p>
+<p><span class="math display">\[\mbox{mv} = \beta_0 + \beta_1\cdot\mbox{age} + \beta_2\cdot\mbox{pos}\_\mbox{bin} + \varepsilon\]</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>tbl_buli <span class="sc">%&gt;%</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> mv, <span class="at">color =</span> pos_bin)) <span class="sc">+</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Alter"</span>, <span class="at">y =</span> <span class="st">"Marktwert"</span>, <span class="at">color =</span> <span class="st">"Position"</span>) <span class="sc">+</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_parallel_slopes</span>(<span class="at">se =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 11 rows containing non-finite outside the scale range
+(`stat_parallel_slopes()`).</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 11 rows containing missing values or values outside the scale range
+(`geom_point()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02_EX_Buli_sol_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>reg_parallel <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">lm</span>(mv <span class="sc">~</span> age <span class="sc">+</span> pos_bin, <span class="at">data =</span> .)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Get regression table:</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>reg_parallel <span class="sc">%&gt;%</span> </span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_regression_table</span>() <span class="sc">%&gt;%</span> <span class="fu">select</span>(term, estimate) <span class="sc">%&gt;%</span> </span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="eshvkwrgmu" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#eshvkwrgmu table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#eshvkwrgmu thead, #eshvkwrgmu tbody, #eshvkwrgmu tfoot, #eshvkwrgmu tr, #eshvkwrgmu td, #eshvkwrgmu th {
+  border-style: none;
+}
+
+#eshvkwrgmu p {
+  margin: 0;
+  padding: 0;
+}
+
+#eshvkwrgmu .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#eshvkwrgmu .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#eshvkwrgmu .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#eshvkwrgmu .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#eshvkwrgmu .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#eshvkwrgmu .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#eshvkwrgmu .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#eshvkwrgmu .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#eshvkwrgmu .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#eshvkwrgmu .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#eshvkwrgmu .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#eshvkwrgmu .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#eshvkwrgmu .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#eshvkwrgmu .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#eshvkwrgmu .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eshvkwrgmu .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#eshvkwrgmu .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#eshvkwrgmu .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#eshvkwrgmu .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eshvkwrgmu .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#eshvkwrgmu .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eshvkwrgmu .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#eshvkwrgmu .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eshvkwrgmu .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#eshvkwrgmu .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eshvkwrgmu .gt_left {
+  text-align: left;
+}
+
+#eshvkwrgmu .gt_center {
+  text-align: center;
+}
+
+#eshvkwrgmu .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#eshvkwrgmu .gt_font_normal {
+  font-weight: normal;
+}
+
+#eshvkwrgmu .gt_font_bold {
+  font-weight: bold;
+}
+
+#eshvkwrgmu .gt_font_italic {
+  font-style: italic;
+}
+
+#eshvkwrgmu .gt_super {
+  font-size: 65%;
+}
+
+#eshvkwrgmu .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#eshvkwrgmu .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#eshvkwrgmu .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#eshvkwrgmu .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#eshvkwrgmu .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#eshvkwrgmu .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#eshvkwrgmu .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#eshvkwrgmu .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#eshvkwrgmu div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="header gt_col_headings">
+<th id="term" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">term</th>
+<th id="estimate" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">estimate</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="term">intercept</td>
+<td class="gt_row gt_right" headers="estimate">12223151.1</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="term">age</td>
+<td class="gt_row gt_right" headers="estimate">-166643.5</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="term">pos_bin: Goalkeeper</td>
+<td class="gt_row gt_right" headers="estimate">-5883125.6</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Bei dieser Regressionsanalyse handelt es sich um ein paralleles Regressionsmodell (ohne Interaktion), das den Zusammenhang zwischen Alter, Spielerposition und Marktwert für die vollständige Grundgesamtheit der Bundesligaspieler der Saison 2022/23 beschreibt:</p>
+<ol type="1">
+<li><strong>intercept (12.223.151)</strong>: Dies ist der tatsächliche Basiswert in Euro für einen Feldspieler im Alter von 0 Jahren in der Grundgesamtheit. Auch wenn dieser Wert theoretischer Natur ist, da es keine Spieler dieses Alters gibt, dient er als Y-Achsenabschnitt der Regressionsgeraden.</li>
+<li><strong>age (-166.644)</strong>: Für alle Spieler, unabhängig von ihrer Position, beträgt der tatsächliche Rückgang des Marktwerts etwa 166.644 Euro pro zusätzlichem Altersjahr. Dies ist kein geschätzter, sondern der reale lineare Zusammenhang zwischen Alter und Marktwert in der Bundesliga-Population.</li>
+<li><strong>pos_bin: Goalkeeper (-5.883.126)</strong>: Dies ist der tatsächliche Unterschied im Marktwert zwischen Torhütern und Feldspielern, unabhängig vom Alter. Torhüter haben in der Bundesliga generell einen um 5,88 Millionen Euro niedrigeren Marktwert als Feldspieler.</li>
+</ol>
+<p>Im Gegensatz zum Interaktionsmodell geht dieses Modell davon aus, dass der Alterseffekt für Torhüter und Feldspieler identisch ist (parallele Regressionsgeraden). Das bedeutet, dass beide Spielertypen mit zunehmendem Alter den gleichen Marktwertabfall von 166.644 Euro pro Jahr erfahren, jedoch auf unterschiedlichen Niveaus beginnen.</p>
+<p>Da wir mit der Grundgesamtheit arbeiten, sind diese Koeffizienten keine Schätzungen mit Unsicherheiten, sondern beschreiben die tatsächlichen linearen Beziehungen in der untersuchten Population der Bundesligaspieler. Diese Zahlen liefern konkrete Einblicke in die Marktwertstruktur der Bundesliga-Saison 2022/23 und können direkt für Marktanalysen und strategische Entscheidungen verwendet werden.</p>
+</section>
+<section id="aufgabe-9" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-9">Aufgabe 9</h2>
+<p>Betrachte die vorliegenden Daten nun als Stichprobe. Kann aus den Daten geschlossen werden, dass Feldspieler einen signifikant höheren Marktwert haben? Betrachte die vorliegenden Daten nun als Stichprobe. Kann aus den Daten geschlossen werden, dass Feldspieler einen signifikant höheren Marktwert haben? Führe einen t-Test im Resampling-Ansatz durch und ermittle das Konfidenzintervall. Vergleiche die Ergebnisse mit dem traditionellen t-Test.</p>
+<p><u>Antwort:</u></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(infer)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>ttest_infer_permutation <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">specify</span>(mv <span class="sc">~</span> pos_bin) <span class="sc">%&gt;%</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hypothesize</span>(<span class="at">null =</span> <span class="st">"independence"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate</span>(<span class="at">reps =</span> <span class="dv">1000</span>, <span class="at">type =</span> <span class="st">"permute"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">calculate</span>(<span class="at">stat =</span> <span class="st">"diff in means"</span>, <span class="at">order =</span> <span class="fu">c</span>(<span class="st">"Fieldplayer"</span>, <span class="st">"Goalkeeper"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 11 rows containing missing values.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dann können wir den beobachteten Wert verwenden</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>observed_stat <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">specify</span>(mv <span class="sc">~</span> pos_bin) <span class="sc">%&gt;%</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">calculate</span>(<span class="at">stat =</span> <span class="st">"diff in means"</span>, <span class="at">order =</span> <span class="fu">c</span>(<span class="st">"Fieldplayer"</span>, <span class="st">"Goalkeeper"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 11 rows containing missing values.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  p-Wert berechnen</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>ttest_infer_permutation <span class="sc">%&gt;%</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_p_value</span>(<span class="at">obs_stat =</span> observed_stat<span class="sc">$</span>stat, <span class="at">direction =</span> <span class="st">"two-sided"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Please be cautious in reporting a p-value of 0. This result is an approximation
+based on the number of `reps` chosen in the `generate()` step.
+ℹ See `get_p_value()` (`?infer::get_p_value()`) for more information.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 1
+  p_value
+    &lt;dbl&gt;
+1       0</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Konfidenzintervall</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>ttest_infer_bootstrap <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">specify</span>(mv <span class="sc">~</span> pos_bin) <span class="sc">%&gt;%</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hypothesize</span>(<span class="at">null =</span> <span class="st">"independence"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate</span>(<span class="at">reps =</span> <span class="dv">1000</span>, <span class="at">type =</span> <span class="st">"bootstrap"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">calculate</span>(<span class="at">stat =</span> <span class="st">"diff in means"</span>, <span class="at">order =</span> <span class="fu">c</span>(<span class="st">"Fieldplayer"</span>, <span class="st">"Goalkeeper"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 11 rows containing missing values.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>ttest_infer_bootstrap <span class="sc">%&gt;%</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_confidence_interval</span>(<span class="at">level =</span> <span class="fl">0.95</span>, <span class="at">type =</span> <span class="st">"percentile"</span>) <span class="sc">%&gt;%</span> <span class="fu">gt</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="oiluysdrgn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#oiluysdrgn table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#oiluysdrgn thead, #oiluysdrgn tbody, #oiluysdrgn tfoot, #oiluysdrgn tr, #oiluysdrgn td, #oiluysdrgn th {
+  border-style: none;
+}
+
+#oiluysdrgn p {
+  margin: 0;
+  padding: 0;
+}
+
+#oiluysdrgn .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#oiluysdrgn .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#oiluysdrgn .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#oiluysdrgn .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#oiluysdrgn .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#oiluysdrgn .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#oiluysdrgn .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#oiluysdrgn .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#oiluysdrgn .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#oiluysdrgn .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#oiluysdrgn .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#oiluysdrgn .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#oiluysdrgn .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#oiluysdrgn .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#oiluysdrgn .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oiluysdrgn .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#oiluysdrgn .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#oiluysdrgn .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#oiluysdrgn .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oiluysdrgn .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#oiluysdrgn .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oiluysdrgn .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#oiluysdrgn .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oiluysdrgn .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#oiluysdrgn .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oiluysdrgn .gt_left {
+  text-align: left;
+}
+
+#oiluysdrgn .gt_center {
+  text-align: center;
+}
+
+#oiluysdrgn .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#oiluysdrgn .gt_font_normal {
+  font-weight: normal;
+}
+
+#oiluysdrgn .gt_font_bold {
+  font-weight: bold;
+}
+
+#oiluysdrgn .gt_font_italic {
+  font-style: italic;
+}
+
+#oiluysdrgn .gt_super {
+  font-size: 65%;
+}
+
+#oiluysdrgn .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#oiluysdrgn .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#oiluysdrgn .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#oiluysdrgn .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#oiluysdrgn .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#oiluysdrgn .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#oiluysdrgn .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#oiluysdrgn .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#oiluysdrgn div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="header gt_col_headings">
+<th id="lower_ci" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">lower_ci</th>
+<th id="upper_ci" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">upper_ci</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_right" headers="lower_ci">4594422</td>
+<td class="gt_row gt_right" headers="upper_ci">7544569</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(mv <span class="sc">~</span> pos_bin, <span class="at">data =</span> tbl_buli)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Welch Two Sample t-test
+
+data:  mv by pos_bin
+t = 7.8346, df = 370.07, p-value = 0.00000000000005034
+alternative hypothesis: true difference in means between group Fieldplayer and group Goalkeeper is not equal to 0
+95 percent confidence interval:
+ 4563916 7622569
+sample estimates:
+mean in group Fieldplayer  mean in group Goalkeeper 
+                  8115117                   2021875 </code></pre>
+</div>
+</div>
+<p>Inhaltlich führen beide Methoden zur gleichen Schlussfolgerung: Es gibt einen statistisch signifikanten und praktisch bedeutsamen Unterschied im Marktwert zwischen Feldspielern und Torhütern. Der Unterschied ist so ausgeprägt, dass beim Resampling-Ansatz der p-Wert nicht mehr präzise genug dargestellt werden kann und auf 0 gerundet wird, während der t-Test die extreme Signifikanz numerisch genauer quantifizieren kann.</p>
+<p>Das Konfidenzintervall aus dem Bootstrap-Ansatz [4.478.845, 7.656.593] ist sehr ähnlich zum t-Test-Konfidenzintervall [4.563.916, 7.622.569]. Beide geben ein Konfidenzintervall für die Differenz “Fieldplayer - Goalkeeper” an, also wie viel mehr Wert ein Feldspieler im Vergleich zu einem Torhüter hat.</p>
+</section>
+<section id="aufgabe-10" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-10">Aufgabe 10</h2>
+<p>Führe nun eine Regression für folgende Gleichung durch:</p>
+<p><span class="math display">\[\mbox{mv}=b_0+b_1\cdot\mbox{pos}\_\mbox{bin}+e\]</span></p>
+<p>Interpretiere die Regressionstabelle und Vergleiche mit dem Ergebnis aus Aufgabe 9.</p>
+<p><u>Antwort:</u></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>reg_test <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span> </span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>                <span class="fu">lm</span>(mv <span class="sc">~</span> pos_bin, <span class="at">data =</span> .)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="fu">get_regression_table</span>(reg_test) <span class="sc">%&gt;%</span> </span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gt</span>()  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="hnpkluxsqt" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#hnpkluxsqt table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#hnpkluxsqt thead, #hnpkluxsqt tbody, #hnpkluxsqt tfoot, #hnpkluxsqt tr, #hnpkluxsqt td, #hnpkluxsqt th {
+  border-style: none;
+}
+
+#hnpkluxsqt p {
+  margin: 0;
+  padding: 0;
+}
+
+#hnpkluxsqt .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#hnpkluxsqt .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#hnpkluxsqt .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#hnpkluxsqt .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#hnpkluxsqt .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#hnpkluxsqt .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#hnpkluxsqt .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#hnpkluxsqt .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#hnpkluxsqt .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#hnpkluxsqt .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#hnpkluxsqt .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#hnpkluxsqt .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#hnpkluxsqt .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#hnpkluxsqt .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#hnpkluxsqt .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hnpkluxsqt .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#hnpkluxsqt .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#hnpkluxsqt .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#hnpkluxsqt .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hnpkluxsqt .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#hnpkluxsqt .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hnpkluxsqt .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#hnpkluxsqt .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hnpkluxsqt .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#hnpkluxsqt .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hnpkluxsqt .gt_left {
+  text-align: left;
+}
+
+#hnpkluxsqt .gt_center {
+  text-align: center;
+}
+
+#hnpkluxsqt .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#hnpkluxsqt .gt_font_normal {
+  font-weight: normal;
+}
+
+#hnpkluxsqt .gt_font_bold {
+  font-weight: bold;
+}
+
+#hnpkluxsqt .gt_font_italic {
+  font-style: italic;
+}
+
+#hnpkluxsqt .gt_super {
+  font-size: 65%;
+}
+
+#hnpkluxsqt .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#hnpkluxsqt .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#hnpkluxsqt .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#hnpkluxsqt .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#hnpkluxsqt .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#hnpkluxsqt .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#hnpkluxsqt .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#hnpkluxsqt .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#hnpkluxsqt div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="header gt_col_headings">
+<th id="term" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">term</th>
+<th id="estimate" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">estimate</th>
+<th id="std_error" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">std_error</th>
+<th id="statistic" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">statistic</th>
+<th id="p_value" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">p_value</th>
+<th id="lower_ci" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">lower_ci</th>
+<th id="upper_ci" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">upper_ci</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="term">intercept</td>
+<td class="gt_row gt_right" headers="estimate">8115117</td>
+<td class="gt_row gt_right" headers="std_error">565902.7</td>
+<td class="gt_row gt_right" headers="statistic">14.340</td>
+<td class="gt_row gt_right" headers="p_value">0</td>
+<td class="gt_row gt_right" headers="lower_ci">7003840</td>
+<td class="gt_row gt_right" headers="upper_ci">9226394</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="term">pos_bin: Goalkeeper</td>
+<td class="gt_row gt_right" headers="estimate">-6093242</td>
+<td class="gt_row gt_right" headers="std_error">1593093.9</td>
+<td class="gt_row gt_right" headers="statistic">-3.825</td>
+<td class="gt_row gt_right" headers="p_value">0</td>
+<td class="gt_row gt_right" headers="lower_ci">-9221640</td>
+<td class="gt_row gt_right" headers="upper_ci">-2964845</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Während die Konfidenzintervalle für traditionellen Ansatz und bootstrapping sehr ähnlich sind, ist das Konfidenzintervall im Regressionsansatz deutlich abweichend. Der Unterschied in den Vorzeichen erklärt sich dadurch, dass es für den Koeffizienten “pos_bin: Goalkeeper” berechnet wurde, was die umgekehrte Differenz “Goalkeeper - Fieldplayer” darstellt. Dieser Koeffizient gibt an, wie viel weniger Wert ein Torhüter im Vergleich zu einem Feldspieler hat, daher das negative Vorzeichen.</p>
+<p>Änderung der Referenzgruppe im Regressionsansatz:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Umkodieren der Variable pos_bin, sodass Torhüter die Referenzkategorie ist</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>tbl_buli <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pos_bin_rev =</span> <span class="fu">relevel</span>(pos_bin, <span class="at">ref =</span> <span class="st">"Goalkeeper"</span>))</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Regression mit umgekehrter Referenz</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>reg_test_rev <span class="ot">&lt;-</span> <span class="fu">lm</span>(mv <span class="sc">~</span> pos_bin_rev, <span class="at">data =</span> tbl_buli)</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="fu">get_regression_table</span>(reg_test_rev) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="swwqjspfom" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#swwqjspfom table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#swwqjspfom thead, #swwqjspfom tbody, #swwqjspfom tfoot, #swwqjspfom tr, #swwqjspfom td, #swwqjspfom th {
+  border-style: none;
+}
+
+#swwqjspfom p {
+  margin: 0;
+  padding: 0;
+}
+
+#swwqjspfom .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#swwqjspfom .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#swwqjspfom .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#swwqjspfom .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#swwqjspfom .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#swwqjspfom .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#swwqjspfom .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#swwqjspfom .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#swwqjspfom .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#swwqjspfom .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#swwqjspfom .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#swwqjspfom .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#swwqjspfom .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#swwqjspfom .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#swwqjspfom .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#swwqjspfom .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#swwqjspfom .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#swwqjspfom .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#swwqjspfom .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#swwqjspfom .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#swwqjspfom .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#swwqjspfom .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#swwqjspfom .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#swwqjspfom .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#swwqjspfom .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#swwqjspfom .gt_left {
+  text-align: left;
+}
+
+#swwqjspfom .gt_center {
+  text-align: center;
+}
+
+#swwqjspfom .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#swwqjspfom .gt_font_normal {
+  font-weight: normal;
+}
+
+#swwqjspfom .gt_font_bold {
+  font-weight: bold;
+}
+
+#swwqjspfom .gt_font_italic {
+  font-style: italic;
+}
+
+#swwqjspfom .gt_super {
+  font-size: 65%;
+}
+
+#swwqjspfom .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#swwqjspfom .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#swwqjspfom .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#swwqjspfom .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#swwqjspfom .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#swwqjspfom .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#swwqjspfom .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#swwqjspfom .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#swwqjspfom div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="header gt_col_headings">
+<th id="term" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">term</th>
+<th id="estimate" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">estimate</th>
+<th id="std_error" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">std_error</th>
+<th id="statistic" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">statistic</th>
+<th id="p_value" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">p_value</th>
+<th id="lower_ci" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">lower_ci</th>
+<th id="upper_ci" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">upper_ci</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="term">intercept</td>
+<td class="gt_row gt_right" headers="estimate">2021875</td>
+<td class="gt_row gt_right" headers="std_error">1489195</td>
+<td class="gt_row gt_right" headers="statistic">1.358</td>
+<td class="gt_row gt_right" headers="p_value">0.175</td>
+<td class="gt_row gt_right" headers="lower_ci">-902494.4</td>
+<td class="gt_row gt_right" headers="upper_ci">4946244</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="term">pos_bin_rev: Fieldplayer</td>
+<td class="gt_row gt_right" headers="estimate">6093242</td>
+<td class="gt_row gt_right" headers="std_error">1593094</td>
+<td class="gt_row gt_right" headers="statistic">3.825</td>
+<td class="gt_row gt_right" headers="p_value">0.000</td>
+<td class="gt_row gt_right" headers="lower_ci">2964844.5</td>
+<td class="gt_row gt_right" headers="upper_ci">9221640</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Nun stimmen die Vorzeichen mit den Konfidenzintervallen aus traditionellem und bootstrapping-Ansatz überein, aber es bleibt ein deutlicher Unterschied, der auf unterschiedliche Berechnungsweisen zurückführen lässt.</p>
+<p>Was jedoch den Schätzer und den p-Wert angeht, können wir eine Äquivalenz zwischen t-Test und Regression feststellen. Daher kann der <strong>t-Test als Spezialfall eines linearen Modells</strong> betrachtet werden. In diesem Beispiel liefern beide Methoden die gleiche inhaltliche Schlussfolgerung: Torhüter haben einen signifikant niedrigeren Marktwert als Feldspieler, mit einer Differenz von etwa 6 Millionen Euro.</p>
+<p><strong>Vorteile des Regressionsansatzes:</strong></p>
+<ol type="1">
+<li>Flexibilität für die Einbeziehung weiterer Variablen (z.B. Alter, Spielposition)</li>
+<li>Erweiterbarkeit für komplexere Modelle (z.B. Interaktionen)</li>
+<li>Konsistente Methodologie für verschiedene Analyse</li>
+</ol>
+</section>
+<section id="aufgabe-11" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-11">Aufgabe 11</h2>
+<p>Nutze die Daten zu den 20 Spielern mit dem höchsten Marktwert und erstelle für diese Stichprobe ein Streudiagramm mit Regressionsgerade. Ermittle dann die OLS-Schätzer <span class="math inline">\(b_0\)</span> und <span class="math inline">\(b_1\)</span> als Schätzer für die wahren Parameter <span class="math inline">\(\beta_0\)</span> und <span class="math inline">\(\beta_1\)</span> des Regressionsmodells. Interpretiere die Ergebnisse und diskutiere insbesondere die Frage der Verzerrtheit der konkreten Parameter-Schätzung</p>
+<p><u>Antwort:</u></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>tbl_buli <span class="sc">%&gt;%</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_max</span>(<span class="at">order_by =</span> mv,<span class="at">n=</span><span class="dv">20</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>age,<span class="at">y=</span>mv)) <span class="sc">+</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="02_EX_Buli_sol_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="02_EX_Buli_sol_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>reg_sample1 <span class="ot">&lt;-</span> tbl_sample1 <span class="sc">%&gt;%</span> </span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">lm</span>(mv<span class="sc">~</span>age, <span class="at">data=</span>.) <span class="sc">%&gt;%</span> </span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">get_regression_table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Der Steigungsparamer <span class="math inline">\(b_1'=\)</span> 78468.283 bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers <strong>aus der zufälligen Stichprobe</strong> im Durchschnitt um 78468.283 € <strong>steigt</strong>. Auch wenn der Wert von <span class="math inline">\(b_1'\)</span>qualitativ diametral dem Parameter <span class="math inline">\(\beta_1\)</span> für die Grundgesamtheit entgegensteht (positiver vs.&nbsp;negativer Wert), handelt es sich um eine unverzerrte Schätzung, weil diese mit einem OLS-Schätzer und Daten einer <strong>Zufallsstichprobe</strong> berechnet wurde.</p></li>
-<li><p>Ziehe eine weitere Stichprobe <span class="math inline">\((n=20)\)</span>, stelle diesmal die Reproduzierbarkeit mit <code>set.seed(9)</code> sicher. Erstelle ein letztes Diagramm, ermittle die Parameter (<span class="math inline">\(b_0''\)</span> und <span class="math inline">\(b_1''\)</span>) der Regressionsgerade und interpretiere die Ergebnisse. Beurteile auch in diesem Fall die Frage der (Un-)Verzerrtheit des Schätzers <span class="math inline">\(b_1''\)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">9</span>)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>tbl_sample2 <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">slice_sample</span>(<span class="at">n=</span><span class="dv">20</span>) </span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>tbl_sample2 <span class="sc">%&gt;%</span> </span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>age,<span class="at">y=</span>mv)) <span class="sc">+</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>reg_top20 <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>                <span class="fu">slice_max</span>(<span class="at">order_by =</span> mv,<span class="at">n=</span><span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>                <span class="fu">lm</span>(mv<span class="sc">~</span>age,<span class="at">data=</span>.) <span class="sc">%&gt;%</span> </span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>                <span class="fu">get_regression_table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Wie im Fall der für die Population ermittelten Parameter ist der Achsenabschnitt <span class="math inline">\(b_0\)</span> auch für die Stichprobe der Top20 Spieler eine rein technisch Größe. Der Steigungsparamer <span class="math inline">\(b_1=\)</span>-3416070.677 bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers aus den Top 20 im Durchschnitt um 3416070.677 € sinkt. Mithin ist die Schätzung von <span class="math inline">\(b_1\)</span> deutlich größer als der Parameter der Population <span class="math inline">\(\beta_1\)</span>; dies allein ist aber keine Verzerrung, weil der Wert mit einem (grundsätzlich unverzerrten OLS-Schätzer ermittelt wurde. Weil die Schätzung aber auf Grundlage einer nicht zufälligen Stichprobe ermittelt wurde, sondern mit Daten einer systematisch verzerrte Stichprobe (<strong>selection bias</strong>), muss die Schätzung von <span class="math inline">\(b_1\)</span> als verzerrt gelten.</p>
+</section>
+<section id="aufgabe-12" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-12">Aufgabe 12</h2>
+<p>Ziehe nun mit Hilfe der <code>slice_sample()</code>-Funktion eine weitere Stichprobe vom Umfang <span class="math inline">\(n=20\)</span>. Stelle die Reproduzierbarkeit durch <code>set.seed(23)</code>sicher. Erstelle erneut ein Diagramm, ermittle die Parameter der Regressionsgerade (<span class="math inline">\(b_0'\)</span> und <span class="math inline">\(b_1'\)</span>) interpretiere. Beurteile insbesondere die Frage der (Un-)Verzerrtheit des Schätzers <span class="math inline">\(b_1'\)</span>.</p>
+<p><u>Antwort:</u></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">23</span>)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>tbl_sample1 <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">slice_sample</span>(<span class="at">n=</span><span class="dv">20</span>) </span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>tbl_sample1 <span class="sc">%&gt;%</span> </span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>age,<span class="at">y=</span>mv)) <span class="sc">+</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02_EX_Buli_sol_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>reg_sample1 <span class="ot">&lt;-</span> tbl_sample1 <span class="sc">%&gt;%</span> </span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">lm</span>(mv<span class="sc">~</span>age, <span class="at">data=</span>.) <span class="sc">%&gt;%</span> </span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">get_regression_table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Der Steigungsparamer <span class="math inline">\(b_1'=\)</span> 78468.283 bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers <strong>aus der zufälligen Stichprobe</strong> im Durchschnitt um 78468.283 € <strong>steigt</strong>. Auch wenn der Wert von <span class="math inline">\(b_1'\)</span>qualitativ diametral dem Parameter <span class="math inline">\(\beta_1\)</span> für die Grundgesamtheit entgegensteht (positiver vs.&nbsp;negativer Wert), handelt es sich um eine unverzerrte Schätzung, weil diese mit einem OLS-Schätzer und Daten einer <strong>Zufallsstichprobe</strong> berechnet wurde.</p>
+</section>
+<section id="aufgabe-13" class="level2">
+<h2 class="anchored" data-anchor-id="aufgabe-13">Aufgabe 13</h2>
+<p>Ziehe eine weitere Stichprobe <span class="math inline">\((n=20)\)</span>, stelle diesmal die Reproduzierbarkeit mit <code>set.seed(9)</code> sicher. Erstelle ein letztes Diagramm, ermittle die Parameter (<span class="math inline">\(b_0''\)</span> und <span class="math inline">\(b_1''\)</span>) der Regressionsgerade und interpretiere die Ergebnisse. Beurteile auch in diesem Fall die Frage der (Un-)Verzerrtheit des Schätzers <span class="math inline">\(b_1''\)</span>.</p>
+<p><u>Antwort:</u></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">9</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>tbl_sample2 <span class="ot">&lt;-</span> tbl_buli <span class="sc">%&gt;%</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">slice_sample</span>(<span class="at">n=</span><span class="dv">20</span>) </span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>tbl_sample2 <span class="sc">%&gt;%</span> </span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>age,<span class="at">y=</span>mv)) <span class="sc">+</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
 </div>
@@ -792,17 +3499,16 @@ window.Quarto = {
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="02_EX_Buli_sol_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="02_EX_Buli_sol_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>reg_sample2 <span class="ot">&lt;-</span> tbl_sample2 <span class="sc">%&gt;%</span> </span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">lm</span>(mv<span class="sc">~</span>age, <span class="at">data=</span>.) <span class="sc">%&gt;%</span> </span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">get_regression_table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>reg_sample2 <span class="ot">&lt;-</span> tbl_sample2 <span class="sc">%&gt;%</span> </span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">lm</span>(mv<span class="sc">~</span>age, <span class="at">data=</span>.) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">get_regression_table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Der Steigungsparamer <span class="math inline">\(b_1''=\)</span> 462393.647 bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers <strong>aus der zufälligen Stichprobe</strong> im Durchschnitt um 462393.647 € <strong>sinkt</strong>. Damit hat der Wert des Schätzers <span class="math inline">\(b_1''\)</span> zwar dasselbe Vorzeichen wie der Paramter <span class="math inline">\(\beta_1\)</span> der Grundgesamtheit, aber quantitativ fällt der auf Basis der Stichprobe geschätzte Wertverlust deutlich geringer aus als in der Population. Weil es sich auch hier um einen OLS-Schätzer (und damit ein unverzerrtes Schätzverfahren) sowie um Daten einer <strong>Zufallsstichprobe</strong> handelt, kann auch bei <span class="math inline">\(b_1''\)</span> von einer unverzerrten Schätzung ausgegangen werden.</p></li>
-<li><p>wdw</p></li>
-</ol>
+<p>Der Steigungsparamer <span class="math inline">\(b_1''=\)</span> 462393.647 bedeutet, dass mit jedem zusätzlichen Jahr, der Marktwert eines Bundesligaspielers <strong>aus der zufälligen Stichprobe</strong> im Durchschnitt um 462393.647 € <strong>sinkt</strong>. Damit hat der Wert des Schätzers <span class="math inline">\(b_1''\)</span> zwar dasselbe Vorzeichen wie der Paramter <span class="math inline">\(\beta_1\)</span> der Grundgesamtheit, aber quantitativ fällt der auf Basis der Stichprobe geschätzte Wertverlust deutlich geringer aus als in der Population. Weil es sich auch hier um einen OLS-Schätzer (und damit ein unverzerrtes Schätzverfahren) sowie um Daten einer <strong>Zufallsstichprobe</strong> handelt, kann auch bei <span class="math inline">\(b_1''\)</span> von einer unverzerrten Schätzung ausgegangen werden.</p>
+</section>
 </section>
 
 </main>
