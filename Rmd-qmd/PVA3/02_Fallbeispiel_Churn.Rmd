@@ -444,29 +444,6 @@ tbl_churn %>%
 ```
 
 
-
----
-class: left
-
-.blockquote[Fallbeispiel Kundenbindung]
-
-## Weitere Aufgaben
-
-1. Teilt den Datensatz in Trainings- und Testdaten auf (70/30).
-
-2. Trainiert ein logistisches Regressionsmodell auf den Trainingsdaten und erstellt Vorhersagen für die Testdaten.
-
-3. Erstellt eine Confusion Matrix und berechnet die Accuracy, Precision, Recall und F1-Score.
-
-4. Diskutiert, welche dieser Metriken in diesem geschäftlichen Kontext am wichtigsten sein könnte und warum.
-
-5. Erstellt die ROC-Kurve für Ihr Modell, berechnet den AUC-Wert und interpretiert ihn.
-
-6. Experimentiert mit verschiedenen Schwellenwerten und beobachtet, wie sich Precision und Recall ändern.
-
-
-
-
 ---
 class: inverse,center,middle
 

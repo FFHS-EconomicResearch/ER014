@@ -1122,34 +1122,23 @@ class: left
 .panel[.panel-name[log-Odds]
 $$
 \begin{align*}
-\log_e\left(\frac{\hat{p}}{1-\hat{p}}\right) =\ & -2.7162 \\
-& - 0.4364 \cdot \text{job_city}_{\text{Chicago}} \\
-& + 0.0206 \cdot \text{years_experience} \\
-& + 0.7634 \cdot \text{honors} \\
-& + 0.3443 \cdot \text{military} \\
-& + 0.2221 \cdot \text{email} \\
-& + 0.4429 \cdot \text{race}_{\text{White}} \\
-& - 0.1959 \cdot \text{sex}_{\text{Male}}
+\log_e\left(\frac{\hat{p}}{1-\hat{p}}\right) =\ & -2.7162 - 0.4364 \cdot \text{job_city}_{\text{Chicago}} + 0.0206 \cdot \text{years_experience} \\
+& + 0.7634 \cdot \text{honors} + 0.3443 \cdot \text{military} + 0.2221 \cdot \text{email} \\
+& + 0.4429 \cdot \text{race}_{\text{White}} - 0.1959 \cdot \text{sex}_{\text{Male}}
 \end{align*}
 $$
 ]
 .panel[.panel-name[Beispiel]
 * Beispiel: Kandidat für einen Job in Chicago mit 14 Jahren Berufserfahrung, ohne Auszeichnungen und Militärdienst, mit Email-Adresse und einem Namen, der "weiss klingt":
+
 $$
 \begin{align*}
-\log_e\left(\frac{\hat{p}}{1-\hat{p}}\right) =\ & -2.7162 \\
-& - 0.4364 \cdot 1 \\
-& + 0.0206 \cdot 14 \\
-& + 0.7634 \cdot 0 \\
-& + 0.3443 \cdot 0 \\
-& + 0.2221 \cdot 1 \\
-& + 0.4429 \cdot 1 \\
-& - 0.1959 \cdot 1 \\
+\log_e\left(\frac{\hat{p}}{1-\hat{p}}\right) =\ & -2.7162 - 0.4364\cdot 1  + 0.0206 \cdot 14 \\
+& + 0.7634 \cdot 0 + 0.3443 \cdot 0 + 0.2221 \cdot 1 \\
+& + 0.4429 \cdot 1 - 0.1959 \cdot 1 \\
 = &\ -2.3955
 \end{align*}
 $$
-
-
 * Somit beträgt die Rückruf-Wahrscheinlichkeit:
 
 $$\hat{p}=\frac{e^{-2.3955}}{1+e^{-2.3955}}=0.0835 \implies \approx 8\%$$
