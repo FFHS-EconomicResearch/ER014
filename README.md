@@ -22,3 +22,10 @@ Teil 2: Deskriptive Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResea
 Teil 3: Stochastische Regressionsanalyse  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA2/03_InferenceRegression.html#1))
 
 [Übungsblatt Präsenz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA2/02_EX_Buli.html)
+
+
+## PVA3
+
+Teil 1: Intro Logistische Regression  ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA3/01_LogisticRegression.html#1))
+
+Teil 2: Fallbeispiel Kundenbindung/Churn-Analyse ([Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/PVA3/02_Fallbeispiel_Churn.html#1))

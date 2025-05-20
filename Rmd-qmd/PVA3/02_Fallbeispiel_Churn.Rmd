@@ -1,0 +1,483 @@
+---
+title: "Data Science for Business"
+subtitle: "Logistische Regression"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS" 
+date: "`r Sys.Date()`"
+bibliography: ../../lit/my_bib.bib
+reference-section-title: Quellenverzeichnis
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+         - default
+         - ../../css/ffhs-theme_js.css
+         - xaringan-themer.css
+    includes:
+      after_body: ../../css/insert-logo.html
+    lib_dir: ../../libs
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    seal: false
+    
+
+    
+---
+class: title-slide
+
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+style_xaringan(text_color = "#d50006",inverse_text_color = "#FFFFFF",inverse_background_color = "#d50006", title_slide_background_color = "#d50006",header_background_color = "#d50006",header_color = "#FFFFFF",header_h1_font_size = "32px",
+  header_h2_font_size = "26px",link_color="#502479",
+  header_h3_font_size = "20px",text_slide_number_color = "#d50006",text_slide_number_font_size = "0.5em")
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_progress_bar(color = "#d50006", location = "bottom")
+xaringanExtra::use_xaringan_extra(c("tile_view","scribble","panelset","tachyons"))
+xaringanExtra::style_panelset_tabs(font_family = "inherit")
+#xaringanExtra::use_search(show_icon = TRUE)
+#weitere: "share_again","animate_css", "webcam","freezeframe","clipboard","fit_screen","extra-styles" 
+xaringanExtra::use_editable(expires = 1)
+xaringanExtra::use_freezeframe(trigger = "hover")
+FFHSred <- "#d50006"
+FFHSpurp <- "#502479"
+``` 
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(latex2exp)
+library(fontawesome)
+#library(emo)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           style = "markdown",
+           dashed = TRUE)
+file.name <- system.file("Bib", 
+                         "my_bib.bib", 
+                         package = "RefManageR")
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+```
+
+# ER014 - Data Science & Strategy for Business
+
+## PVA3
+
+### Teil 2: Fallbeispiel
+
+ 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+### FS 2025
+<br>
+### Prof. Dr. Jörg Schoder
+.mycontacts[
+`r fa('github')` @FFHS-EconomicResearch
+`r fa('linkedin')` @jfschoder
+]
+
+
+---
+layout: true
+
+<div class="my-footer"></div>       
+
+<div style="position: absolute;left:400px;bottom:10px;font-size:9px">`r fa('creative-commons')``r rmarkdown::metadata$author`</div>
+
+---
+class: left
+
+.blockquote[Fallbeispiel Kundenbindung]
+
+## Kundenbindung & Churn-Analyse: Daten aus dem Retail-Banking
+
+```{r}
+#| echo: false
+#| eval: false
+#| message: false
+# Datenimport
+library(tidyverse)
+tbl_churn <- read_csv(xfun::from_root("data", "raw", "Churn_Modelling.csv"))
+head(tbl_churn,4)
+```
+```{r}
+#| echo: false
+#| message: false
+# Datenimport
+library(tidyverse)
+tbl_churn <- read_csv(xfun::from_root("data", "raw", "Churn_Modelling.csv"))
+tbl_short <- head(tbl_churn,4)
+library(DT)
+datatable(tbl_short, 
+          options = list(
+             scrollX = TRUE,
+             scrollY = "300px",
+             scrollCollapse = TRUE,
+             autoWidth = FALSE,
+             columnDefs = list(list(width = '100px', targets = "_all"))
+          ),
+          rownames = FALSE,
+          width = "100%")
+```
+
+📝 **Aufgaben:**
+
+1. Importiert die Daten aus Moodle oder unserem [github-Repo](https://github.com/FFHS-EconomicResearch/ER014/blob/main/data/raw/Churn_Modelling.csv) 
+2. Identifiziert die Variablentypen. Welche Variable ist als abhängige Variable für eine logistische Regression zur Kundenbindung geeignet?
+
+
+???
+* 14 Variablen mit demografischen und kundenspezifischen Informationen
+* mögliches Ziel: Vorhersage der Variable Exited (0 = Kunde bleibt, 1 = Kunde kündigt)
+
+* Daten von [kaggle](https://www.kaggle.com/code/mervetorkan/churn-prediction)
+  * RowNumber: corresponds to the record (row) number and has no effect on the output.
+  * CustomerId: contains random values and has no effect on customer leaving the bank.
+  * Surname: the surname of a customer has no impact on their decision to leave the bank.
+  * CreditScore: can have an effect on customer churn, since a customer with a higher credit     * score is less likely to leave the bank.
+  * Geography: a customer’s location can affect their decision to leave the bank.
+  * Gender: it’s interesting to explore whether gender plays a role in a customer leaving the bank. 
+  * Age: this is certainly relevant, since older customers are less likely to leave their bank than younger ones.
+  * Tenure: refers to the number of years that the customer has been a client of the bank. Normally, older clients are more loyal and less likely to leave a bank.
+  * Balance: also a very good indicator of customer churn, as people with a higher balance in their accounts are less likely to leave the bank compared to those with lower balances.
+  * NumOfProducts: refers to the number of products that a customer has purchased through the bank.
+  * HasCrCard: denotes whether or not a customer has a credit card. This column is also relevant, since people with a credit card are less likely to leave the bank.
+  * IsActiveMember: active customers are less likely to leave the bank.
+  * EstimatedSalary: as with balance, people with lower salaries are more likely to leave the bank compared to those with higher salaries.
+  * Exited: whether or not the customer left the bank. (0=No,1=Yes)
+
+
+
+---
+class: left
+
+.blockquote[Fallbeispiel Kundenbindung]
+
+## Kundenbindung & Churn-Analyse: Erste Einblicke
+
+
+.panelset[
+.panel[panel-name[Gesamt]
+```{r}
+#| echo: true
+#| eval: false
+# Zusammenfassung Zielvariable
+tbl_churn %>% 
+  count(Exited) %>% 
+  mutate(Prozent=n/sum(n)*100)
+```
+```{r}
+#| echo: false
+# Zusammenfassung Zielvariable
+tbl_churn %>% 
+   count(Exited) %>% 
+   mutate(Prozent=n/sum(n)*100) %>% 
+   datatable(
+             options = list(
+             scrollX = TRUE,
+             scrollY = "300px",
+             scrollCollapse = TRUE,
+             autoWidth = FALSE,
+             columnDefs = list(list(width = '100px', targets = "_all"))
+             ),
+             rownames = FALSE,
+             width = "100%"
+             )
+```
+]
+.panel[.panel-name[Geschlecht]
+```{r}
+#| echo: true
+#| eval: false
+tbl_churn %>% group_by(Gender) %>%
+                summarise(Anzahl = n(),
+                      Churn_Anzahl = sum(Exited),
+                      Churn_Rate = mean(Exited) * 100)
+```
+```{r}
+#| echo: false
+# Zusammenfassung Zielvariable
+tbl_churn %>% 
+  group_by(Gender) %>%
+  summarise(Anzahl = n(),
+            Churn_Anzahl = sum(Exited),
+            Churn_Rate = mean(Exited) * 100) %>% 
+  datatable(
+            options = list(
+            scrollX = TRUE,
+            scrollY = "300px",
+            scrollCollapse = TRUE,
+            autoWidth = FALSE,
+            columnDefs = list(list(width = '100px', targets = "_all"))
+            ),
+            rownames = FALSE,
+            width = "100%")
+```
+]
+.panel[.panel-name[Geschlecht & Land]
+```{r}
+#| echo: true
+#| eval: false
+tbl_churn %>% group_by(Gender, Geography) %>%
+              summarise(Anzahl = n(),Churn_Anzahl = sum(Exited),
+                        Churn_Rate = mean(Exited) * 100)
+```
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+# Zusammenfassung Zielvariable
+tbl_churn %>% 
+  group_by(Gender, Geography) %>%
+  summarise(Anzahl = n(),
+            Churn_Anzahl = sum(Exited),
+            Churn_Rate = mean(Exited) * 100) %>% 
+  datatable(
+            options = list(
+            scrollX = TRUE,
+            scrollY = "200px",
+            scrollCollapse = TRUE,
+            autoWidth = FALSE,
+            columnDefs = list(list(width = '100px', targets = "_all"))
+            ),
+            rownames = FALSE,
+            width = "100%")
+```
+]
+]
+
+
+
+---
+class: left
+
+.blockquote[Fallbeispiel Kundenbindung]
+
+## Kundenbindung & Churn-Analyse: EDA
+
+📝 **Aufgabe:** Führt den folgenden Code-Block aus und interpretiert die Ergebnisse.
+
+```{r}
+#| echo: true
+#| eval: false
+tbl_churn %>% group_by(Gender) %>% 
+              summarise(num_customers = n(), 
+                        mean_crScore = round(mean(CreditScore),2), 
+                        mean_age = round(mean(Age),2), 
+                        mean_tenure = round(mean(Tenure),2), 
+                        mean_balance = round(mean(Balance),2), 
+                        mean_salary = round(mean(EstimatedSalary),2))
+```
+
+```{r}
+#| echo: false
+tbl_churn %>% group_by(Gender) %>% 
+              summarise(num_customers = n(), 
+                        mean_crScore = round(mean(CreditScore),2), 
+                        mean_age = round(mean(Age),2), 
+                        mean_tenure = round(mean(Tenure),2), 
+                        mean_balance = round(mean(Balance),2), 
+                        mean_salary = round(mean(EstimatedSalary),2)) %>% 
+              datatable(
+                         options = list(
+                         scrollX = TRUE,
+                         scrollY = "300px",
+                         scrollCollapse = TRUE,
+                         autoWidth = FALSE,
+                         columnDefs = list(list(width = '100px', targets = "_all"))
+                        ),
+                        rownames = FALSE,
+                        width = "100%")
+  
+```
+
+
+
+---
+class: left
+
+.blockquote[Fallbeispiel Kundenbindung]
+
+## Kundenbindung & Churn-Analyse: EDA Soziodemografie
+
+📝 **Aufgabe:** Erstellt die Diagramme 1-3 in den panels mit dem **ggplot2**-Paket und interpretiert diese.
+
+.panelset[
+.panel[.panel-name[Diagramm 1]
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out-width: "45%"
+#| fig-align: "center"
+tbl_churn %>% 
+  ggplot(aes(x = Geography, group = Gender)) + 
+    geom_bar(aes(y = ..prop.., fill = factor(..x..)), 
+             stat="count", color = "black", alpha = 0.7) +
+    geom_text(aes(label = scales::percent(..prop..),
+                y= ..prop.. ), stat= "count", position = position_stack(vjust = 0.5), size = 4.5) +
+  facet_grid(~Gender) +
+  scale_y_continuous(labels = scales::percent)+
+  guides(fill = F)+
+  labs(title = "Gender and geographical composition
+         ", 
+       x = "", y = "Percentage")+
+  theme_minimal()+
+  scale_fill_brewer(palette="Set2")+
+  theme(text = element_text(size = 12), 
+        plot.title = element_text(hjust = 0.5), title = element_text(size = 12))
+```
+]
+.panel[.panel-name[Diagramm 2]
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out-width: "45%"
+#| fig-align: "center"
+salary <- tbl_churn %>% group_by(Gender, Geography) %>% summarise(mean_sal = round(mean(EstimatedSalary),2))
+salary %>% 
+ggplot(aes(x = Gender, y = mean_sal, fill = Gender)) + 
+  geom_bar(stat = "identity",color = "black", alpha = 0.7) +
+  geom_text(aes(label = mean_sal, vjust = -.5), size = 4)+
+  facet_grid(~ Geography) +
+  labs(title = "Gender and geographical composition of salaries
+         ", 
+       x = "", y = "Mean salery")+
+  theme_minimal() +
+#  coord_cartesian(ylim=c(95000,103000))+
+#  scale_y_continuous(breaks = seq(95000,103000, 1000))+
+  guides(fill = F)+
+  theme(text = element_text(size = 12), 
+        plot.title = element_text(hjust = 0.5), title = element_text(size = 12))
+```
+]
+.panel[.panel-name[Diagramm 3]
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out-width: "45%"
+#| fig-align: "center"
+# Verteilung des Alters nach Churn-Status
+ggplot(tbl_churn, aes(x = Age, fill = factor(Exited))) + 
+  geom_histogram(binwidth = 5, position = "dodge") + 
+  labs(#title = "Altersverteilung nach Churn-Status", 
+       fill = "Gekündigt")
+```
+]
+]
+
+
+???
+
+Diagramm 1 alternative
+```{r}
+#| echo: false
+tbl_churn %>% 
+  ggplot(aes(x = Geography, group = Gender)) + 
+      geom_bar(aes(y = ..prop.., fill = factor(..x..)), 
+               stat="count") +
+      geom_text(aes(label = scales::percent(..prop..),
+                    y= ..prop.. ), stat= "count")+
+      facet_grid(~Gender) +
+      theme(legend.position = "none")
+```
+
+```{r}
+#| echo: false
+#| message: false
+# Calculate mean salary and group by gender and geography, round to 2 decimal places.
+salary <- tbl_churn %>% group_by(Gender, Geography) %>% summarise(mean_sal = round(mean(EstimatedSalary),2))
+ggplot(salary,aes(x = Gender, y = mean_sal, fill = Gender)) + 
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = mean_sal))+
+  facet_grid(~ Geography)
+```
+
+
+
+
+
+---
+class: left
+.blockquote[Fallbeispiel Kundenbindung]
+
+## Kundenbindung & Churn-Analyse: EDA Streudiagramm-Matrix
+
+
+```{r}
+#| echo: false
+#| message: false
+#| cache: true
+#| out-width: "60%"
+#| fig-align: "center"
+# GGally-Matrixplot -----
+library(GGally)
+tbl_churn %>% select(CreditScore,Gender,Age,Tenure,Balance,EstimatedSalary,Exited) %>% 
+                  ggpairs() +
+                  theme_light()
+```
+
+???
+
+
+📝 **Aufgabe:** Interpretiert die Kennzahl und das Diagramm
+
+```{r}
+# Zusammenfassung Zielvariable
+tbl_churn %>% 
+  count(Exited) %>% 
+  mutate(Prozent=n/sum(n)*100)
+```
+
+
+
+---
+class: left
+
+.blockquote[Fallbeispiel Kundenbindung]
+
+## Weitere Aufgaben
+
+1. Teilt den Datensatz in Trainings- und Testdaten auf (70/30).
+
+2. Trainiert ein logistisches Regressionsmodell auf den Trainingsdaten und erstellt Vorhersagen für die Testdaten.
+
+3. Erstellt eine Confusion Matrix und berechnet die Accuracy, Precision, Recall und F1-Score.
+
+4. Diskutiert, welche dieser Metriken in diesem geschäftlichen Kontext am wichtigsten sein könnte und warum.
+
+5. Erstellt die ROC-Kurve für Ihr Modell, berechnet den AUC-Wert und interpretiert ihn.
+
+6. Experimentiert mit verschiedenen Schwellenwerten und beobachtet, wie sich Precision und Recall ändern.
+
+
+
+
+---
+class: inverse,center,middle
+
+# Schönen Feierabend!
+
+---
+
+background-image: url("http://bit.ly/cs631-donkey")
+background-size: 80%
+
+
+
+
+

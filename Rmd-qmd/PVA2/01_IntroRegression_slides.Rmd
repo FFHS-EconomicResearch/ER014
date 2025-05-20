@@ -710,8 +710,9 @@ class: left
 .pull-left[
 * **Deskriptive**:
   * Beschreibung der Beziehung zwischen Variablen
-  * Regressionsgleichung:
-$$y_i=b_1+b_2\cdot x_i+e_i$$
+  * Regressionsgleichung: 
+  $$y_i=b_1+b_2\cdot x_i+e_i$$
+  
   * Interpretation der Koeffizienten als **bedingte Mittelwerte**
 ]
 --
@@ -719,7 +720,8 @@ $$y_i=b_1+b_2\cdot x_i+e_i$$
 * **Stochastische**:
   * Modellierung der Beziehung zwischen Variablen unter Berücksichtigung von Unsicherheit
     * Regressionsgleichung:
-$$y_i=\beta_1+\beta_2\cdot x_i+\epsilon_i$$
+$$y_i=\beta_1+\beta_2\cdot x_i+\varepsilon_i$$
+
   * Instrument für induktive Schlussfolgerungen (**Parameter** der Grundgesamtheit)
 ]
 
@@ -744,13 +746,17 @@ können mit Hilfe einer deskriptiven Regressionsanalyse einfach beschrieben werd
 oder als Stichprobe aus einer größeren Grundgesamtheit interpretiert werden. Im
 zweiten Fall wird mit Hilfe der stochastischen Regressionsanalyse versucht, die Information aus der Stichprobe für Rückschlüsse auf die Grundgesamtheit zu nützen.
 
-* Regressionsgleichungen
-  * Während im Fall der deskriptiven Analyse $y_i = b_1+b_2\cdot x_i+e_i$, werden im Fall der stochastischen Analyse **griechische Symbole** verwendet.
-  * Der Grund ist einfach: in der deskriptiven Analyse konnten wir die Koeffizienten $b_1$ und $b_2$ berechnen, da alle interessierenden Beobachtungen verfügbar waren.
-  * Hingegen ist die Grundgesamtheit nicht beobachtbar, deshalb können wir die beiden
+* In der Regel ist die Grundgesamtheit nicht beobachtbar, deshalb können wir die beiden
 Koeffizienten $\beta_1$ und $beta_2$ nicht berechnen! Wir müssen sie schätzen
   * Dabei wissen wir, dass die unbekannten Koeffizienten $\beta_1$ und $beta_2$ existieren, und dass sie fixe Zahlen sind. 
   * Solche unbekannte Größen der Grundgesamtheit werden häufig **Parameter** genannt
+
+
+* Regressionsgleichungen
+  * Während im Fall der deskriptiven Analyse **lateinische Buchstaben** verwendet werden $(y_i=b_1+b_2\cdot x_i + e_i)$,
+  * werden im Fall der stochastischen Analyse **griechische Buchstaben** $\beta_i$ oder $\hat{\beta_i}$ verwendet,...
+* ...um deutlich zu machen, dass es sich um Parameter einer Grundgesamtheit $\beta$ bzw. deren Schätzer $\hat{\beta}$ handelt.
+
 
 
 * Das Wort **"para"-"meter"** verweist aber auf etwas, das **über das Messen hinausgeht** (wie die Parapsychologie auf etwas verweist, was über die Psychologie hinausgeht). 

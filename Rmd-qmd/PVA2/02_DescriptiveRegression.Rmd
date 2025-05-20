@@ -582,8 +582,8 @@ class: left
 
 * Analog zur linearen Einfachregression sollen die quadrierten Residuen minimiert werden:
 
-$$\begin{eqnarray}\min_\beta(e'e)&=&\min_\beta(y-X\beta)'(y-X\beta)\\
-&=&\min_\beta[y'y-2\beta'X'y+\beta'X'X\beta]\,
+$$\begin{eqnarray}\min_b(e'e)&=&\min_b(y-Xb)'(y-Xb)\\
+&=&\min_b[y'y-2b'X'y+\beta'X'Xb]\,
 \end{eqnarray}$$
 
 * Bedingung erster Ordnung (FOC):

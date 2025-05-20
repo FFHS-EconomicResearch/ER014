@@ -379,7 +379,7 @@ class: left
 * Modell (**ein** numerischer Regressor):
 
 $$\begin{eqnarray}
-\widehat{\mbox{Preis}}&=&b_0 + b_1\cdot \mbox{Alter}\\
+\widehat{\mbox{Preis}}&=&\hat\beta_1 + \hat\beta_2\cdot \mbox{Alter}\\
 \end{eqnarray}$$
 
 * **infer**-Pipe zur Ermittlung des Steigunskoeffizienten
@@ -563,12 +563,12 @@ reg_auto %>%
 ```
 ]
 .panel[.panel-name[Vergleich]
-* Quantitative Übereinstimmung des Koeffizienten $b_1=`r round(get_regression_table(reg_auto)$estimate[2],2)`$ mit `obs_slope` aus der **infer**-Pipe
+* Quantitative Übereinstimmung des Schätzwerts für den Koeffizienten $\beta_2$ mit `obs_slope` aus der **infer**-Pipe: $\hat\beta_2=`r round(get_regression_table(reg_auto)$estimate[2],2)`$
 
 * Was ist mit den weiteren Spalten?
   * Standardfehler der Punktschätzer
   * t-Wert der Punktschätzer
-  * p-Wert zum t-Test $(H_0: \beta_0=0$, $H_A: \beta_1\neq0)$ 
+  * p-Wert zum t-Test $(H_0: \beta_2=0$, $H_A: \beta_2\neq0)$ 
   * Konfidenzintervalle der Koeffizienten
 ]
 .panel[.panel-name[Konfidenzintervalle]
@@ -619,9 +619,9 @@ class: left
   * hier also: im Beispiel können wir eine Variation der Steigungsparamter von `r round(get_regression_table(reg_auto)$std_error[2],2)` Euro erwarten
   * Somit: Mass für die Variation der angepassten Koeffizienten `r fa('circle-right')` entscheidender Wert für die **Reliabilität** (vgl. t-Test)
 
-* Koeffizient $b_1=`r round(get_regression_table(reg_auto)$estimate[2],2)`$ (Steigungsparameter) minimiert für die vorliegende Stichprobe die Fehlerquadratsumme.
+* Koeffizient $\hat\beta_2=`r round(get_regression_table(reg_auto)$estimate[2],2)`$ (Steigungsparameter) minimiert für die vorliegende Stichprobe die Fehlerquadratsumme.
 
-* Für alternative Stichprobe (aus derselben Grundgesamtheit) würde höchstwahrscheinlich ein anderer Wert für $b_1$ die Fehlerquadratsumme minimieren (`r fa('circle-right')` **Stichprobenvariabilität**).
+* Für alternative Stichprobe (aus derselben Grundgesamtheit) würde höchstwahrscheinlich ein anderer Wert für $\hat\beta_2$ die Fehlerquadratsumme minimieren (`r fa('circle-right')` **Stichprobenvariabilität**).
   
 * Zur Erinnerung: **Bootstrapping**-Verteilung als Approximation dieser Stichprobenverteilung
 
@@ -657,24 +657,24 @@ $$H_0: ~\beta_1=0~~~\mbox{vs.}~~~H_A: ~\beta_1\neq 0$$
 .panel[.panel-name[Teststatistik]
 * theoriebasierter (!) Standardfehler des angepassten Koeffizienten $b_1$:
 
-$$\mbox{SE}_{b_1}=\frac{\frac{s_y}{s_x}\cdot\sqrt{1-r^2}}{\sqrt{n-2}}$$
+$$\mbox{SE}_{\hat\beta_2}=\frac{\frac{s_y}{s_x}\cdot\sqrt{1-r^2}}{\sqrt{n-2}}$$
 
 * Teststatistik
 
-$$t=\frac{b_1-\beta_1}{\mbox{SE}_{b_1}}$$
-bzw. unter der Annahme, dass $H_0: \beta_1=0$  wahr ist: $t=\frac{b_1}{\mbox{SE}_{b_1}}$
+$$t=\frac{\hat\beta_2-\beta_2}{\mbox{SE}_{\hat\beta_2}}$$
+bzw. unter der Annahme, dass $H_0: \beta_2=0$  wahr ist: $t=\frac{\hat\beta_2}{\mbox{SE}_{\hat\beta_2}}$
 
 `r fa('circle-right')``r fa('r-project')` ermittelt den p-Wert aus einer t-Verteilung mit $n-2$ Freiheitsgraden.
 ]
 .panel[.panel-name[Warum t-verteilt?]
-* Berechnung Regressionskoeffizient $b_1$ mittels $b_1 = \frac{s_{X, Y}}{s^2_X}$
+* Berechnung Regressionskoeffizient $\hat\beta_2$ mittels $\hat\beta_2 = \frac{s_{X, Y}}{s^2_X}$
 * Die Kovarianz $(s_{X,Y})$ als Linearkombination zweier als normalverteilt angenommener Zufallsvariablen ist dabei normalverteilt (vgl. Annahmen)
 * Die Varianz $(s^2_{X})$ ist unter Annahme normalverteilter Residuen (vgl. Annahmen) $\chi^2$-verteilt (Summe von quadrierten normalverteilten Zufallsvariablen).
 
 * Ein Quotient aus einer standardnormalverteilten Zufallsgröße im Zähler
 und der Wurzel einer $\chi^2$-verteilten Größe geteilt durch die Freiheitsgrade im Nenner folgt einer t-Verteilung:
 
-$$t=\frac{b_1-\beta_1}{\mbox{SE}_{b_1}} \sim t(n-2)$$
+$$t=\frac{\hat\beta_2-\beta_2}{\mbox{SE}_{\hat\beta_2}} \sim t(n-2)$$
 ]
 .panel[.panel-name[p-Wert]
 
@@ -697,9 +697,9 @@ reg_auto %>%
 
 `r fa('circle-right')``r fa('r-project')` Test zur Überprüfung, ob sich der Koeffizient signifikant von Null unterscheidet.
 
-Here, our null hypothesis $H_0$ assumes that the population slope $\beta_1$ is 0. If the population slope $\beta_1$ is truly 0, then this is saying that there is no true relationship between teaching and “beauty” scores for all the instructors in our population. In other words, $x$= "beauty" score would have no associated effect on  
+Here, our null hypothesis $H_0$ assumes that the population slope $\beta_2$ is 0. If the population slope $\beta_2$ is truly 0, then this is saying that there is no true relationship between teaching and "beauty" scores for all the instructors in our population. In other words, $x$= "beauty" score would have no associated effect on  
 $y$=teaching score. The alternative hypothesis  
-$H_A$, on the other hand, assumes that the population slope $\beta_1$ is not 0, meaning it could be either positive or negative. This suggests either a positive or negative relationship between teaching and "beauty" scores. 
+$H_A$, on the other hand, assumes that the population slope $\beta_2$ is not 0, meaning it could be either positive or negative. This suggests either a positive or negative relationship between teaching and "beauty" scores. 
 
 
 
@@ -709,13 +709,13 @@ $H_A$, on the other hand, assumes that the population slope $\beta_1$ is not 0, 
 
 vgl. moderndive [Abschnitt 10.5.1](https://moderndive.com/10-inference-for-regression.html#inference-conclusion)
 
-* the standard error of $b_1 depends on
+* the standard error of $\hat\beta_2$ depends on
    * $\frac{s_x}{s_y}$: the relationship between the variability of the response variable and the variability of the explanatory variable . 
    * $\sqrt{1-r^2}$: Next, it looks into how the two variables relate to each other
    * Nenner $\sqrt{n-2}$: most important `r fa('circle-right')` as the sample size  
-$n$ increases, the standard error $\mbox{SE}_{b_1}$ decreases
+$n$ increases, the standard error $\mbox{SE}_{\hat\beta_2}$ decreases
 
-* Just **as we demonstrated** in Subsection 7.3.3 when **using shovels** with $n = 25$, $50$, and $100$ slots, the **amount of sampling variation of the fitted slope $b_1$ will depend on the sample size  
+* Just **as we demonstrated** in Subsection 7.3.3 when **using shovels** with $n = 25$, $50$, and $100$ slots, the **amount of sampling variation of the fitted slope $\hat\beta_2$ will depend on the sample size  
 $n$
 
 `r fa('circle-right')` **Zunehmende Reliabilität (kleinerer Standardfehler) mit zunehmender Stichprobengröße**
@@ -741,7 +741,7 @@ class: left
 .panel[.panel-name[Vorgehen]
 * Berechnung mit der Formel:
 
-$$b_1\pm t\cdot \mbox{SE}_{b_1}$$
+$$\hat\beta_2\pm t\cdot \mbox{SE}_{\hat\beta_2}$$
 
 * Ermitlung des **t-Werts** unter Berücksichtigung...
   * ...des (grundsätzlich vor der Schätzung der Parameterwerte) Konfidenzniveaus (bspw. 95%)
@@ -777,13 +777,13 @@ reg_auto %>%
 Obs! Entspricht (erwartungsgemäss) nicht dem Konfidenzintervall aus dem Bootstrapping-Ansatz (ebenfalls Standardfehler-Ansatz)
 ]
 .panel[.panel-name[Interpretation]
-* **Exakt**: Bei wiederholter Stichprobenziehung (aus der Grundgesamtheit!) können wir erwarten, dass 95% der jeweiligen Konfidenzintervalle den  wahren Koeffizienten $\beta_1$ beinhalten. 
+* **Exakt**: Bei wiederholter Stichprobenziehung (aus der Grundgesamtheit!) können wir erwarten, dass 95% der jeweiligen Konfidenzintervalle den  wahren Koeffizienten $\beta_2$ beinhalten. 
 
-* Unser Konfidenzintervall für den Schätzer $b_1$ (`r lo_ci`; `r up_ci`)...
-  * ...gehört entweder zu den 95% der Konfidenzintervalle, die den wahren Wert von $\beta_1$ umfassen, sodass dieser nicht Null sein kann.
-  * ...oder es gehört zu den 5% der Konfidenzintervalle, die den wahren Wert nicht umfassen. Dann könnte $\beta_1$ mit geringer Wahrscheinlichkeit auch Null sein.
+* Unser Konfidenzintervall für den Schätzer $\hat\beta_2$ (`r lo_ci`; `r up_ci`)...
+  * ...gehört entweder zu den 95% der Konfidenzintervalle, die den wahren Wert von $\beta_2$ umfassen, sodass dieser nicht Null sein kann.
+  * ...oder es gehört zu den 5% der Konfidenzintervalle, die den wahren Wert nicht umfassen. Dann könnte $\beta_2$ mit geringer Wahrscheinlichkeit auch Null sein.
   
-* Kurzform (**nicht exakt**): "Wir sind 95% "zuversichtlich" (*confident*), dass der wahre Koeffizient $\beta_1$ zwischen `r lo_ci` und  `r up_ci` liegt." (vgl. `r Cite(bib,"ismay_statistical_2024")`, Abschnitt 10.2.4)
+* Kurzform (**nicht exakt**): "Wir sind 95% "zuversichtlich" (*confident*), dass der wahre Koeffizient $\beta_2$ zwischen `r lo_ci` und  `r up_ci` liegt." (vgl. `r Cite(bib,"ismay_statistical_2024")`, Abschnitt 10.2.4)
 ]
 ]
 
@@ -791,9 +791,9 @@ Obs! Entspricht (erwartungsgemäss) nicht dem Konfidenzintervall aus dem Bootstr
 
 In einem einfachen linearen Regressionsmodell schätzen wir:
 
-$\beta_0$ (Achsenabschnitt / Intercept)
+$\hat\beta_1$ (Achsenabschnitt / Intercept)
 
-$\beta_1$ (Steigung des Regressors X)
+$\hat\beta_2$ (Steigung des Regressors X)
 
 Das sind zwei Parameter, die aus den Daten geschätzt werden. Für jeden geschätzten Parameter geht ein Freiheitsgrad verloren, da wir beim Schätzen die Daten "gebraucht" haben.
 
@@ -986,7 +986,7 @@ class: left
 * Hypothesen des F-Tests:
   - Nullhypothese: Alle Regressionskoeffizienten (außer dem Interzept) sind gleich Null.
   
-$$H_0: \beta_0 = \beta_1 = \dots = \beta_p = 0$$
+$$H_0: \beta_1 = \beta_2 = \dots = \beta_p = 0$$
   
   - Alternativhypothese: Mindestens einer der Regressoren hat einen signifikanten Einfluss.
 
@@ -1052,7 +1052,7 @@ class: left
 * Alter und Fahrleistung (km) als Regressoren
 
 $$\begin{eqnarray}
-\widehat{\mbox{Preis}}&=&b_0 + b_1\cdot \mbox{Alter} + b_2\cdot \mbox{km}\\
+\widehat{\mbox{Preis}}&=&\hat\beta_1 + \hat\beta_2\cdot \mbox{Alter} + \hat\beta_3\cdot \mbox{km}\\
 \end{eqnarray}$$
 
 ```{r}

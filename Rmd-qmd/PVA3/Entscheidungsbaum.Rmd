@@ -1,0 +1,75 @@
+---
+  class: left
+
+.blockquote[Generalisiertes lineares Modell (`glm()`)]
+
+## Modellauswahl: Entscheidungsbaum für Verfahren mit kategorialen Zielvariablen
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out-width: "85%"
+#| fig-align: "center"
+library(DiagrammeR)
+
+# Erstellen eines Entscheidungsbaums mit DiagrammeR
+grViz("
+digraph decision_tree {
+  # Knotenformat
+  node [shape = box, fontname = 'Helvetica', fontsize = 12, style = filled, fillcolor = LightBlue]
+
+  # Kanten
+  edge [color = Gray50]
+
+  # Knoten
+  A [label = 'Abhängige Variable (AV)\\nWelche Art?', fillcolor = SteelBlue, fontcolor = White]
+
+  B [label = 'Binär\\n(0/1, ja/nein)']
+  C [label = 'Kategorial\\n(>2 Kategorien)']
+  D [label = 'Ordinal\\n(Rangfolge)']
+  E [label = 'Zähldaten\\n(0, 1, 2, ...)']
+  F [label = 'Kontinuierlich\\n(metrisch)']
+
+  G [label = 'Logistische Regression\\n(binomial + logit)', fillcolor = LightGreen]
+  H [label = 'Probit-Regression\\n(binomial + probit)']
+
+  I [label = 'Multinomiale\\nlogistische Regression', fillcolor = LightGreen]
+  J [label = 'Diskriminanzanalyse']
+
+  K [label = 'Ordinale\\nlogistische Regression', fillcolor = LightGreen]
+
+  L [label = 'Poisson-Regression\\n(für λ = Varianz)', fillcolor = LightGreen]
+  M [label = 'Negative Binomial\\n(für Overdispersion: Varianz > λ)', fillcolor = LightGreen]
+
+  N [label = 'Lineare Regression', fillcolor = LightGreen]
+  O [label = 'Alternatives\\nVerfahren erwägen']
+
+  # Struktur
+  A -> B
+  A -> C
+  A -> D
+  A -> E
+  A -> F
+
+  B -> G
+  B -> H
+
+  C -> I
+  C -> J
+
+  D -> K
+
+  E -> L
+  E -> M
+
+  F -> N
+  F -> O
+
+  # Ranken erzwingen für besseres Layout
+  {rank=same; B C D E F}
+  {rank=same; G H I J K L M N O}
+}
+")
+```
+

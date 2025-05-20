@@ -1,0 +1,129 @@
+---
+class: inverse, center, middle
+
+## Umsetzung in R
+
+.blockquote[Modellierung]
+
+.blockquote[Diagnostik & Visualisierung]
+
+.blockquote[Anwendung & Interpretation]
+
+
+
+---
+class: left
+
+.blockquote[Modellierung]
+
+## Logistische Regression in R
+
+```{r}
+#| warning: false
+#| message: false
+# Beispieldaten aus openintro-Paket: Email Spam-Klassifikation
+library(openintro)
+data(email)  # Datensatz zum Thema Spam-Erkennung laden
+
+# Datenexploration
+str(email)
+head(email)
+
+# Einfaches logistisches Modell: Vorhersage ob eine Email Spam ist
+model1 <- glm(spam ~ to_multiple + attach + dollar, 
+              family = binomial(link = "logit"), 
+              data = email)
+
+# Ergebnisse anzeigen
+summary(model1)
+```
+
+
+
+---
+class: left
+
+.blockquote[Modellierung]
+
+## Modellerweiterung
+
+```{r}
+# Komplexeres Modell mit weiteren Prädiktoren
+model2 <- glm(spam ~ to_multiple + attach + dollar + winner + format + re_subj, 
+              family = binomial(link = "logit"), 
+              data = email)
+
+# Kategoriale Prädiktoren
+model3 <- glm(spam ~ to_multiple + attach + dollar + number, 
+              family = binomial(link = "logit"), 
+              data = email)
+
+# Modellvergleich
+anova(model1, model2, test = "Chisq")
+AIC(model1, model2, model3)
+```
+
+---
+class: left
+
+.blockquote[Diagnostik & Visualisierung]
+
+### Modelldiagnostik und ROC-Kurven
+
+.panelset[
+.panel[.panel-name[Vorhersagen]
+```{r}
+# Vorhersagen
+pred_prob <- predict(model1, type = "response")
+head(pred_prob)
+```
+]
+
+.panel[.panel-name[ROC-Kurve]
+```{r}
+# ROC-Kurve und AUC
+library(pROC)  # zuerst das pROC-Paket installieren mit install.packages("pROC")
+roc_curve <- pROC::roc(response = email$spam, predictor = pred_prob)
+pROC::auc(roc_curve)  # Area under the curve
+```
+]
+.panel[.panel-name[Interpretation...]
+... der ROC-Kurve:
+
+* Kurve nahe der oberen linken Ecke → besseres Modell
+  * AUC = 1: perfektes Modell
+  * AUC = 0.5: Modell nicht besser als Zufall (diagonale Linie)
+  * AUC > 0.8: in der Regel gutes Modell
+]
+]
+
+
+???
+
+AUC = 0.5968: Das Modell hat nur eine leicht bessere Trennschärfe als Zufall.
+
+🔍 Konkrete Bedeutung:
+Wenn du zwei zufällige E-Mails ziehst – eine Spam und eine Nicht-Spam –, dann ist die Wahrscheinlichkeit, dass dein Modell der Spam-Mail eine höhere Wahrscheinlichkeit zuweist, etwa 59,7 %.
+
+Das ist nur ein kleiner Vorteil gegenüber dem Zufall (50 %), also nicht besonders überzeugend.
+---
+class: left
+
+.blockquote[Anwendung&Interpretation]
+
+## Interpretation der Ergebnisse
+
+```{r}
+# Odds Ratios berechnen
+OR <- exp(coef(model1))
+
+```
+
+
+Interpretation:
+
+* to_multiple: Wenn eine E-Mail mehrere Empfänger hat, steigen die Odds für Spam um das `r OR[2]`-fache
+* attach: Anhänge reduzieren die Odds für Spam um ca. `r round(1-OR[3],1)`% (OR = `r OR[3]`)
+* dollar: Das Vorkommen von `$`-Zeichen erhöht die Odds für Spam um das `r OR[4]`-fache
+
+

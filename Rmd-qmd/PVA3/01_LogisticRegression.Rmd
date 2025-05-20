@@ -1,6 +1,6 @@
 ---
 title: "Data Science for Business"
-subtitle: "Regression"
+subtitle: "Logistische Regression"
 author: "Prof. Dr. Jörg Schoder"
 institute: "FFHS" 
 date: "`r Sys.Date()`"
@@ -43,6 +43,8 @@ xaringanExtra::style_panelset_tabs(font_family = "inherit")
 #weitere: "share_again","animate_css", "webcam","freezeframe","clipboard","fit_screen","extra-styles" 
 xaringanExtra::use_editable(expires = 1)
 xaringanExtra::use_freezeframe(trigger = "hover")
+FFHSred <- "#d50006"
+FFHSpurp <- "#502479"
 ``` 
 
 ```{r setup, include=FALSE}
@@ -64,9 +66,9 @@ bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
 
 # ER014 - Data Science & Strategy for Business
 
-## PVA2
+## PVA3
 
-### Teil 3: Stochastische Regressionsanalyse
+### Teil 1: Einführung Logistische Regressionsanalyse
 
  
 
@@ -100,24 +102,582 @@ class: left
 
 .blockquote[Agenda]
 
-## Einführung in die Regressionsanalyse
+## Einführung in die Logistische Regressionsanalyse
 
-* Begriff und Grundlagen
+* Vom linearen zum generalisierten Modell: Warum brauchen wir glm()?
   
+* Praxisrelevanz der logistischen Regression
 
+* Umsetzung in R
 
-* 
 
 ---
 class: inverse, center, middle
 
-## Begriff und Grundlagen
+## Vom linearen zum generalisierten Modell: Warum brauchen wir glm()?
 
-.blockquote[Korrelation vs. Kausalität]
+.blockquote[Refresher lineares Modell (`lm()`)]
 
-.blockquote[Exakte vs. statistische Zusammenhänge]
+.blockquote[Generalisiertes lineares Modell (`glm()`)]
 
-.blockquote[Lineare vs. nicht-lineare Zusammenhänge]
+
+
+---
+class: left
+
+.blockquote[Refresher lineares Modell (`lm()`)]
+
+## Einfaches lineares Modell
+
+$$Y = \beta_1 + \beta_2 X + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, \sigma^2)$$
+
+- Beziehung zwischen \( X \) und \( Y \) schätzen
+  - abhängige Variable (AV bzw. $Y$): metrisch, normalverteilt
+  - abhängige Variable (UV bzw.  $X$): metrisch oder kategorial
+- Umsetzung in `r fa('r-project')`: `lm(Y ~ X, data = my_data)`
+- t-Test und ANOVA als Spezialfälle
+
+| Verfahren | Modellform                            | UV-Typ         | AV-Typ     |
+|----------|----------------------------------------|----------------|------------|
+| t-Test   | $Y = \beta_0 + \beta_1 \cdot \mbox{Gruppe}$ | binär         | metrisch   |
+| ANOVA    | $Y = \beta_0 + \beta_1 D_1 + \beta_2 D_2$ | kategorial (k>2) | metrisch |
+
+➡️ Regression bzw. LM als mächtiger "framework"
+
+
+---
+class: left 
+
+.blockquote[Refresher lineares Modell (`lm()`)]
+
+## Multiple lineare Regression
+
+.panelset[
+.panel[.panel-name[Theorie]
+**Modell:**
+
+$$y = \beta_{0i} + \beta_{1i} x_{1i} + \beta_{2i} x_{2i} + \cdots + \beta_{ki} x_{k2i} + \varepsilon_i$$
+bzw. in Matrixnotation
+
+$$Y = \beta X+\varepsilon$$
+
+➡️  Entscheidender Mehrwert zur Einfachregression: Möglichkeit zur Kontrolle von mehreren Einflussfaktoren (Beispiel Gebrauchtwagen (PVA2): Preis, Alter, Kilometer)
+
+]
+.panel[.panel-name[Beispiel]
+➡️  Umsetzung in `r fa('r-project')` mit der `lm()`-Funktion
+
+```{r}
+#| echo: true
+#| message: false
+library(tidyverse)
+# Import data -----
+my_in_file <- "autos_(StockerUIBK)_20240414.csv"
+tbl_autos <- read_csv2(xfun::from_root("data","raw",my_in_file))
+# Fit regression model ------
+reg_auto <- tbl_autos %>%
+                lm(Preis ~ Alter + km,.)
+```
+]
+.panel[.panel-name[Regressionstabelle]
+```{r}
+#| echo: true
+#| message: false
+# Results -----
+library(moderndive) # für get_regression_()`-Funktion - tidy-Format
+library(gt) # für Tabellendarstellung mit `gt()`-Funktion
+reg_auto %>%
+  get_regression_table() %>% 
+  gt()
+```
+]
+]
+
+
+---
+class: left
+
+.blockquote[Refresher lineares Modell (`lm()`)]
+
+## Annahmen im linearen Regressionsmodell 
+
+.panelset[
+.panel[.panel-name[A-Annahmen...]
+### ...zur funktionalen Spezifikation
+
+A1 **Variablenauswahl**: Die Gleichung
+$$Y = \beta X+\varepsilon$$
+enthält alle relevanten (und keine irrelevanten) Regressoren x_i.
+
+A2 📈 **Linearität**: Der (wahre) Zusammenhang zwischen Regressor(en) X und Regressand Y ist linear.
+
+
+A3 📌 **Parameterkonstanz**. Die Paramter $\beta$ sind für alle N Beobachtungen $(x_i,y_i)$ konstant. 
+
+
+]
+.panel[.panel-name[B-Annahmen...]
+### ...zur Störgrössen-Spezifikation
+
+B1 🎯 **Erwartungswert**: $\mathbb{E}(\varepsilon_i)=0,~\forall i$
+
+B2 📊 **Homoskedastizität**: Varianz der Fehler ist konstant über alle Werte von X.  
+$$\mbox{Var}(\varepsilon_i) = \sigma^2,~\forall i$$
+ 
+B3 👥 **Unabhängigkeit der Fehler** (keine Autokorrelation): Beobachtungen und Fehler sind unabhängig.
+$$\mbox{Cov}(\varepsilon_i,\varepsilon_j)=0,~\forall i\neq j$$
+
+B4 🔔 **Normalverteilung der Fehler**: Die Residuen (Fehler) sind normalverteilt.
+$$\varepsilon \sim \mathcal{N}(0, \sigma^2)$$
+]
+
+.panel[.panel-name[C-Annahmen...]
+### ...zur Variablen-Spezifikation
+
+C1 📌 **Fixiertheit der Regressoren**: Regressoren sind keine Zufallsvariablen (sie können vielmehr wie in einem Experiment kontrolliert werden).
+
+C2 🔄 **Keine perfekte Multikollinearität** ($X'X$ invertierbar): Die Regressoren dürfen nicht vollständig linear abhängig sein.
+
+]
+]
+
+.quelle[Vgl. ausführlich `r Cite(bib,"vonAuer_oekonometrie_2023")`.]
+
+
+
+???
+
+
+* Verletzung A1: fehlerhafte Modellspezifikation `r fa('circle-right')` verzerrte Schätzer
+
+A3: bspw. keine Strukturbrüche
+
+B1 Kontext 📐 **Exogenität** (auch: Orthogonalität): Die erklärenden Variablen (X) sind strikt exogen und folglich **nicht** mit dem Fehlerterm korreliert:
+$$\text{Cov}(X, \varepsilon) = 0$$
+Exogenität/Orthogonalität impliziert einen zentrierten Fehler $E(\varepsilon)=0$, aber nicht umgekehrt.
+
+
+Verletzung B1: Endogenitätsproblem `r fa('circle-right')` verzerrte OLS-Koeffizienten
+
+* Verletzung B1:
+  * Folgen: 
+     - Instabile Schätzer
+    - Aufgeblähte Standardfehler
+    - Geringere Testpower
+
+   * **Diagnose:**
+     - Korrelationsmatrix
+     - VIF (Variance Inflation Factor): Faustregel: VIF > 5 oder 10 = Warnsignal
+  
+B2: sonst: Inferenzproblem durch verzerrte Standardfehler
+B3: Freiheit von Autokorrelation, sonst: Inferenzproblem durch verzerrte Standarfehler)
+
+
+B4: Normalitätsannahme: wichtig für Konfidenzintervalle & Tests, aber nicht für BLUE
+
+* Verletzung von 4 (Unabhängigkeit Fehler): verzerrte Standardfehler - Probleme bei Inferenz (Tests etc.)
+
+* Verletzung 5 (Exogenität Regressoren): verzerrte OLS-Koeffizienten. Regressoren dürfen nicht systematisch mit unbeobachteten Faktoren (Fehlerterm) zusammenhängen.
+
+
+---
+class: left
+
+.blockquote[Refresher lineares Modell (`lm()`)]
+
+## Exkurs: Gauss-Markov-Theorem
+
+.blockquote[
+Unter den A-, B-, und C-Annahmen (ohne B4, Normalverteilung) ist der OLS-Schätzer der **beste lineare unverzerrte** Schätzer (BLUE: Best Linear Unbiased Estimator).
+]
+
+➡️ Die BLUE-Eigenschaft garantiert, dass der OLS-Schätzer im Rahmen der Annahmen nicht nur im Durchschnitt richtig liegt (unverzerrt ist), sondern auch unter allen linearen Verfahren am wenigsten streut – d.h. so präzise wie möglich ist. Dies **ohne** zusätzliche Informationen oder **komplexere Methoden zu benötigen**.
+
+✅ Ist zusätzlich die Normalverteilungsannahme (B4) erfüllt, dann ist der OLS-Schätzer effizient in der Klasse *sämtlicher* (auch nicht-linearer) unverzerrter Schätzer (BUE-Eigenschaft).
+
+
+
+---
+class: left
+
+.blockquote[Refresher lineares Modell (`lm()`)]
+
+## Regressionsdiagnostik
+
+.panelset[
+.panel[.panel-name[Typische Plots]
+1. Residuen vs. Fits (Annahmen A2 und B2)
+`r fa('circle-right')` Test auf Linearität & Homoskedastizität
+
+2. Normal Q-Q Plot (Annahme B4)
+`r fa('circle-right')` Test auf Normalverteilung der Fehler
+
+3. Scale-Location Plot (Annahme B2)
+`r fa('circle-right')` Alternativtest auf Homoskedastizität
+
+4. Residuals vs. Leverage (Ausreisser-Diagnostik)
+`r fa('circle-right')` Identifikation von einflussreichen Beobachtungen
+
+5. Cook’s Distance (Ausreisser-Diagnostik)
+`r fa('circle-right')` Visualisierung der Einflussstärke einzelner Fälle
+]
+.panel[.panel-name[Tests]
+
+* Homoskedastizität (B2) mit `car::ncvTest()`, `lmtest::bptest()`
+
+* Autokorrelation (B3) mit `car::durbinWatsonTest()`
+
+* Normalverteilung der Residuen (B4) mit `shapiro.test()`
+]
+.panel[.panel-name[Umsetzung in R]
+```{r}
+#| echo: true
+#| out-width: "40%"
+#| fig-align: "center"
+library(ggfortify)
+autoplot(reg_auto) + autoplot(reg_auto, which = 4) 
+```
+
+]
+.panel[.panel-name[Multikollinearität]
+
+* Korrelation der Regressoren `r fa('circle-right')` hoher Wert als Anfangsverdacht; aber keine hinreichende Bedingung!
+
+
+* Varianzinflation (Variance Inflation Factor, VIF)
+```{r}
+car::vif(reg_auto)
+```
+  * Faustregel: 
+    * VIF < 5: unproblematisch
+    * VIF > 5: Vorsicht geboten
+    * VIF > 10: Problematisch
+
+]
+]
+
+
+???
+
+* NCV: Non-constant-Variance Test
+* bptest: Breusch-Pagan-Test
+
+---
+class: left
+
+.blockquote[Refresher lineares Modell (`lm()`)]
+
+## Exkurs: Multikollinearität
+
+Bei Verstoss gegen Annahme C2:
+
+* Variablenauswahl
+  * Theoriegeleitete Auswahl statt rein datengetriebener Ansatz
+  * Stufenweise Regression mit AIC/BIC-Kriterien
+
+* Dimensionsreduktion
+  * Hauptkomponentenanalyse (PCA) vor der Modellierung
+  * Faktoranalyse zur Bildung von latenten Konstrukten
+
+* Regularisierung 
+  * Ridge Regression (L2) bspw. 
+  * LASSO (L1) für Variablenselektion
+
+???
+
+Regularisierung bspw. mit `glmnet()`-Funktion
+
+
+---
+class: left
+
+.blockquote[Generalisiertes lineares Modell (`glm()`)]
+
+## Wenn `lm()` an Grenzen stösst
+
+.panelset[
+.panel[.panel-name[Problem]
+⚠️ Probleme bei nicht-metrischen abhängigen Variablen $Y$
+
+🔍 Spezialfall $Y$ **binär** `r fa('circle-right')` keine Normalverteilung oder konstante Varianz möglich
+  * Residuen nicht sinnvoll interpretierbar  
+  * Homoskedastizität & Normalverteilung **prinzipiell verletzt**
+
+👉 uns interessiert: Wie wahrscheinlich ist das Ereignis $Y = 1$ bei gegebenem $X$?
+  * Modell muss **Vorhersagen in $[0,1]$** machen, weil...
+  * ...Wahrscheinlichkeiten per Definition zwischen 0 und 1 liegen
+]
+.panel[.panel-name[Visualisierung]
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out.width: "40%"
+#| fig.align: "center"
+# Pakete laden
+library(tidyverse)
+library(broom)
+
+# Simulierte Daten: Alter und Kaufwahrscheinlichkeit
+set.seed(42)
+n <- 100
+alter <- seq(15, 75, length.out = n)
+true_p <- 1 / (1 + exp(-(-6 + 0.1 * alter)))  # logistische Beziehung
+kauf <- rbinom(n, size = 1, prob = true_p)
+
+# Daten-Frame
+df <- tibble(alter, kauf)
+
+# Modelle
+mod_lm <- lm(kauf ~ alter, data = df)
+mod_glm <- glm(kauf ~ alter, family = binomial, data = df)
+
+# Vorhersagen mit tidy/augment
+pred_lm <- augment(mod_lm) %>%
+  select(alter, pred_lm = .fitted)
+
+pred_glm <- augment(mod_glm, type.predict = "response") %>%
+  select(alter, pred_glm = .fitted)
+
+# Zusammenführen
+plot_data <- df %>%
+  left_join(pred_lm, by = "alter") %>%
+  left_join(pred_glm, by = "alter")
+
+# Plot
+ggplot(plot_data, aes(x = alter, y = kauf)) +
+  geom_point(alpha = 0.5, color = "gray40") +
+  geom_line(aes(y = pred_lm), color = "red", size = 1.2) +
+#  geom_line(aes(y = pred_glm), color = "blue", size = 1.2) +
+  labs(
+#    title = "Problem der linearen Linkfunktion bei binärer AV",
+    subtitle = "Lineares Modell",
+    x = "Alter",
+    y = "Kauf (0/1)"
+  ) +
+  scale_y_continuous(limits = c(-0.1, 1.1), breaks = c(0, 0.5, 1)) +
+  theme_minimal(base_size = 14)
+```
+
+⚠️ Problem: Ein lineares Modell kann **nicht zulässige** Werte < 0 oder > 1 liefern!
+]
+]
+
+
+
+
+---
+class: left
+
+.blockquote[Generalisiertes lineares Modell (`glm()`)]
+
+## Wenn `lm()` an Grenzen stösst (cont'd)
+
+.panelset[
+.panel[.panel-name[Lösung]
+➡️ Verallgemeinerung des linearen Modells `r fa('circle-right')` **GLM**
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out.width: "50%"
+#| fig.align: "center"
+knitr::include_graphics(xfun::from_root('img','PVA3','GLM_Venn_(Lazic_2015).png'))
+```
+
+* GLM verknüpft *linearen* Prädiktor ($\eta=\beta_0 + \beta_1\cdot x_1 + \dots + \beta_k\cdot x_k$) und abhängige Variable $Y$ durch eine **Verknüpfungsfunktion (Linkfunktion)**.
+
+* Linkfunktionen transformiert *linearen Prädiktor* in eine **Wahrscheinlichkeit** $p$.
+
+* Wir modellieren also $P(Y=1|X)$ als Funktion von $X$.
+]
+.panel[.panel-name[Visualisierung]
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out.width: "35%"
+#| fig.align: "center"
+# Plot
+ggplot(plot_data, aes(x = alter, y = kauf)) +
+  geom_point(alpha = 0.5, color = "gray40") +
+  geom_line(aes(y = pred_lm), color = "red", size = 1.2) +
+  geom_line(aes(y = pred_glm), color = "blue", size = 1.2) +
+  labs(
+#    title = "Problem der linearen Linkfunktion bei binärer AV",
+    subtitle = "Logistische Regression (blau)",
+    x = "Alter",
+    y = "Kauf (0/1)"
+  ) +
+  scale_y_continuous(limits = c(-0.1, 1.1), breaks = c(0, 0.5, 1)) +
+  theme_minimal(base_size = 14)
+```
+➡️ Logistische Funktion transformiert linearen Prädiktor $\eta$ auf den Wertebereich $[0,1]$
+
+`r fa('exclamation-circle')` transformiert wird $\eta$, nicht $Y$ selbst.
+
+]
+]
+
+???
+
+Didaktischer Hinweis zu "Warum p?" 
+* Klar formulieren, warum $p$ überhaupt geschätzt werden muss:
+
+* Bei binären Variablen (0/1) interessiert uns nicht der Wert von $Y$, sondern die Wahrscheinlichkeit, mit der das Ereignis $Y=1$ auftritt - gegeben die erklärenden Variablen $X$. 
+
+* Wir modellieren also $P(Y=1|X)$ als Funktion von $X$.
+
+* Diese Argumentation hilft besonders, das Modellverständnis von
+  * **Vorhersage eines Wertes (bei lm)** hin zu 
+  * **Vorhersage einer Wahrscheinlichkeit (bei glm)** zu verschieben
+
+* Obs! Es wird nicht die abhängige Variable selbst transformiert!
+
+* **Transformationen**:
+Hier wird die abhängige Variable selbst transformiert (z.B. logarithmisch oder hochpotenziell), um die Normalverteilung und Linearität der Beziehung zu erfüllen.
+
+* **GLMs:**
+Hier wird die Verknüpfungsfunktion verwendet, um die Beziehung zwischen der linearen Prädiktion und der erwarteten abhängigen Variable zu modellieren
+
+
+
+---
+class: left
+
+.blockquote[Generalisiertes lineares Modell (`glm()`)]
+
+## Wahrscheinlichkeiten, Odds und die Logit-Funktion
+
+* Ausgangspunkt Wahrscheinlichkeit: $p =\frac{1}{1+e^{-\eta}}= \frac{1}{1 + e^{-(\beta_0 + \beta_1 x+ \dots + \beta_k\cdot x_k)}}$
+
+* Gegenwahrscheinlichkeit: $1-p=1-\frac{1}{1+e^{-\eta}} = \frac{e^{-\eta}}{1+e^{-\eta}}$
+
+
+* **Odds**
+
+$$\mbox{Odds}\equiv\frac{p}{1-p}=\frac{\frac{1}{1+e^{-\eta}}}{\frac{e^{-\eta}}{1+e^{-\eta}}}=\frac{1}{e^{-\eta}}=e^\eta$$
+
+* Logarithmieren liefert **Log-Odds** (aka Logit-Funktion)
+
+$$log\big(\frac{p}{1-p}\big)=log(e^\eta)=\eta=\beta_0 + \beta_1 x+ \dots + \beta_k\cdot x_k$$
+⚠️ Logit-Funktion als Verknüpfungsfunktion. ➡️ Mit der linearen Gleichung werden die sog. log-Odds geschätzt, nicht die Wahrscheinlichkeit!
+
+
+???
+
+* Odds: Wahrscheinlichkeit durch Gegenwahrscheinlichkeit. Ähnlich aber nicht zu verwexhseln mit Wettquoten. Genau genommen Kehrwert der Wettquoten, wie sie in UK angegeben werden.
+
+* Die lineare Schätzung liefert log-Odds des Zielereignisses, diese können dann durch logistische Transformation (inverse logit) in Wahrscheinlichkeiten überführt werden.
+
+$\hat{p} = \frac{1}{1 + e^{-\hat{\eta}}}$
+
+💬 **Für den Vortrag**:
+Was wir direkt schätzen, sind nicht Wahrscheinlichkeiten, sondern die Log-Odds.
+Damit wir Aussagen über Wahrscheinlichkeiten treffen können, müssen wir diese Werte erst nichtlinear transformieren.
+
+
+* Hinweis Odds:
+
+$$\mbox{Odds}(E)=\frac{x}{y}=\frac{x/(x+y)}{y/(x+y)}$$
+impliziert:
+$$P(E)=x/(x+y),~\mbox{bzw.}~~P(E^c)=y/(x+y)$$
+
+---
+class: left
+
+.blockquote[Generalisiertes lineares Modell (`glm()`)]
+
+## Exkurs: Verknüpfungsfunktionen im GLM
+
+.panelset[
+.panel[.panel-name[Linkfunktion]
+* Linkfunktion abhängig von der Natur der abhängigen Variablen: 
+  * Binärdaten: Logit, Probit 
+  * Zähldaten (nicht negativ): Log-Funktion (insbesondere bei Poisson-Verteilung)
+  * stetige Daten mit positivem Skew (Gamma): Inverser Link 
+  * normalverteilte Daten: Identitätslink  
+
+* Linkfunktionen für **binäre** abhängige Variablen
+
+| Funktion | Formel                              | Eigenschaften                     |
+|----------|-------------------------------------|-----------------------------------|
+| **Logit**   | $p = \frac{1}{1 + e^{-\eta}}$    | basiert auf logistischer Verteilung |
+| **Probit**  | $p = \Phi(\eta)$                 | basiert auf Normalverteilung        |
+
+]
+.panel[.panel-name[Logit vs. Probit]
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out.width: "55%"
+#| fig.align: "center"
+tibble(
+  eta = seq(-4, 4, length.out = 500),
+  logistic = 1 / (1 + exp(-eta)),
+  probit = pnorm(eta)
+) %>%
+  pivot_longer(-eta, names_to = "link", values_to = "p") %>%
+  ggplot(aes(x = eta, y = p, color = link)) +
+  geom_line(size = 1.2) +
+  scale_color_manual(values = c("logistic" =FFHSred, "probit" = FFHSpurp)) +
+  labs(
+    title = "Logistische vs. Probit-Linkfunktion",
+    subtitle = "Transformation von η in Wahrscheinlichkeit p",
+    x = expression(eta),
+    y = "p",
+    color = "Linkfunktion"
+  ) +
+  theme_minimal(base_size = 16)
+```
+
+]
+]
+
+
+
+???
+
+* Beide sind **streng monoton steigend**
+* Beide transformieren \(\eta \in (-\infty, \infty)\) → \(p \in (0, 1)\)
+* Logit = logistische Verteilung → schwerere Tails
+* Probit = Normalverteilung → stärker zentriert
+* **In der Praxis oft sehr ähnliche Ergebnisse**
+
+* Logistische Linkfunktion $p =\frac{1}{1+e^{-\eta}}$
+
+mit einer Wahrscheinlichkeit $p$:
+
+$$p =\frac{1}{1+e^{-\eta}}= \frac{1}{1 + e^{-(\beta_0 + \beta_1 x+ \dots + \beta_k\cdot x_k)}}$$
+
+- Transformiert Werte aus $(-\infty, \infty)$ in den Bereich $[0, 1]$
+- Ideal für **binäre abhängige Variablen**
+- **Inverse** zur logit-Linkfunktion im GLM
+
+
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out.width: "60%"
+#| fig.align: "center"
+tibble(
+  eta = seq(-10, 10, by = 0.1),
+  p = 1 / (1 + exp(-eta))
+) %>%
+  ggplot(aes(x = eta, y = p)) +
+  geom_line(color = "steelblue", size = 1.5) +
+  labs(
+    title = "Logistische Funktion",
+    subtitle = "Transformiert linearen Prädiktor η in Wahrscheinlichkeit p",
+    x = expression(eta == beta[0] + beta[1]*x),
+    y = "p"
+  ) +
+  theme_minimal(base_size = 16)
+```
 
 
 
@@ -126,39 +686,568 @@ class: inverse, center, middle
 ---
 class: left
 
-## Sampling
+.blockquote[Generalisiertes lineares Modell (`glm()`)]
+
+## Annahmen der logistischen Regression
+
+1. Linearität im Logit:
+  * Die Log-Odds müssen linear mit den unabhängigen Variablen zusammenhängen
+  * Test: Box-Tidwell-Transformation oder Plots der Logits gegen die Prädiktoren
+2. Unabhängigkeit der Beobachtungen: Keine Autokorrelation (analog lineare Regression)
+3. Keine perfekte Multikollinearität
+    * Wie bei linearer Regression, aber VIF-Werte müssen mit Vorsicht interpretiert werden
+    * VIF über 2.5 kann bereits problematisch sein (strenger als bei linearer Regression)
+4. Ausreichend große Stichprobe: Als Faustegel mindestens 10 Fälle der selteneren Kategorie pro Prädiktor
+5. Keine extremen Ausreißer oder einflussreichen Fälle (Cook's Distance und Leverage-Werte wie bei linearer Regression)
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Generalisiertes lineares Modell (`glm()`)]
+
+## Vergleich Lineare vs. Logistische Regression
+
+| **Aspekt**              | **Lineare Regression**                                           | **Logistische Regression**                                                |
+|-------------------------|------------------------------------------------------------------|---------------------------------------------------------------------------|
+| **Abhängige Variable**  | Metrisch, kontinuierlich                                         | Binär (0/1)                                                               |
+| **Funktionsform**       | $Y = \beta_0 + \beta_1 X + \varepsilon$                          | $\eta = \beta_0 + \beta_1 X = \log\left(\frac{p}{1-p}\right)$                    |
+| **Interpretation**      | Direkte Änderung in $Y$                                          | Änderung in Log-Odds bzw. Wahrscheinlichkeit                             |
+| **Schätzmethode**       | OLS (Kleinste Quadrate)                                          | Maximum Likelihood                                                       |
+| **Annahmen**            | Linearität, Normalverteilung, Homoskedastizität                 | Keine Normalverteilung nötig                                             |
+| **Vorhersagen**         | Kontinuierliche Werte                                            | Wahrscheinlichkeiten im Bereich [0,1]                                    |
+
+⚠️ Bei binären AV ist lineare Regression konzeptionell ungeeignet!
+
+???
+
+Die logistische Regression modelliert die Log-Odds (also den Logit) der Wahrscheinlichkeit $p$ als lineare Funktion der Prädiktoren
+$$\eta = \beta_0 + \beta_1 X = \log\left(\frac{p}{1-p}\right)$$
+
+
+---
+class: inverse,center,middle
+
+# Wir brauchen eine Pause.
+
+---
+
+background-image: url("http://bit.ly/cs631-donkey")
+background-size: 80%
+
+
+
+---
+class: inverse, center, middle
+
+## Logistische Regression:
+
+.blockquote[Anwendungsgebiete]
+
+.blockquote[Modellierung und Umsetzung in R]
+
+
+.blockquote[Interpretation]
+
+
+
+---
+class: left
+
+.blockquote[Anwendungsgebiete]
+
+## Einsatzbereiche der logistischen Regression
+
+.panelset[
+.panel[.panel-name[Marketing]
+### Marketing & Kundenverhalten
+
+- **Kaufentscheidungen vorhersagen**
+  - Wahrscheinlichkeit für Conversion (Kauf/kein Kauf)
+  - Einfluss von Preisgestaltung, Werbung, Demografie
+
+- **Kundensegmentierung**
+  - Wahrscheinlichkeit für Zugehörigkeit zu einem Segment
+  - Basis für personalisiertes Marketing
+
+- **Churn-Prognose**
+  - Wahrscheinlichkeit, dass Kunde abwandert
+  - Gezielte Retention-Maßnahmen ermöglichen
+]
+.panel[.panel-name[Finance]
+### Finanzwesen
+
+- **Kreditwürdigkeit**
+  - Wahrscheinlichkeit für Kreditausfall (Scorecard-Modelle)
+  - Regulatorische Vorgaben (Basel) erfordern explizite Risikomodellierung
+
+- **Betrugserkennung** 
+  - Klassifikation von Transaktionen als verdächtig/unbedenklich
+  - Echtzeitentscheidungen bei Kartentransaktionen
+
+- **Investitionsentscheidungen**
+  - Vorhersage von binären Marktereignissen (z.B. Kurseinbruch ja/nein)
+]
+.panel[.panel-name[Etc.]
+
+* Medizinische Diagnostik
+    - Risikoprognose (Krankheitsausbruch bei bestimmten Risikofaktoren, z.B. Diabetes, Herzerkrankungen)
+    - Diagnoseunterstützung (Bildgebungsverfahren und Klassifikation von Befunden)
+    - Therapieerfolg (Vorhersage der Wahrscheinlichkeit eines positiven Behandlungsverlaufs)
+
+* Politik(wissenschaft): Wahlerfolg Partei A vs. Partei B
+
+* Informatik: Spamfilter (ja/nein)
+
+* Geologie: Bergsturz (ja/nein)
+
+* ...
+]
+]
+
+???
+
+* Wahrscheinlichkeiten helfen bei Ressourcenallokation:
+
+  * Welche Kunden soll man priorisieren?
+
+  * Wann ist ein Kundenverlust wahrscheinlich?
+
+  * Welche Patienten sind Risikofälle?
+
+
+---
+class: left
+
+.blockquote[Modellierung und Umsetzung in R]
+
+## Beispiel: Diskriminierung in Bewerbungsverfahren
+
 
 ```{r}
 #| echo: false
-#| message: false
-#| out-width: '90%'
-#| fig-align: 'center'
-library(tidyverse)
-## Import data -----
-my_in_file <- "autos_(StockerUIBK)_20240414.csv"
-tbl_autos <- read_csv2(xfun::from_root("data","raw",my_in_file))
-p <- tbl_autos %>% 
-          ggplot(aes(x=Alter,y=Preis)) + 
-              geom_point() + theme_light() + 
-              geom_smooth(method = "lm", se = FALSE) +
-              scale_x_continuous(limits=c(0,6),breaks=seq(0, 5, 1)) +
-              scale_y_continuous(limits=c(0,26000),breaks=seq(0, 25000, 5000)) + 
-              labs(x="Alter (in Jahren)",y="Preis",title="Gebrauchtwagen")
-
-set.seed(23)
-tbl_autos_sub1 <- tbl_autos %>% 
-                      sample_n(size=7,replace=FALSE)
-
-p_sub1 <- p +  geom_point(data=tbl_autos_sub1, color="#d50006") +
-              geom_smooth(data=tbl_autos_sub1, color="#d50006",method = "lm", se = FALSE)
-
-set.seed(9)
-tbl_autos_sub2 <- tbl_autos %>% 
-                      sample_n(size=7,replace=FALSE)
-p_sub2 <- p_sub1 +  geom_point(data=tbl_autos_sub2, color="#502479") +
-              geom_smooth(data=tbl_autos_sub2, color="#502479",method = "lm", se = FALSE)
-p_sub2
+#| out.width: "100%"
+#| fig.align: "center"
+knitr::include_url("https://www.jstor.org/stable/3592802", height="450px")
 ```
+
+???
+
+* To evaluate which factors were important, job postings were identified in Boston and Chicago for the study, and **researchers created many fake resumes** to send off to these jobs **to see which would elicit a callback**.
+
+* The researchers enumerated important characteristics, such as years of experience and education details, and they used these characteristics to randomly generate fake resumes. Finally, they **randomly assigned a name to each resume, where the name would imply the applicant’s sex and race**.
+
+* The first names that were used and randomly assigned in the experiment were selected so that they would **predominantly be recognized as belonging to Black or White** individuals; **other races were not considered** in the study. 
+
+* Da man aber nicht mit absoluter Sicherheit sagen kann, ob ein Name "eindeutig" als *schwarz* oder *weiß* wahrgenommen wird, 
+  * führten die Forschenden eine Umfrage durch. In dieser Umfrage prüften sie, wie die Namen von tatsächlichen Personen wahrgenommen werden: 
+  * Wenn ein Name in der Umfrage nicht klar einer bestimmten Rassenzugehörigkeit zugeordnet wurde, dann wurde er aus dem Experiment ausgeschlossen.
+
+
+
+---
+class: left
+
+.blockquote[Modellierung und Umsetzung in R]
+
+## Diskriminierungsbeispiel: Daten
+
+```{r}
+#| eval: false
+library(openintro)
+#Das Paket enthält u.a. die resume-Daten
+resume %>% 
+  select(firstname,race,gender,received_callback)
+
+```
+```{r}
+#| echo: false
+#| message: false
+library(openintro)
+library(DT)
+resume %>% 
+    select(firstname,race,gender, received_callback) %>%    # nur die relevanten Spalten
+                #distinct() %>%                       # eindeutige Kombinationen
+                arrange(firstname) %>% 
+datatable(
+          options = list(
+             scrollX = TRUE,
+             scrollY = "230px",
+             scrollCollapse = TRUE,
+             autoWidth = FALSE,
+             columnDefs = list(list(width = '100px', targets = "_all"))
+          ),
+          rownames = FALSE,
+          width = "100%")
+```
+
+.quelle[vgl. `r Cite(bib,"crh_intro_2024")`, Kap. 9 und 26).]
+
+
+???
+
+
+---
+class: left
+
+.blockquote[Modellierung und Umsetzung in R]
+
+## Diskrimierungsbeispiel: Variablenauswahl
+
+
+| Variable            | Description                                                                                     |
+|---------------------|-------------------------------------------------------------------------------------------------|
+| received_callback   | Specifies whether the employer called the applicant following submission of the application.   |
+| job_city            | City where the job was located: Boston or Chicago.                                              |
+| college_degree      | Indicator for whether the resume listed a college degree.                                       |
+| years_experience    | Number of years of experience listed on the resume.                                             |
+| honors              | Indicator for the resume listing some sort of honors, e.g. employee of the month.              |
+| military            | Indicator for if the resume listed any military experience.                                     |
+| race                | Race of the applicant, implied by their first name listed on the resume.                        |
+
+
+---
+class: left
+
+.blockquote[Modellierung und Umsetzung in R]
+
+## Diskrimierungsbeispiel: Explorative Datenanalyse
+
+📝 **Aufgabe:** Interpretiert die Statistik bzw. den Boxplot.
+
+```{r}
+#| echo: false
+resume %>% 
+  janitor::tabyl(received_callback,race) %>% gt()
+```
+
+
+```{r}
+#| echo: false
+#| out-width: "40%"
+#| fig-align: "center"
+resume %>% 
+  ggplot(aes(x=factor(received_callback),y=years_experience)) + geom_boxplot() +
+  labs(x="Rückruf erhalten", y="Berufserfahrung (in Jahren)") + theme_light()
+```
+
+---
+class: left
+
+.blockquote[Modellierung und Umsetzung in R]
+
+## Logistische Regression: Durchführung und Interpretation
+
+```{r}
+mod_full <- resume %>% 
+              select(received_callback, job_city,college_degree,years_experience,honors,military,has_email_address,race,gender) %>% 
+              glm(received_callback~., family =  binomial,.) 
+library(broom)
+mod_full %>% 
+  glance()  %>% gt()
+```
+
+???
+
+Der Akaike Information Criterion (AIC) ist ein Maß zur Modellbewertung und dient dem Vergleich von statistischen Modellen hinsichtlich ihrer Güte und Komplexität.
+
+---
+class: left
+
+.blockquote[Modellierung und Umsetzung in R]
+
+## Modellselektion mit dem AIC
+
+* Akaike Information Criterion (AIC) kann analog zum angepassten Bestimmtheitsmass (adj $R^2$) verwendet werden, um die Modellgüte zu beurteilen.
+
+```{r}
+mod_disc <- resume %>% 
+              select(received_callback, job_city,years_experience,honors,military,has_email_address,race,gender) %>% 
+              glm(received_callback~., family =  binomial,.) 
+mod_disc %>% 
+  glance()  %>% gt()
+```
+
+⚠️ Ohne `college_degree` sinkt AIC nur minimal 
+
+
+
+---
+class: left
+
+.blockquote[Modellierung und Umsetzung in R]
+
+## Regressionstabelle mit log-Odds (Koeffizienten)
+
+```{r}
+mod_disc %>% 
+  tidy() %>% gt()
+```
+???
+
+Vorhersagen und Residuen mit
+
+```{r}
+mod_disc %>% 
+  augment() %>% head() %>%  gt()
+```
+
+---
+class: left
+
+.blockquote[Interpretation der Ergebnisse]
+
+## Logistische Regression: Interpretation der Koeffizienten
+
+.panelset[
+.panel[.panel-name[Herausforderung]
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out.width: "35%"
+#| fig.align: "center"
+# Visualisierung der Nicht-Linearität
+library(tidyverse)
+
+# Funktion zur Berechnung der Wahrscheinlichkeit
+logit_prob <- function(x, beta0 = -3, beta1 = 0.5) {
+  eta <- beta0 + beta1 * x
+  p <- 1 / (1 + exp(-eta))
+  return(p)
+}
+
+# Datenpunkte erstellen
+x_values <- seq(0, 12, 0.1)
+prob_values <- logit_prob(x_values)
+
+# Plot erstellen
+ggplot(data = tibble(x = x_values, p = prob_values), aes(x = x, y = p)) +
+  geom_line(color = "blue", size = 1.5) +
+  geom_point(data = tibble(x = c(2, 4, 6, 8, 10), 
+                           p = logit_prob(c(2, 4, 6, 8, 10))),
+             size = 3, color = "red") +
+  geom_segment(data = tibble(x1 = c(2, 4, 6, 8),
+                            x2 = c(4, 6, 8, 10),
+                            y1 = logit_prob(c(2, 4, 6, 8)),
+                            y2 = logit_prob(c(4, 6, 8, 10))),
+               aes(x = x1, xend = x2, y = y1, yend = y2),
+               linetype = "dashed", color = "darkgreen") +
+  annotate("text", x = 2, y = logit_prob(3) + 0.05, 
+           label = "Δp = 0.12", color = "darkgreen") +
+  annotate("text", x = 7, y = logit_prob(8) + 0.05, 
+           label = "Δp = 0.25", color = "darkgreen") +
+  labs(x = "Prädiktor X", 
+       y = "Wahrscheinlichkeit p"#,
+    #   title = "Nicht-lineare Beziehung",
+       #subtitle = "Gleiche Änderung in X führt zu unterschiedlichen Änderungen in p"
+  ) +
+  theme_minimal(base_size = 16)
+```
+
+⚠️ **Nicht-Linearität** in der logistischen Regression: Gleiche Änderung in X führt zu unterschiedlichen Änderungen in p!
+
+➡️ Interpretation der Koeffizienten nicht so intuitiv wie bei linearer Regression
+]
+.panel[.panel-name[Koeffizienten]
+
+$$\log\left(\frac{p}{1-p}\right) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_k X_k$$
+
+- **Interpretation von $\beta_j$**:
+  - Einheit: Änderung im Log-Odds wenn $X_j$ um 1 Einheit steigt
+  - Vorzeichen: Richtung des Effekts (positiv = erhöht Wahrscheinlichkeit)
+  
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out-width: "65%"
+knitr::kable(
+  tibble(
+    Koeffizient = c("β = 0", "β > 0", "β < 0"),
+    Bedeutung = c("Kein Einfluss auf p", "Positiver Einfluss auf p", "Negativer Einfluss auf p"),
+    Odds_Ratio = c("OR = 1", "OR > 1", "OR < 1")
+  ),
+  format = "html",
+  caption = "Interpretation der Koeffizienten"
+)
+```
+
+⚠️ $\beta$-Werte direkt schwer zu interpretieren!
+]
+.panel[.panel-name[Odds Ratio]
+$$\text{OR} = e^{\beta_j}$$
+
+- **Interpretation**:
+  - Multiplikativer Effekt auf das Chancenverhältnis (Odds)
+  - OR = 1.5 → Die Odds steigen um 50% pro Einheit in $X_j$
+  - OR = 0.8 → Die Odds sinken um 20% pro Einheit in $X_j$
+- **Beispiel:**
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out-width: "65%"
+knitr::kable(
+  tibble(
+    Prädiktor = c("Alter (Jahre)", "Geschlecht (m=1)", "Einkommen (10K €)"),
+    Koeffizient = c(0.05, 1.20, 0.30),
+    Odds_Ratio = c("1.05", "3.32", "1.35"),
+    Interpretation = c("5% höhere Odds pro Lebensjahr", "3.3-fache Odds für Männer", "35% höhere Odds pro 10K € Einkommen")
+  ),
+  format = "html",
+  caption = "Beispiel: Odds Ratios und Interpretation"
+)
+```
+
+➡️ OR = e^β macht den Effekt intuitiv verständlich!
+]
+]
+
+
+
+
+---
+class: left
+
+.blockquote[Interpretation der Ergebnisse]
+
+## Diskriminierungsbeispiel: Wahrscheinlichkeit für einen Rückruf
+
+.panelset[
+.panel[.panel-name[log-Odds]
+$$
+\begin{align*}
+\log_e\left(\frac{\hat{p}}{1-\hat{p}}\right) =\ & -2.7162 \\
+& - 0.4364 \cdot \text{job_city}_{\text{Chicago}} \\
+& + 0.0206 \cdot \text{years_experience} \\
+& + 0.7634 \cdot \text{honors} \\
+& + 0.3443 \cdot \text{military} \\
+& + 0.2221 \cdot \text{email} \\
+& + 0.4429 \cdot \text{race}_{\text{White}} \\
+& - 0.1959 \cdot \text{sex}_{\text{Male}}
+\end{align*}
+$$
+]
+.panel[.panel-name[Beispiel]
+* Beispiel: Kandidat für einen Job in Chicago mit 14 Jahren Berufserfahrung, ohne Auszeichnungen und Militärdienst, mit Email-Adresse und einem Namen, der "weiss klingt":
+$$
+\begin{align*}
+\log_e\left(\frac{\hat{p}}{1-\hat{p}}\right) =\ & -2.7162 \\
+& - 0.4364 \cdot 1 \\
+& + 0.0206 \cdot 14 \\
+& + 0.7634 \cdot 0 \\
+& + 0.3443 \cdot 0 \\
+& + 0.2221 \cdot 1 \\
+& + 0.4429 \cdot 1 \\
+& - 0.1959 \cdot 1 \\
+= &\ -2.3955
+\end{align*}
+$$
+
+
+* Somit beträgt die Rückruf-Wahrscheinlichkeit:
+
+$$\hat{p}=\frac{e^{-2.3955}}{1+e^{-2.3955}}=0.0835 \implies \approx 8\%$$
+]
+]
+
+
+
+
+---
+class: left
+
+.blockquote[Interpretation der Ergebnisse]
+
+## Marginal Effects - Alternative zur Interpretation
+
+.panelset[
+.panel[.panel-name[Konzept]
+### Marginal Effects: Intuitive Alternative
+
+- **Definition**: Änderung in der Wahrscheinlichkeit bei Änderung des Prädiktors um 1 Einheit
+- **Vorteil**: Direkte Aussage zur Wahrscheinlichkeit (statt Log-Odds)
+- **Berechnung**: $\frac{\partial p}{\partial X_j} = \beta_j \cdot p \cdot (1-p)$
+]
+.panel[.panel-name[Visualisierung]
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out.width: "40%"
+#| fig.align: "center"
+# Funktion für marginale Effekte
+marginal_effect <- function(x, beta0 = -3, beta1 = 0.5) {
+  p <- logit_prob(x, beta0, beta1)
+  me <- beta1 * p * (1-p)
+  return(me)
+}
+
+# Datenpunkte erstellen
+me_values <- marginal_effect(x_values)
+
+# Plot erstellen
+ggplot(data = tibble(x = x_values, me = me_values), aes(x = x, y = me)) +
+  geom_line(color = "purple", size = 1.5) +
+  labs(x = "Prädiktor X", 
+       y = "Marginaler Effekt",
+       title = "Marginaler Effekt in Abhängigkeit von X",
+       subtitle = "Maximaler Effekt bei p = 0.5") +
+  theme_minimal(base_size = 16)
+```
+
+⚠️ Marginale Effekte variieren je nach Ausprägung der Prädiktoren
+]
+.panel[.panel-name[Arten]
+### Arten von Marginalen Effekten
+
+| Typ | Beschreibung | Verwendung |
+|-----|--------------|------------|
+| **MEM** (Marginal Effects at Means) | Effekt an den Mittelwerten aller Variablen | Für "durchschnittliche" Aussagen |
+| **AME** (Average Marginal Effects) | Durchschnitt der individuellen marginalen Effekte | Für populationsweite Aussagen |
+| **MER** (Marginal Effects at Representative values) | Effekt bei spezifischen Werten | Für konkrete Szenarien |
+
+]
+.panel[.panel-name[Beispiel AME]
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+knitr::kable(
+  tibble(
+    Prädiktor = c("Alter (Jahre)", "Geschlecht (m=1)", "Einkommen (10K €)"),
+    AME = c("0.010", "0.214", "0.058"),
+    Interpretation = c("1 Prozentpunkt erhöhte Wahrscheinlichkeit pro Lebensjahr", "21.4 Prozentpunkte erhöhte Wahrscheinlichkeit für Männer", "5.8 Prozentpunkte erhöhte Wahrscheinlichkeit pro 10K € Einkommen")
+  ),
+  format = "html",
+  caption = "Average Marginal Effects (AME)"
+)
+```
+➡️ Direkte Aussage zur Änderung der Wahrscheinlichkeit in Prozentpunkten!
+
+]
+]
+
+???
+
+* Warum ist das Maximum bei $p=0,5$?
+  * Marginaler Effekt: $$\mbox{Marginaler Effekt} = \frac{\partial p(x)}{\partial x}=\beta_1\cdot p(x)\cdot (1-p(x))$$
+  * Die Funktion $f(p)=p(1-p)$ ist eine quadratische Funktion, die ein Maximum bei $p=0,5$ hat.
+  * Dies zeigt die Ableitung: $$\frac{d}{dp}[p(1−p)]=1−2p
+  * Setze die Ableitung gleich 0: $1−2p=0⇒p=0,5$
+  * Extremwert von $p(1−p)$, was wiederum den maximalen marginalen Effekt ergibt (da $\beta_1$  konstant ist).
+
+* Intuition:
+  * Bei $p=0.5$ ist die Unsicherheit am größten - die Modellwahrscheinlichkeit liegt "in der Schwebe", also mittig zwischen 0 und 1.
+  * Hier reagiert die Wahrscheinlichkeit am empfindlichsten auf Veränderungen von $X$.
+  * Bei sehr kleinen oder großen $p$ (also nahe 0 oder 1) ist das Modell "sicher", und Änderungen in $X$ ändern $p$ kaum noch → marginaler Effekt fast 0. 
+
+
 
 
 
