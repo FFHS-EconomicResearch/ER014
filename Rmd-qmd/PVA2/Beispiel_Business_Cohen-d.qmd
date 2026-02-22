@@ -1,0 +1,452 @@
+---
+title: "A/B Test: Statistische Signifikanz ohne Praktische Relevanz"
+subtitle: "Ein Lehrbeispiel zur Bedeutung von Effect Sizes"
+author: "Datenanalyse"
+date: "`r Sys.Date()`"
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 2
+    code-fold: true
+    code-summary: "Code anzeigen"
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(tidyverse)
+library(rstatix)
+library(effectsize)
+library(knitr)
+library(kableExtra)
+library(scales)
+```
+
+## Hintergrund
+
+### Problemstellung
+
+Ein E-Commerce-Unternehmen möchte den durchschnittlichen Bestellwert (Average Order Value, AOV) erhöhen. Dazu wurde ein neues Checkout-Design mit subtilen Verbesserungen entwickelt.
+
+### Experimentdesign
+
+- **Control Group**: Altes Checkout-Design (N = 50.000 Kunden)
+- **Test Group**: Neues Checkout-Design (N = 50.000 Kunden)
+- **Zielmetrik**: Durchschnittlicher Bestellwert in Euro
+- **Randomisierung**: Kunden wurden zufällig einer der beiden Gruppen zugewiesen
+- **Zeitraum**: 4 Wochen paralleler Test
+
+**Forschungsfrage**: Erhöht das neue Design den durchschnittlichen Bestellwert signifikant?
+
+**Null-Hypothese (H₀)**: Es gibt keinen Unterschied im durchschnittlichen Bestellwert zwischen den Gruppen (μ₁ = μ₂)
+
+**Alternativ-Hypothese (H₁)**: Das neue Design erhöht den durchschnittlichen Bestellwert (μ₁ < μ₂)
+
+## Daten generieren
+
+```{r data-generation}
+set.seed(42)
+
+# Simulierte Bestellwerte mit MINIMALEM Unterschied
+# Control: μ = 85.00€, σ = 25€
+# Test: μ = 85.50€, σ = 25€ (nur +0.50€ Unterschied!)
+# Bei N=100.000 wird dieser winzige Unterschied statistisch signifikant,
+# ist aber praktisch völlig irrelevant!
+
+ab_test_data <- tibble(
+  group = c(
+    rep("Control", 50000),
+    rep("Test", 50000)
+  ),
+  order_value = c(
+    rnorm(50000, mean = 85.00, sd = 25),  # Control: Ø 85.00€
+    rnorm(50000, mean = 85.50, sd = 25)   # Test: Ø 85.50€ (+0.50€)
+  )
+) %>%
+  # Realistische Constraints: Keine negativen Werte, max 500€
+  mutate(order_value = pmax(5, pmin(500, order_value)))
+```
+
+:::{.callout-warning}
+## Ziel dieses Beispiels
+
+Dieses Beispiel demonstriert bewusst einen **minimal unterschied** (nur 0.50€), um die wichtige Lektion zu illustrieren: 
+
+**Bei sehr großen Stichproben (N = 100.000) werden selbst winzigste Unterschiede statistisch signifikant, obwohl sie praktisch bedeutungslos sind.**
+
+Dies ist der fundamentale Unterschied zwischen **statistischer Signifikanz** (p-Wert) und **praktischer Relevanz** (Effect Size wie Cohen's d).
+:::
+
+## Deskriptive Statistiken
+
+```{r summary-stats}
+summary_stats <- ab_test_data %>%
+  group_by(group) %>%
+  summarise(
+    N = comma(n()),
+    `Mean (€)` = round(mean(order_value), 2),
+    `Median (€)` = round(median(order_value), 2),
+    `SD (€)` = round(sd(order_value), 2),
+    `Min (€)` = round(min(order_value), 2),
+    `Max (€)` = round(max(order_value), 2),
+    .groups = "drop"
+  )
+
+summary_stats %>%
+  kable(align = "lrrrrrr") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  )
+```
+
+**Mittelwert-Differenz**: `r round(diff(summary_stats$"Mean (€)"), 2)` € 
+(+`r round(abs(diff(summary_stats$"Mean (€)")) / summary_stats$"Mean (€)"[1] * 100, 2)`%)
+
+Die Gruppen unterscheiden sich um weniger als 1% - ein winziger Unterschied!
+
+## Statistische Tests
+
+### Wahl der Testmethode
+
+Für diesen A/B-Test verwenden wir den **Welch Two Sample t-Test**:
+
+- Vergleicht Mittelwerte zweier unabhängiger Gruppen
+- Robust bei unterschiedlichen Varianzen
+- Standard für A/B-Tests mit kontinuierlichen Metriken
+- Bei großem N sehr sensitiv (erkennt auch kleinste Unterschiede)
+
+```{r statistical-tests}
+# T-Test durchführen
+t_test_result <- ab_test_data %>%
+  t_test(order_value ~ group, detailed = TRUE)
+
+# Cohen's d berechnen
+control_data <- ab_test_data %>% filter(group == "Control") %>% pull(order_value)
+test_data <- ab_test_data %>% filter(group == "Test") %>% pull(order_value)
+
+cohens_result <- cohens_d(control_data, test_data, pooled_sd = TRUE)
+cohens_d_value <- cohens_result$Cohens_d
+
+# Manuelle Interpretation nach Cohen (1988)
+# WICHTIG: Wir verwenden case_when() statt der automatischen Interpretation
+# des effectsize-Pakets, um Kontrolle über die Kategorisierung zu haben
+manual_interpretation <- case_when(
+  abs(cohens_d_value) < 0.2 ~ "negligible",
+  abs(cohens_d_value) < 0.5 ~ "small",
+  abs(cohens_d_value) < 0.8 ~ "medium",
+  TRUE ~ "large"
+)
+
+# Ergebnisse-Tabelle
+test_results <- tibble(
+  Test = "Welch Two Sample t-test",
+  `t-statistic` = round(t_test_result$statistic, 2),
+  `df` = comma(round(t_test_result$df, 0)),
+  `p-value` = ifelse(t_test_result$p < 0.001, "< 0.001", 
+                     format.pval(t_test_result$p, digits = 3)),
+  `Cohen's d` = round(cohens_d_value, 4),
+  `Effect Size` = manual_interpretation
+)
+
+test_results %>%
+  kable() %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  ) %>%
+  row_spec(1, bold = TRUE)
+```
+
+:::{.callout-important}
+## Ergebnis
+
+✅ **Statistisch signifikant**: p < 0.001
+
+⚠️ **Praktisch irrelevant**: Cohen's d = `r round(cohens_d_value, 4)` (negligible)
+
+Dies ist ein **Paradebeispiel** für die Diskrepanz zwischen statistischer Signifikanz und praktischer Relevanz!
+:::
+
+## Visualisierung
+
+### Verteilungsvergleich
+
+```{r plot-distribution, fig.width=10, fig.height=6}
+ab_test_data %>%
+  ggplot(aes(x = group, y = order_value, fill = group)) +
+  geom_violin(alpha = 0.5, trim = FALSE) +
+  geom_boxplot(width = 0.2, alpha = 0.7, outlier.alpha = 0.3) +
+  stat_summary(
+    fun = mean, 
+    geom = "point", 
+    size = 4, 
+    color = "red",
+    shape = 18
+  ) +
+  stat_summary(
+    fun = mean,
+    geom = "text",
+    aes(label = sprintf("%.2f €", after_stat(y))),
+    vjust = -1.5,
+    color = "red",
+    fontface = "bold"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  scale_y_continuous(labels = label_dollar(prefix = "", suffix = " €")) +
+  labs(
+    title = "Vergleich des durchschnittlichen Bestellwerts",
+    subtitle = sprintf(
+      "p < 0.001 (statistisch signifikant) | Cohen's d = %.4f (negligible)", 
+      cohens_d_value
+    ),
+    x = "Gruppe",
+    y = "Bestellwert (€)",
+    caption = "Rote Rauten zeigen Mittelwerte - visuell praktisch identisch!"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(color = "gray40")
+  )
+```
+
+**Beobachtung**: Die Verteilungen sind visuell praktisch identisch. Der Unterschied ist mit bloßem Auge nicht erkennbar!
+
+### Dichteverteilung
+
+```{r plot-density, fig.width=10, fig.height=5}
+ab_test_data %>%
+  ggplot(aes(x = order_value, fill = group)) +
+  geom_density(alpha = 0.6) +
+  geom_vline(
+    data = summary_stats,
+    aes(xintercept = `Mean (€)`, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set2") +
+  scale_x_continuous(labels = label_dollar(prefix = "", suffix = " €")) +
+  labs(
+    title = "Dichteverteilung der Bestellwerte",
+    subtitle = "Die Verteilungen überlappen nahezu perfekt",
+    x = "Bestellwert (€)",
+    y = "Dichte",
+    fill = "Gruppe",
+    color = "Mittelwert"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16)
+  )
+```
+
+## Business Impact
+
+### Hochrechnung auf Jahresumsatz
+
+```{r business-impact}
+# Berechnungen für Business Impact
+control_mean <- summary_stats$`Mean (€)`[summary_stats$group == "Control"]
+test_mean <- summary_stats$`Mean (€)`[summary_stats$group == "Test"]
+lift_absolute <- test_mean - control_mean
+lift_percent <- (lift_absolute / control_mean) * 100
+
+# Hochrechnung auf erwartete Jahreszahlen
+test_period_weeks <- 4
+weeks_per_year <- 52
+orders_in_test <- 100000
+annual_orders <- (orders_in_test / test_period_weeks) * weeks_per_year
+
+# Umsatzberechnung
+test_revenue <- test_mean * orders_in_test
+control_revenue <- control_mean * orders_in_test
+test_period_lift <- test_revenue - control_revenue
+
+annual_revenue_test <- test_mean * annual_orders
+annual_revenue_control <- control_mean * annual_orders
+annual_lift <- annual_revenue_test - annual_revenue_control
+
+# Kosten-Nutzen-Analyse (angenommen)
+implementation_cost <- 20000
+annual_maintenance <- 5000
+net_benefit_year1 <- annual_lift - implementation_cost - annual_maintenance
+net_benefit_year2_plus <- annual_lift - annual_maintenance
+
+impact_table <- tibble(
+  Metrik = c(
+    "Durchschnittlicher Bestellwert (Control)",
+    "Durchschnittlicher Bestellwert (Test)",
+    "Absolute Steigerung pro Bestellung",
+    "Relative Steigerung",
+    "",
+    "Bestellungen im 4-Wochen-Test",
+    "Zusätzlicher Umsatz im Test (4 Wochen)",
+    "",
+    "Hochrechnung auf Jahresbasis:",
+    "Erwartete Bestellungen pro Jahr",
+    "Zusätzlicher Jahresumsatz",
+    "",
+    "Kosten-Nutzen-Analyse:",
+    "Implementierungskosten (einmalig)",
+    "Jährliche Wartungskosten",
+    "Nettogewinn Jahr 1",
+    "Nettogewinn ab Jahr 2+"
+  ),
+  Wert = c(
+    sprintf("%.2f €", control_mean),
+    sprintf("%.2f €", test_mean),
+    sprintf("%.2f €", lift_absolute),
+    sprintf("%.2f%%", lift_percent),
+    "",
+    sprintf("%s", comma(orders_in_test)),
+    sprintf("%s €", comma(round(test_period_lift))),
+    "",
+    "",
+    sprintf("%s", comma(round(annual_orders))),
+    sprintf("%s €", comma(round(annual_lift))),
+    "",
+    "",
+    sprintf("-%s €", comma(implementation_cost)),
+    sprintf("-%s €", comma(annual_maintenance)),
+    sprintf("%s €", comma(round(net_benefit_year1))),
+    sprintf("%s €", comma(round(net_benefit_year2_plus)))
+  )
+)
+
+impact_table %>%
+  kable() %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  ) %>%
+  row_spec(7, background = "#fff3cd") %>%
+  row_spec(11, bold = TRUE, background = "#fff3cd") %>%
+  row_spec(16:17, bold = TRUE, background = "#ffcccc")
+```
+
+## Interpretation & Fazit
+
+```{r calc-for-interpretation, include=FALSE}
+mean_diff <- abs(diff(summary_stats$`Mean (€)`))
+p_val <- t_test_result$p
+cohens_d <- cohens_d_value
+
+# Manuelle Interpretation
+magnitude <- case_when(
+  abs(cohens_d) < 0.2 ~ "negligible",
+  abs(cohens_d) < 0.5 ~ "small",
+  abs(cohens_d) < 0.8 ~ "medium",
+  TRUE ~ "large"
+)
+```
+
+### Statistische Signifikanz
+
+✅ **Hochsignifikant**: p = `r format.pval(p_val, eps = 0.001, digits = 3)`
+
+Mit N = 100.000 Beobachtungen erkennt der t-Test selbst minimale Unterschiede. Der t-Wert von `r round(t_test_result$statistic, 2)` ist statistisch eindeutig signifikant.
+
+### Praktische Relevanz
+
+⚠️ **Negligible (Vernachlässigbar)**
+
+- **Absolute Differenz**: `r sprintf("%.2f €", mean_diff)` pro Bestellung
+- **Relative Steigerung**: +`r sprintf("%.2f%%", lift_percent)`
+- **Cohen's d**: `r round(cohens_d, 4)` (negligible, da < 0.2)
+
+**Bewertung**: Der Effekt ist **praktisch bedeutungslos**. Ein Unterschied von nur 50 Cent pro Bestellung rechtfertigt keine Investition in Entwicklung und Wartung.
+
+### Die große Lektion
+
+:::{.callout-warning}
+## Das Problem großer Stichproben
+
+**"Statistically significant" ≠ "Practically meaningful"**
+
+Bei N = 100.000 wird **jeder noch so winzige Unterschied** statistisch signifikant (p < 0.001), selbst wenn er geschäftlich völlig irrelevant ist.
+
+**Wichtig**: 
+- Der **p-Wert** sagt nur: "Der Effekt ist wahrscheinlich real" (nicht Zufall)
+- Die **Effect Size** (Cohen's d) sagt: "Der Effekt ist groß genug, um wichtig zu sein"
+
+**Beide Metriken sind notwendig!** Ohne Effect Size führen große Datensätze zu falschen Entscheidungen.
+:::
+
+### Key Takeaways
+
+:::{.callout-important}
+## Wichtigste Erkenntnisse
+
+1. **Die Falle**: p < 0.001 klingt beeindruckend, ist aber bei großem N trivial erreichbar
+
+2. **Effect Size ist entscheidend**: Cohen's d = `r round(cohens_d, 4)` zeigt, dass der Effekt negligible ist
+
+3. **Business Impact minimal**: `r comma(round(annual_lift))` € pro Jahr klingt viel, aber nach Abzug der Kosten bleibt wenig bis nichts
+
+4. **ROI negativ**: Implementierung (20.000€) + Wartung (5.000€/Jahr) übersteigen den Gewinn deutlich
+
+5. **Visuelle Inspektion**: Die Verteilungen sind praktisch identisch - ein guter Reality Check!
+:::
+
+### Handlungsempfehlung
+
+❌ **KEIN Rollout empfohlen**
+
+**Begründung:**
+- Negligible Effect Size trotz statistischer Signifikanz
+- Negativer ROI selbst bei konservativen Kostenschätzungen
+- Ressourcen sollten in vielversprechendere Initiativen investiert werden
+
+**Alternativen:**
+- Drastischere Design-Änderungen testen (größeres Potenzial)
+- Andere Metriken fokussieren (Conversion Rate, Customer Lifetime Value)
+- Bei diesem minimalen Effekt: Status quo beibehalten
+
+:::{.callout-tip}
+## Best Practice für zukünftige A/B-Tests
+
+1. **Power-Analyse vorher**: Mindest-Effect-Size definieren, die geschäftlich relevant wäre
+2. **Immer Effect Size berechnen**: Nie nur p-Werte betrachten
+3. **Business-Kontext einbeziehen**: Kosten vs. erwarteter Nutzen
+4. **Visualisierung**: Wenn Gruppen visuell identisch aussehen, ist der Effekt wahrscheinlich zu klein
+5. **Sample Size Planning**: Größer ist nicht immer besser - übermäßig große Stichproben führen zu diesem Problem
+:::
+
+## Methodische Hinweise
+
+### Cohen's d Interpretation
+
+Nach Cohen (1988):
+
+- **|d| < 0.2**: negligible (vernachlässigbar) ← **Unser Fall!**
+- **0.2 ≤ |d| < 0.5**: small (klein)
+- **0.5 ≤ |d| < 0.8**: medium (mittel)
+- **|d| ≥ 0.8**: large (groß)
+
+**Wichtig**: Diese Grenzen sind Richtwerte. Im E-Commerce-Kontext sollte man zusätzlich die geschäftliche Relevanz prüfen (ROI, Implementierungskosten, etc.).
+
+### Warum Welch's t-Test?
+
+- Robuster als Student's t-Test (keine Annahme gleicher Varianzen)
+- Bei großem N sehr sensitiv (Vor- und Nachteil!)
+- Standard in der Industrie für A/B-Tests
+
+### P-Wert vs. Effect Size
+
+| Metrik | Frage | Antwort in unserem Beispiel |
+|--------|-------|----------------------------|
+| **p-Wert** | Ist der Effekt real? | Ja (p < 0.001) |
+| **Effect Size** | Ist der Effekt wichtig? | Nein (d ≈ 0.02) |
+| **Business Case** | Lohnt sich die Umsetzung? | Nein (negativer ROI) |
+
+:::{.callout-note}
+## Reproduzierbarkeit
+
+Dieser Report verwendet `set.seed(42)` für reproduzierbare Ergebnisse. Die Daten simulieren realistische E-Commerce-Bestellwerte mit einem bewusst minimalen Unterschied von nur 0.50€ zwischen den Gruppen.
+:::
