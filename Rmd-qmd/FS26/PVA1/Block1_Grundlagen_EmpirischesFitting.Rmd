@@ -1,0 +1,1812 @@
+---
+title: "Data Science and Strategy for Business"
+subtitle: "Block 1: Grundlagen & Empirisches Fitting"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS"
+date: "`r Sys.Date()`"
+bibliography: ../../lit/my_bib.bib
+reference-section-title: Quellenverzeichnis
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css:
+         - default
+         - ../../css/ffhs-theme_js.css
+         - xaringan-themer.css
+    includes:
+      after_body: ../../css/insert-logo.html
+    lib_dir: ../../libs
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    seal: false
+---
+class: title-slide
+
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+style_xaringan(
+  text_color = "#d50006",
+  inverse_text_color = "#FFFFFF",
+  inverse_background_color = "#d50006",
+  title_slide_background_color = "#d50006",
+  header_background_color = "#d50006",
+  header_color = "#FFFFFF",
+  header_h1_font_size = "32px",
+  header_h2_font_size = "26px",
+  link_color = "#502479",
+  header_h3_font_size = "20px",
+  text_slide_number_color = "#d50006",
+  text_slide_number_font_size = "0.5em"
+)
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_progress_bar(color = "#d50006", location = "bottom")
+xaringanExtra::use_xaringan_extra(c("tile_view","scribble","panelset","tachyons"))
+xaringanExtra::style_panelset_tabs(font_family = "inherit")
+xaringanExtra::use_editable(expires = 1)
+xaringanExtra::use_freezeframe(trigger = "hover")
+```
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(fontawesome)
+library(tidyverse)
+library(RefManageR)
+BibOptions(check.entries = FALSE,
+           bib.style = "authoryear",
+           style = "markdown",
+           dashed = TRUE)
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+set.seed(42)
+```
+
+# ER014 — Data Science and Strategy for Business
+
+## Block 1
+
+### Grundlagen & Empirisches Fitting
+
+<br><br><br><br><br>
+
+### FS 2025
+<br>
+### Prof. Dr. Jörg Schoder
+.mycontacts[
+`r fa('github')` @FFHS-EconomicResearch
+`r fa('linkedin')` @jfschoder
+]
+
+
+---
+layout: true
+
+<div class="my-footer"></div>
+
+<div style="position: absolute;left:400px;bottom:10px;font-size:9px">`r fa('creative-commons')` `r rmarkdown::metadata$author`</div>
+
+
+---
+name: lernziele
+class: left
+
+.blockquote[Block 1]
+
+## Lernziele
+
+.pull-left[
+**Einordnung & Konzepte**
+
+`r fa('check-circle')` Data Science als Schnittmenge von Statistik, Informatik und Domänenwissen einordnen
+
+`r fa('check-circle')` Projekte entlang des **CRISP-DM**-Zyklus strukturieren
+
+`r fa('check-circle')` Daten als strategisches Asset einordnen und Big-Data-Grenzen reflektieren
+
+**Tooling**
+
+`r fa('check-circle')` R-Projekte anlegen und relative Pfadangaben nutzen
+
+`r fa('check-circle')` Tidyverse-Pakete interpretieren und anwenden
+]
+
+.pull-right[
+**Methoden**
+
+`r fa('check-circle')` EDA zur Mustererkennung einsetzen
+
+`r fa('check-circle')` Einfache und multiple Regressionen interpretieren
+
+`r fa('check-circle')` Overfitting konzeptionell verstehen
+
+<br>
+.blockquote[
+Nach diesem Block können Sie Data-Science-Projekte **strukturieren** und erste Modelle **interpretieren**.
+]
+]
+
+
+---
+class: inverse, center, middle
+
+## Teil 1: Was ist Data Science?
+
+.blockquote[Definition · Drei Säulen · Erwartungen]
+
+
+---
+class: left
+
+.blockquote[Was ist Data Science?]
+
+## Data Science als Schnittmenge
+
+.pull-left[
+### Definition
+
+Data Science ist die **modellbasierte Abstraktion** der Realität durch:
+
+* Statistische Methoden
+* Informatik-Werkzeuge
+* Domänen-Expertise
+
+### Abgrenzung
+
+* Keine „Black Box" ohne Verständnis
+* Keine reine Automatisierung
+* **Kritisches Denken** erforderlich
+]
+
+.pull-right[
+
+<svg viewBox="-10 -10 280 280" width="95%">
+  <defs>
+    <style>
+      .c1 { fill: #D50006; fill-opacity: 0.30; stroke: #D50006; stroke-width: 1.5; }
+      .c2 { fill: #502479; fill-opacity: 0.30; stroke: #502479; stroke-width: 1.5; }
+      .c3 { fill: #2e8b57; fill-opacity: 0.30; stroke: #2e8b57; stroke-width: 1.5; }
+      .ds { fill: #ff8c00; fill-opacity: 0.85; }
+      .lbl { font-family: sans-serif; font-size: 13px; font-weight: bold;
+             text-anchor: middle; }
+      .slbl { font-family: sans-serif; font-size: 10px; text-anchor: middle; fill: #444; }
+    </style>
+  </defs>
+  <!-- Drei Kreise -->
+  <circle class="c1" cx="130" cy="78"  r="88"/>
+  <circle class="c2" cx="80"  cy="170" r="88"/>
+  <circle class="c3" cx="180" cy="170" r="88"/>
+  <!-- DS-Zentrum -->
+  <circle class="ds" cx="130" cy="145" r="28"/>
+  <text style="font-family:sans-serif;font-size:11px;font-weight:bold;
+               fill:white;text-anchor:middle" x="130" y="141">Data</text>
+  <text style="font-family:sans-serif;font-size:11px;font-weight:bold;
+               fill:white;text-anchor:middle" x="130" y="155">Science</text>
+  <!-- Labels -->
+  <text class="lbl" fill="#D50006" x="130" y="22">Statistik</text>
+  <text class="lbl" fill="#502479" x="35"  y="245">Informatik</text>
+  <text class="lbl" fill="#2e8b57" x="225" y="245">Domänen-</text>
+  <text class="lbl" fill="#2e8b57" x="225" y="259">wissen</text>
+</svg>
+
+]
+
+???
+* Data Science ist keine neue Disziplin, sondern die Überschneidung dreier etablierter Felder
+* Der orange Kern (DS) entsteht nur, wenn alle drei Bereiche zusammenkommen
+* Technisch korrekte Analysen ohne Domänenwissen sind inhaltlich nutzlos
+
+
+---
+class: left
+
+.blockquote[Was ist Data Science?]
+
+## Die drei Säulen im Detail
+
+.panelset[
+.panel[.panel-name[Statistik]
+
+<svg viewBox="0 0 560 130" width="100%">
+  <defs><style>
+    .pillar-s { fill: #D50006; }
+    .pillar-i { fill: #502479; }
+    .pillar-d { fill: #7d0a52; }
+    .ptitle { font-family:sans-serif; font-size:13px; font-weight:bold;
+              fill:white; text-anchor:middle; }
+    .pitem  { font-family:sans-serif; font-size:11px; fill:#1a1a1a;
+              text-anchor:middle; }
+    .base   { fill: #686868; }
+  </style></defs>
+  <rect class="pillar-s" x="20"  y="0"  width="155" height="22" rx="3"/>
+  <rect class="pillar-s" x="28"  y="22" width="139" height="88" rx="3"/>
+  <text class="ptitle" x="100" y="16">Statistik</text>
+  <text class="pitem"  x="100" y="48">Wahrscheinlichkeit</text>
+  <text class="pitem"  x="100" y="68">Inferenz</text>
+  <text class="pitem"  x="100" y="88">Modellierung</text>
+  <text class="pitem"  x="100" y="108">Unsicherheit</text>
+  <rect class="pillar-i" x="202" y="0"  width="155" height="22" rx="3"/>
+  <rect class="pillar-i" x="210" y="22" width="139" height="88" rx="3"/>
+  <text class="ptitle" x="280" y="16">Informatik</text>
+  <text class="pitem"  x="280" y="48">Programmierung</text>
+  <text class="pitem"  x="280" y="68">Datenbanken</text>
+  <text class="pitem"  x="280" y="88">Algorithmen</text>
+  <text class="pitem"  x="280" y="108">Skalierbarkeit</text>
+  <rect class="pillar-d" x="384" y="0"  width="155" height="22" rx="3"/>
+  <rect class="pillar-d" x="392" y="22" width="139" height="88" rx="3"/>
+  <text class="ptitle" x="462" y="16">Domänenwissen</text>
+  <text class="pitem"  x="462" y="48">Geschäftslogik</text>
+  <text class="pitem"  x="462" y="68">Branchenkenntnis</text>
+  <text class="pitem"  x="462" y="88">Problemverständnis</text>
+  <text class="pitem"  x="462" y="108">Interpretation</text>
+</svg>
+
+<br>
+.blockquote[
+**Kernkompetenz:** Die Fähigkeit, alle drei Bereiche zu **verbinden** und Ergebnisse zu **kommunizieren**.
+
+Fehlende Domänenkenntnis führt zu technisch korrekten, aber inhaltlich unsinnigen Analysen.
+]
+]
+
+.panel[.panel-name[Abgrenzungen]
+
+.pull-left[
+**Data Science ≠ Statistik allein**
+* Statistik: Theorie und Inferenz
+* Data Science: + Engineering + Deployment
+
+**Data Science ≠ Machine Learning**
+* ML: Algorithmen-Fokus, oft Black Box
+* DS: Gesamtprozess von Frage bis Entscheidung
+
+**Data Science ≠ Business Intelligence**
+* BI: Deskriptiv, historisch, Dashboards
+* DS: Prädiktiv, kausal, Entscheidungsunterstützung
+]
+
+.pull-right[
+**Was Data Scientists tun:**
+.small[
+| Aktivität | Zeitanteil |
+|-----------|------------|
+| Datenbereinigung | 40–60% |
+| Exploration & EDA | 15–20% |
+| Feature Engineering | 10–15% |
+| Modellierung | 10–15% |
+| Kommunikation | 10–15% |
+]
+
+`r fa('circle-right')` **Ihre Rolle als Manager:** Nicht programmieren, sondern kritisch hinterfragen und übersetzen!
+]
+]
+]
+
+???
+* Die drei Säulen entsprechen dem klassischen "Drew Conway Venn Diagram" (2010)
+* Wichtig für Studierende: Sie müssen nicht alle drei perfekt beherrschen
+* Aber: Sie müssen die Sprache aller drei verstehen, um Translator-Funktion ausfüllen
+
+
+---
+class: left
+
+.blockquote[Was ist Data Science?]
+
+## „AI is not Magic" — Realistische Erwartungen
+
+.pull-left[
+### Häufige Missverständnisse
+
+`r fa('times-circle')` „Mehr Daten lösen alle Probleme"
+
+`r fa('times-circle')` „Das Modell findet die Antwort"
+
+`r fa('times-circle')` „AI ersetzt menschliches Urteil"
+
+<br>
+
+### Was wirklich gilt
+
+.blockquote[
+**„Garbage in, garbage out"**
+
+Datenqualität bestimmt Modellqualität — nicht Modellkomplexität.
+]
+
+Modelle **extrapolieren nicht zuverlässig**. Korrelation ≠ Kausalität.
+]
+
+.pull-right[
+### Was funktioniert
+
+```{r ai-not-magic, echo=FALSE, fig.width=4.5, fig.height=4, out.width='95%'}
+library(ggplot2)
+
+steps <- tibble(
+  step  = factor(1:5,
+                 labels = c("1. Klare\nFragestellung",
+                            "2. Gute\nDatenqualität",
+                            "3. Passende\nMethode",
+                            "4. Kritische\nInterpretation",
+                            "5. Iterative\nVerbesserung")),
+  value = c(1,1,1,1,1),
+  col   = c("#D50006","#7d0a52","#502479","#502479","#686868")
+)
+
+ggplot(steps, aes(x = step, y = value, fill = col)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(aes(label = step, y = 0.5),
+            color = "white", fontface = "bold",
+            size = 2.8, lineheight = 0.9) +
+  scale_fill_identity() +
+  scale_y_continuous(expand = c(0,0)) +
+  labs(x = NULL, y = NULL,
+       title = "Erfolgsfaktoren für DS-Projekte") +
+  theme_minimal(base_size = 10) +
+  theme(
+    axis.text  = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.title = element_text(color = "#D50006", face = "bold", size = 10)
+  )
+```
+]
+
+???
+* Wichtig als Erwartungsmanagement zu Beginn des Kurses
+* Studierende kommen oft mit überhöhten Erwartungen an AI
+* "Erfolgreiche DS-Projekte erfordern klare Ziele und realistische Erwartungen"
+
+
+---
+class: inverse, center, middle
+
+## Teil 2: CRISP-DM
+
+.blockquote[Der Projektstandard für Data Science]
+
+
+---
+class: left
+
+.blockquote[CRISP-DM]
+
+## CRISP-DM: Der Projektstandard
+
+.pull-left[
+
+<svg viewBox="-5 -5 270 270" width="95%">
+  <defs>
+    <marker id="arrowC" markerWidth="7" markerHeight="7"
+            refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#686868"/>
+    </marker>
+  </defs>
+  <!-- Kreisbogen -->
+  <circle cx="130" cy="130" r="115" fill="none"
+          stroke="#e0e0e0" stroke-width="2" stroke-dasharray="6,4"/>
+
+  <!-- Phasen — Sechseck-Anordnung -->
+  <!-- 1 oben: Business Understanding -->
+  <rect x="75"  y="5"   width="110" height="32" rx="5" fill="#D50006"/>
+  <text style="font-family:sans-serif;font-size:10px;font-weight:bold;fill:white;text-anchor:middle" x="130" y="18">Business</text>
+  <text style="font-family:sans-serif;font-size:10px;font-weight:bold;fill:white;text-anchor:middle" x="130" y="30">Understanding</text>
+
+  <!-- 2 rechts oben: Data Understanding -->
+  <rect x="200" y="62"  width="60"  height="44" rx="5" fill="#7d0a52"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="230" y="79">Data</text>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="230" y="91">Under-</text>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="230" y="103">standing</text>
+
+  <!-- 3 rechts unten: Data Preparation -->
+  <rect x="200" y="152" width="60"  height="44" rx="5" fill="#502479"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="230" y="169">Data</text>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="230" y="181">Prep-</text>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="230" y="193">aration</text>
+
+  <!-- 4 unten: Modeling -->
+  <rect x="75"  y="220" width="110" height="32" rx="5" fill="#502479"/>
+  <text style="font-family:sans-serif;font-size:10px;font-weight:bold;fill:white;text-anchor:middle" x="130" y="241">Modeling</text>
+
+  <!-- 5 links unten: Evaluation -->
+  <rect x="0"   y="152" width="60"  height="44" rx="5" fill="#7d0a52"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="30" y="172">Eval-</text>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="30" y="184">uation</text>
+
+  <!-- 6 links oben: Deployment -->
+  <rect x="0"   y="62"  width="60"  height="44" rx="5" fill="#686868"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="30" y="82">Deploy-</text>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="30" y="94">ment</text>
+
+  <!-- Pfeile im Uhrzeigersinn -->
+  <path d="M165,37 Q210,40 220,62"
+        stroke="#686868" stroke-width="1.8" fill="none"
+        marker-end="url(#arrowC)"/>
+  <path d="M230,106 Q232,140 230,152"
+        stroke="#686868" stroke-width="1.8" fill="none"
+        marker-end="url(#arrowC)"/>
+  <path d="M200,180 Q165,210 165,220"
+        stroke="#686868" stroke-width="1.8" fill="none"
+        marker-end="url(#arrowC)"/>
+  <path d="M95,220 Q50,212 60,196"
+        stroke="#686868" stroke-width="1.8" fill="none"
+        marker-end="url(#arrowC)"/>
+  <path d="M30,152 Q28,118 30,106"
+        stroke="#686868" stroke-width="1.8" fill="none"
+        marker-end="url(#arrowC)"/>
+  <path d="M60,80 Q95,45 95,37"
+        stroke="#686868" stroke-width="1.8" fill="none"
+        marker-end="url(#arrowC)"/>
+
+  <!-- Daten-Zentrum -->
+  <ellipse cx="130" cy="130" rx="42" ry="30" fill="#b3b2b2" opacity="0.8"/>
+  <text style="font-family:sans-serif;font-size:11px;font-weight:bold;fill:#333;text-anchor:middle" x="130" y="127">Daten</text>
+  <text style="font-family:sans-serif;font-size:9px;fill:#555;text-anchor:middle" x="130" y="141">(im Zentrum)</text>
+
+  <!-- Rückpfeil (iterativ) -->
+  <path d="M60,68 Q30,30 90,20"
+        stroke="#D50006" stroke-width="1.5" fill="none" stroke-dasharray="4,2"
+        marker-end="url(#arrowC)"/>
+</svg>
+
+]
+
+.pull-right[
+<br>
+
+**CRISP-DM** = Cross-Industry Standard Process for Data Mining
+
+.small[
+| Phase | Kern-Frage |
+|-------|------------|
+| **Business Understanding** | Was wollen wir wirklich wissen? |
+| **Data Understanding** | Was haben wir, was fehlt? |
+| **Data Preparation** | Wie machen wir es modellierbar? |
+| **Modeling** | Welches Modell passt? |
+| **Evaluation** | Haben wir das Business-Ziel erreicht? |
+| **Deployment** | Wie bringen wir es in die Praxis? |
+]
+
+<br>
+`r fa('circle-right')` **Nicht linear** — iterativer Zyklus!
+
+`r fa('circle-right')` Neue Erkenntnisse → zurück zur vorherigen Phase
+]
+
+???
+* CRISP-DM wurde 1996 von einem Konsortium entwickelt (IBM, NCR, DaimlerChrysler)
+* Heute de-facto Standard in der Industrie
+* Betonung: 60-80% der Zeit in Phasen 2-3 (Data Understanding & Preparation)
+
+
+---
+class: left
+
+.blockquote[CRISP-DM]
+
+## CRISP-DM: Phasen 1–3
+
+.panelset[
+.panel[.panel-name[1. Business Understanding]
+
+.pull-left[
+### Kernaufgaben
+* **Geschäftsziel** präzise definieren
+* **Erfolgskriterien** messbar machen
+* Ressourcen & Budget planen
+* Risiken und Annahmen identifizieren
+
+### Kritische Fragen
+* Was entscheiden wir am Ende?
+* Wer nutzt die Ergebnisse wie?
+* Was kostet eine Fehlentscheidung?
+
+.blockquote[
+„A problem well-stated is a problem half-solved." — Charles Kettering
+]
+]
+
+.pull-right[
+### Problem Translation
+
+| Business Speak | Data Speak |
+|----------------|------------|
+| „Finde Underperformer" | Ranking via Residuen |
+| „Wer kauft nochmal?" | Klassifikation (0/1) |
+| „Wie viel verkaufen wir?" | Regression (ŷ) |
+| „Sind die Gruppen verschieden?" | Hypothesentest |
+| „Was treibt den Umsatz?" | Koeffizienten-Interpretation |
+]
+
+]
+
+.panel[.panel-name[2. Data Understanding]
+
+.pull-left[
+### Kernaufgaben
+* Datenquellen **erfassen** und bewerten
+* Datenqualität **prüfen** (fehlende Werte, Ausreißer)
+* Erste **Exploration** durchführen (EDA)
+* **Hypothesen** für die Modellierung bilden
+
+### Typische Probleme
+* Fehlende Werte (MCAR, MAR, MNAR)
+* Falsche Datentypen
+* Datensilos in verschiedenen Systemen
+* Veraltete oder inkonsistente Daten
+]
+
+.pull-right[
+```{r data-understanding, echo=FALSE, fig.width=4, fig.height=3.5, out.width='95%'}
+# Datenqualitäts-Radar simulieren
+issues <- tibble(
+  problem = c("Fehlende\nWerte", "Ausreißer", "Duplikate",
+              "Inkonsistenz", "Veraltet"),
+  severity = c(0.65, 0.40, 0.25, 0.55, 0.30)
+)
+
+ggplot(issues, aes(x = reorder(problem, severity),
+                   y = severity, fill = severity)) +
+  geom_col(show.legend = FALSE, width = 0.65) +
+  geom_text(aes(label = scales::percent(severity, accuracy=1)),
+            hjust = -0.1, size = 3, color = "#333") +
+  scale_fill_gradient(low = "#b3b2b2", high = "#D50006") +
+  scale_y_continuous(limits = c(0, 0.85),
+                     labels = scales::percent_format()) +
+  coord_flip() +
+  labs(title = "Typische Datenqualitätsprobleme",
+       subtitle = "Häufigkeit in realen Projekten",
+       x = NULL, y = "Häufigkeit") +
+  theme_minimal(base_size = 9) +
+  theme(plot.title = element_text(color = "#D50006", face = "bold", size = 9))
+```
+]
+
+]
+
+.panel[.panel-name[3. Data Preparation]
+
+.pull-left[
+### Kernaufgaben
+* Daten **bereinigen** (fehlende Werte, Ausreißer)
+* **Features ableiten** (Transformationen, Dummies)
+* Datensatz **aufteilen** (Train/Test)
+* **Dokumentieren** aller Schritte
+
+.blockquote[
+**Zeitaufwand:**  
+Phasen 2–3 beanspruchen oft **60–80%** der gesamten Projektzeit!
+]
+]
+
+.pull-right[
+### Typische Transformationen in R
+
+```r
+# Fehlende Werte
+df |> drop_na()
+df |> replace_na(list(age = median(age)))
+
+# Neue Features ableiten
+df |> mutate(
+  log_umsatz  = log(umsatz),
+  alter_quad  = alter^2,
+  region_f    = factor(region)
+)
+
+# Train/Test Split (70/30)
+train_idx <- sample(nrow(df), 0.7 * nrow(df))
+train <- df[train_idx, ]
+test  <- df[-train_idx, ]
+```
+]
+]
+]
+
+
+---
+class: left
+
+.blockquote[CRISP-DM]
+
+## CRISP-DM: Phasen 4–6
+
+.panelset[
+.panel[.panel-name[4. Modeling]
+
+.pull-left[
+### Kernaufgaben
+* Geeignete **Methode wählen** (Regression, Klassifikation, Clustering)
+* Modell **trainieren** auf Trainingsdaten
+* **Hyperparameter** tunen
+* Auf Trainingsdaten **validieren**
+
+### Modellwahl-Heuristik
+
+| Ziel | Methode |
+|------|---------|
+| Zahl vorhersagen | Regression |
+| Klasse zuordnen | Klassifikation |
+| Gruppen finden | Clustering |
+| Ranking erstellen | Scoring / OLS |
+]
+
+.pull-right[
+### In R
+
+```r
+# Einfache Regression
+mod <- lm(umsatz ~ preis, data = train)
+
+# Multiple Regression
+mod <- lm(umsatz ~ preis + werbung +
+          factor(region), data = train)
+
+# Ergebnisse (moderndive)
+library(moderndive)
+get_regression_table(mod)
+get_regression_summaries(mod)
+```
+
+`r fa('circle-right')` Modellieren ohne vorherige EDA ist gefährlich!
+]
+
+]
+
+.panel[.panel-name[5. Evaluation]
+
+.pull-left[
+### Kernaufgaben
+* Ergebnisse auf **Testdaten** prüfen
+* **Geschäftsziel** erfüllt?
+* **Stakeholder-Review** durchführen
+* Deployment-Entscheidung treffen
+
+### Zentrale Evaluationsfragen
+
+1. Ist die Modellgüte ausreichend für die Entscheidung?
+2. Ist das Modell auf neue Daten übertragbar?
+3. Welche Unsicherheit bleibt?
+4. Was kostet ein Fehler Typ I / Typ II?
+]
+
+.pull-right[
+### Gütemaße im Überblick
+
+| Maß | Bedeutung | Gut wenn |
+|-----|-----------|---------|
+| R² | Erklärte Varianz | → 1 |
+| RMSE | Durchschn. Fehler in Einheiten | → 0 |
+| MAE | Mittlerer abs. Fehler | → 0 |
+| AIC/BIC | Modellvergleich | kleiner |
+
+.blockquote[
+**Warnung:** Signifikanz ≠ Relevanz!  
+Immer statistische **und** praktische Bedeutung prüfen.
+]
+]
+
+]
+
+.panel[.panel-name[6. Deployment]
+
+.pull-left[
+### Kernaufgaben
+* Modell **produktivsetzen**
+* **Monitoring** einrichten (Model Drift!)
+* Vollständige **Dokumentation**
+* **Wartungsplan** erstellen
+
+### Iteration!
+
+Der Prozess ist **zyklisch**:
+
+Nach dem Deployment beginnt oft ein neuer Zyklus mit verbesserten Daten und Modellen.
+]
+
+.pull-right[
+### Typische Deployment-Formen
+
+| Form | Beispiel |
+|------|---------|
+| **Report** | Automatisierter R-Bericht (Quarto) |
+| **Dashboard** | Shiny App |
+| **API** | Modell als REST-Service |
+| **Batch** | Nächtliche Scoring-Pipeline |
+| **Embedded** | Direkt in ERP/CRM integriert |
+
+`r fa('circle-right')` Als Manager: Verstehen Sie, **wie** das Modell in Entscheidungen einfließt!
+]
+]
+]
+
+???
+* Deployment ist der am häufigsten unterschätzte Schritt
+* Model Drift: Modelle veralten, wenn sich die Realität ändert
+* Monitoring ist essentiell: Hat sich die Datenverteilung verändert?
+
+
+---
+class: inverse, center, middle
+
+## Teil 3: Daten als strategisches Asset
+
+.blockquote[Data Governance · Managing Data Teams]
+
+
+---
+class: left
+
+.blockquote[Daten als strategisches Asset]
+
+## Wert von Daten & Data Governance
+
+.panelset[
+.panel[.panel-name[Strategischer Wert]
+
+.pull-left[
+### Wert von Daten
+
+`r fa('chart-line')` **Wettbewerbsvorteil** durch einzigartige Insights
+
+`r fa('robot')` **Automatisierung** von Entscheidungen
+
+`r fa('user-check')` **Personalisierung** für Kunden
+
+`r fa('shield-alt')` **Risikominimierung** durch Frühwarnsysteme
+
+<br>
+.blockquote[
+„Daten sind nur wertvoll, wenn sie **zugänglich**, **qualitativ hochwertig** und **nutzbar** sind."
+]
+]
+
+.pull-right[
+### Herausforderungen
+
+```{r data-challenges, echo=FALSE, fig.width=4.5, fig.height=3.8, out.width='95%'}
+challenges <- tibble(
+  challenge = factor(
+    c("Datensilos\naufbrechen", "Qualität\nsichern",
+      "Talent\ngewinnen", "Kultur\nentwickeln", "ROI\nnachweisen"),
+    levels = c("ROI\nnachweisen", "Kultur\nentwickeln",
+               "Talent\ngewinnen", "Qualität\nsichern",
+               "Datensilos\naufbrechen")
+  ),
+  difficulty = c(0.75, 0.65, 0.80, 0.70, 0.60)
+)
+
+ggplot(challenges, aes(x = challenge, y = difficulty, fill = difficulty)) +
+  geom_col(width = 0.65, show.legend = FALSE) +
+  geom_text(aes(label = scales::percent(difficulty, accuracy = 1)),
+            vjust = -0.4, size = 2.8, fontface = "bold") +
+  scale_fill_gradient(low = "#b3b2b2", high = "#D50006") +
+  scale_y_continuous(limits = c(0, 1),
+                     labels = scales::percent_format()) +
+  labs(title = "Typische Schwierigkeiten (Einschätzung)",
+       x = NULL, y = "Schwierigkeitsgrad") +
+  theme_minimal(base_size = 9) +
+  theme(plot.title = element_text(color = "#D50006", face = "bold", size = 9),
+        axis.text.x = element_text(size = 7))
+```
+]
+
+]
+
+.panel[.panel-name[Data Governance]
+
+.pull-left[
+### Was ist Data Governance?
+
+Der organisatorische Rahmen für den **verantwortungsvollen** Umgang mit Daten.
+
+**Vier Kernbereiche:**
+
+1. `r fa('check')` **Qualitätsstandards** definieren und durchsetzen
+2. `r fa('lock')` **Zugriffsrechte** regeln (wer darf was sehen?)
+3. `r fa('balance-scale')` **Compliance** sicherstellen (DSGVO, ISO 27001)
+4. `r fa('recycle')` **Lebenszyklus** verwalten (Archivierung, Löschung)
+]
+
+.pull-right[
+### DSGVO — Relevanz für Data Science
+
+.small[
+| Prinzip | Implikation für Modelle |
+|---------|------------------------|
+| **Zweckbindung** | Daten nur für definierten Zweck |
+| **Datensparsamkeit** | Nur notwendige Features nutzen |
+| **Richtigkeit** | Modelle mit falschen Daten sind illegal |
+| **Transparenz** | Erklärbarkeit von Modellen (XAI) |
+| **Recht auf Erklärung** | Automatisierte Entscheidungen begründen |
+]
+
+`r fa('circle-right')` **Praktisch:** Personendaten im Modell → Datenschutzfolgenabschätzung!
+]
+]
+]
+
+
+---
+class: left
+
+.blockquote[Daten als strategisches Asset]
+
+## Managing Data Teams — Ihre Rolle als Manager
+
+.pull-left[
+### Realistische Zeitverteilung
+
+```{r time-split, echo=FALSE, fig.width=4.5, fig.height=3.8, out.width='95%'}
+time_data <- tibble(
+  task = factor(c("Datenbereinigung\n& -integration",
+                  "Feature\nEngineering",
+                  "Modellierung",
+                  "Deployment\n& Monitoring"),
+                levels = rev(c("Datenbereinigung\n& -integration",
+                               "Feature\nEngineering",
+                               "Modellierung",
+                               "Deployment\n& Monitoring"))),
+  min_pct = c(40, 20, 10, 10),
+  max_pct = c(60, 30, 20, 20)
+)
+
+ggplot(time_data) +
+  geom_segment(aes(x = min_pct, xend = max_pct,
+                   y = task, yend = task),
+               color = "#b3b2b2", linewidth = 5,
+               lineend = "round") +
+  geom_point(aes(x = min_pct, y = task),
+             color = "#502479", size = 4) +
+  geom_point(aes(x = max_pct, y = task),
+             color = "#D50006", size = 4) +
+  geom_text(aes(x = (min_pct + max_pct)/2,
+                y = task,
+                label = paste0(min_pct, "–", max_pct, "%")),
+            vjust = -1.2, size = 3, fontface = "bold",
+            color = "#333") +
+  scale_x_continuous(limits = c(0, 75),
+                     labels = function(x) paste0(x, "%")) +
+  labs(title = "Zeitaufwand pro Phase (typisch)",
+       subtitle = "Violett = Minimum | Rot = Maximum",
+       x = NULL, y = NULL) +
+  theme_minimal(base_size = 9) +
+  theme(plot.title = element_text(color = "#D50006", face = "bold", size = 9))
+```
+]
+
+.pull-right[
+### Ihre Aufgaben als Manager
+
+**5 Kernkompetenzen:**
+
+`r fa('calendar-alt')` **Realistische Zeitpläne** — Bereinigung dauert!
+
+`r fa('filter')` **Klare Prioritäten** — Nicht alle Features sind wertvoll
+
+`r fa('tools')` **Ressourcen bereitstellen** — Infrastruktur, Lizenzen, Daten
+
+`r fa('comments')` **Erwartungen managen** — nach oben und unten
+
+`r fa('bullhorn')` **Erfolge kommunizieren** — in Business-Sprache, nicht in R²
+
+<br>
+.blockquote[
+**Übersetzer-Funktion:** Zwischen Fachbereich und Data Scientists vermitteln — das ist Ihre Kernkompetenz!
+]
+]
+
+???
+* Häufige Unterschätzungen: Datenqualitätsprobleme, Infrastruktur-Setup, Stakeholder-Kommunikation
+* Als Manager: Realistische Zeitpläne sind wichtiger als technisches Detailwissen
+* Die Translator-Rolle ist wertvoll — sie verknüpft Business-Ziele mit technischen Lösungen
+
+
+---
+class: inverse, center, middle
+
+## Teil 4: R & Tidyverse
+
+.blockquote[Arbeitsumgebung · Relative Pfade · Tidyverse]
+
+
+---
+class: left
+
+.blockquote[R & Tidyverse]
+
+## R und RStudio: Die Arbeitsumgebung
+
+.panelset[
+.panel[.panel-name[Warum R?]
+
+.pull-left[
+### Stärken von R
+
+`r fa('chart-bar')` **Statistik** — für statistische Analysen gebaut (nicht nachgerüstet)
+
+`r fa('paint-brush')` **Visualisierung** — ggplot2 ist Industriestandard
+
+`r fa('users')` **Community** — CRAN: >20.000 Pakete, aktive Entwicklung
+
+`r fa('lock-open')` **Open Source** — kostenlos, keine Lizenzkosten
+
+`r fa('sync')` **Reproduzierbarkeit** — Quarto/RMarkdown als Dokumentationsstandard
+]
+
+.pull-right[
+### R-Projekt-Struktur
+
+```
+mein-projekt/
+├── mein-projekt.Rproj  ← Projektdatei
+├── data/
+│   ├── raw/            ← Rohdaten (nie ändern!)
+│   └── processed/      ← Aufbereitete Daten
+├── scripts/            ← R-Skripte
+├── output/
+│   ├── figures/        ← Abbildungen
+│   └── tables/         ← Tabellen
+├── docs/               ← Berichte (.qmd, .Rmd)
+└── README.md           ← Projektbeschreibung
+```
+
+`r fa('circle-right')` **Vorteile:** Relative Pfade, Reproduzierbarkeit, Git-kompatibel
+]
+
+]
+
+.panel[.panel-name[Relative Pfade]
+
+.pull-left[
+### ❌ Absolute Pfade (vermeiden!)
+
+```r
+# Funktioniert NUR auf einem Rechner!
+data <- read_csv(
+  "C:/Users/Max/Dokumente/ER014/data/sales.csv"
+)
+```
+
+**Probleme:**
+* Bricht bei jedem anderen Nutzer
+* Keine Zusammenarbeit möglich
+* Pfade ändern sich bei Umzug
+]
+
+.pull-right[
+### ✅ Relative Pfade (richtig!)
+
+```r
+# Funktioniert auf JEDEM Rechner mit dem Projekt
+library(here)
+data <- read_csv(here("data", "raw", "sales.csv"))
+
+# Oder mit xfun
+data <- read_csv(
+  xfun::from_root("data", "raw", "sales.csv")
+)
+
+# Paket-Daten: kein Import nötig!
+library(ISLR2)
+data(Carseats)   # ← immer verfügbar!
+```
+
+**Best Practice:**
+1. Immer mit `.Rproj` arbeiten
+2. `here::here()` für robuste Pfade
+3. Alle Daten im Projektordner
+]
+]
+]
+
+
+---
+class: left
+
+.blockquote[R & Tidyverse]
+
+## Das Tidyverse: Modernes R
+
+.panelset[
+.panel[.panel-name[Kernpakete]
+
+.pull-left[
+### Die wichtigsten Pakete
+
+| Paket | Zweck |
+|-------|-------|
+| `dplyr` | Datentransformation (Verben) |
+| `ggplot2` | Visualisierung (Grammatik) |
+| `tidyr` | Datenbereinigung & Reshaping |
+| `readr` | Schneller Datenimport |
+| `purrr` | Funktionales Programmieren |
+| `stringr` | Textverarbeitung |
+| `lubridate` | Datumsverarbeitung |
+| `forcats` | Faktorverarbeitung |
+
+`r fa('circle-right')` **`library(tidyverse)`** lädt alle auf einmal!
+]
+
+.pull-right[
+### Tidy Data Prinzip
+
+Jede Variable = **eine Spalte**  
+Jede Beobachtung = **eine Zeile**  
+Jeder Wert = **eine Zelle**
+
+```{r tidy-demo, echo=FALSE, fig.width=4.5, fig.height=2.5, out.width='95%'}
+library(tidyverse)
+
+# Zeige tidy vs messy
+messy <- tibble(
+  Filiale = c("A","B","C"),
+  Jan_2024 = c(120, 95, 140),
+  Feb_2024 = c(135, 88, 155)
+)
+tidy <- messy |>
+  pivot_longer(-Filiale, names_to = "Monat", values_to = "Umsatz")
+
+ggplot(tidy, aes(x = Monat, y = Umsatz, fill = Filiale)) +
+  geom_col(position = "dodge", width = 0.6) +
+  scale_fill_manual(values = c("#D50006","#502479","#7d0a52")) +
+  labs(title = "Tidy Data → direkt plottbar",
+       x = NULL, y = "Umsatz (Tsd.)") +
+  theme_minimal(base_size = 9) +
+  theme(plot.title = element_text(color = "#D50006", face = "bold", size = 9))
+```
+]
+
+]
+
+.panel[.panel-name[Pipe & Verben]
+
+.pull-left[
+### Die wichtigsten dplyr-Verben
+
+**Zeilen:**
+* `filter()` — Beobachtungen auswählen
+* `arrange()` — Sortieren
+* `slice()` — Nach Position
+
+**Spalten:**
+* `select()` — Variablen auswählen
+* `mutate()` — Neue Spalten berechnen
+* `rename()` — Umbenennen
+
+**Aggregieren:**
+* `group_by()` — Gruppieren
+* `summarise()` — Zusammenfassen
+* `count()` — Zählen
+]
+
+.pull-right[
+### Typische Pipeline
+
+```r
+# Pipe: Output → Input der nächsten Funktion
+umsatz_report <- daten |>
+  filter(jahr >= 2023) |>           # Zeilen
+  select(filiale, region, umsatz) |># Spalten
+  mutate(
+    log_umsatz = log(umsatz),       # Neue Spalte
+    region_f   = factor(region)     # Faktor
+  ) |>
+  group_by(region_f) |>            # Gruppieren
+  summarise(
+    avg_umsatz = mean(umsatz),      # Aggregieren
+    n_filialen = n()
+  ) |>
+  arrange(desc(avg_umsatz))         # Sortieren
+```
+
+`r fa('circle-right')` Code ist **lesbar** von oben nach unten!
+]
+]
+]
+
+
+---
+class: inverse, center, middle
+
+## Teil 5: Explorative Datenanalyse
+
+.blockquote[EDA · Visualisierungen · Mustererkennung]
+
+
+---
+class: left
+
+.blockquote[Explorative Datenanalyse]
+
+## EDA: Ziele und Checkliste
+
+.pull-left[
+### Ziele der EDA
+
+`r fa('eye')` Daten **verstehen** und „fühlen"
+
+`r fa('chart-bar')` **Verteilungen** erkunden
+
+`r fa('search')` **Muster** und Anomalien finden
+
+`r fa('lightbulb')` **Hypothesen** für Modellierung generieren
+
+`r fa('check-circle')` **Datenqualität** prüfen
+
+<br>
+.blockquote[
+**Goldene Regel:**  
+Nie modellieren ohne vorherige EDA!  
+Sie müssen Ihre Daten kennen.
+]
+]
+
+.pull-right[
+### EDA-Checkliste
+
+```r
+# 1. Dimensionen
+dim(df)               # Zeilen × Spalten
+
+# 2. Struktur
+glimpse(df)           # Variablentypen
+
+# 3. Zusammenfassung
+summary(df)           # Min, Max, Quantile
+skimr::skim(df)       # Erweitert + Histogramme
+
+# 4. Fehlende Werte
+colSums(is.na(df))
+
+# 5. Verteilungen
+ggplot(df, aes(x)) + geom_histogram()
+
+# 6. Bivariate Plots
+ggplot(df, aes(x, y)) + geom_point()
+
+# 7. Korrelationen
+cor(df |> select(where(is.numeric)))
+```
+]
+
+
+---
+class: left
+
+.blockquote[Explorative Datenanalyse]
+
+## EDA: Die richtigen Visualisierungen
+
+```{r eda-viz, echo=FALSE, fig.width=10, fig.height=4.2, out.width='100%', message=FALSE, warning=FALSE}
+library(patchwork)
+library(ISLR2)
+data(Carseats)
+
+# Univariat: Histogramm
+p1 <- ggplot(Carseats, aes(x = Sales)) +
+  geom_histogram(bins = 28, fill = "#D50006",
+                 color = "white", alpha = 0.85) +
+  geom_vline(xintercept = mean(Carseats$Sales),
+             color = "#502479", linewidth = 1.1,
+             linetype = "dashed") +
+  labs(title = "Univariat: Histogramm",
+       subtitle = "Verteilung von Sales",
+       x = "Sales (Tsd.)", y = "Anzahl") +
+  theme_minimal(base_size = 9) +
+  theme(plot.title = element_text(color="#D50006",
+                                  face="bold", size=9))
+
+# Bivariat: Scatter
+p2 <- ggplot(Carseats, aes(x = Price, y = Sales,
+                            color = ShelveLoc)) +
+  geom_point(alpha = 0.5, size = 1.2) +
+  geom_smooth(method="lm", se=FALSE, linewidth=0.8) +
+  scale_color_manual(values = c("Bad"="#D50006",
+                                "Medium"="#686868",
+                                "Good"="#502479")) +
+  labs(title = "Bivariat: Scatterplot",
+       subtitle = "Price vs. Sales nach ShelveLoc",
+       x = "Preis (USD)", y = "Sales (Tsd.)",
+       color = NULL) +
+  theme_minimal(base_size = 9) +
+  theme(plot.title = element_text(color="#502479",
+                                  face="bold", size=9),
+        legend.position = "bottom")
+
+# Multivariat: Boxplot nach Gruppe
+p3 <- ggplot(Carseats, aes(x = ShelveLoc, y = Sales,
+                            fill = ShelveLoc)) +
+  geom_boxplot(alpha=0.8, outlier.color="#D50006",
+               outlier.size=1.5) +
+  scale_fill_manual(values = c("Bad"="#D50006",
+                                "Medium"="#b3b2b2",
+                                "Good"="#502479")) +
+  labs(title = "Multivariat: Boxplot",
+       subtitle = "Sales nach Regalplatz-Qualität",
+       x = "ShelveLoc", y = "Sales (Tsd.)") +
+  theme_minimal(base_size = 9) +
+  theme(plot.title = element_text(color="#7d0a52",
+                                  face="bold", size=9),
+        legend.position = "none")
+
+p1 + p2 + p3
+```
+
+.small[
+`r fa('circle-right')` **Univariat** — eine Variable verstehen &ensp;|&ensp; `r fa('circle-right')` **Bivariat** — Zusammenhänge finden &ensp;|&ensp; `r fa('circle-right')` **Multivariat** — komplexe Muster
+]
+
+
+---
+class: inverse, center, middle
+
+## Teil 6: Lineare Regression
+
+.blockquote[Einfache Regression · R² · Multiple Regression · Overfitting]
+
+
+---
+class: left
+
+.blockquote[Lineare Regression]
+
+## Einfache Lineare Regression: Konzept & Visualisierung
+
+.pull-left[
+### Das Modell
+
+$$Y = \beta_0 + \beta_1 X + \varepsilon$$
+
+| Symbol | Bedeutung |
+|--------|-----------|
+| $Y$ | Abhängige Variable |
+| $X$ | Unabhängige Variable |
+| $\beta_0$ | Intercept (Achsenabschnitt) |
+| $\beta_1$ | Steigung (Effekt von X) |
+| $\varepsilon$ | Fehlerterm (Residuum) |
+
+### Interpretation von $\beta_1$
+
+> Um wie viel ändert sich $Y$, wenn $X$ um **1 Einheit** steigt?
+
+**Beispiel:**  
+Umsatz = 1000 + **50** × Werbung  
+→ Jeder CHF Werbung bringt **50 CHF** Umsatz.
+]
+
+.pull-right[
+
+```{r simple-reg-viz, echo=FALSE, fig.width=4.8, fig.height=4.5, out.width='95%', message=FALSE}
+set.seed(7)
+n  <- 22
+x  <- runif(n, 1, 10)
+y  <- 2.65 + 1.33 * x + rnorm(n, 0, 1.1)
+df <- tibble(x = x, y = y)
+mod <- lm(y ~ x, df)
+df$yhat <- fitted(mod)
+df$res  <- residuals(mod)
+
+# Ein Residuum hervorheben
+highlight_idx <- which.max(abs(df$res))
+
+ggplot(df, aes(x, y)) +
+  geom_segment(aes(xend = x, yend = yhat),
+               color = "#b3b2b2", linewidth = 0.6,
+               linetype = "dashed") +
+  # Highlighted Residuum
+  geom_segment(data = df[highlight_idx,],
+               aes(x = x, y = y, xend = x, yend = yhat),
+               color = "#D50006", linewidth = 1.4,
+               arrow = arrow(length = unit(0.2,"cm"),
+                             ends = "both")) +
+  annotate("text",
+           x = df$x[highlight_idx] + 0.5,
+           y = (df$y[highlight_idx] + df$yhat[highlight_idx])/2,
+           label = "Residuum", color = "#D50006",
+           size = 3, fontface = "bold") +
+  geom_smooth(method = "lm", color = "#502479",
+              se = FALSE, linewidth = 1.4) +
+  geom_point(color = "#D50006", size = 2.5, alpha = 0.85) +
+  annotate("text", x = 2, y = 15.5,
+           label = sprintf("ŷ = %.2f + %.2fx",
+                           coef(mod)[1], coef(mod)[2]),
+           color = "#502479", size = 3.2, fontface = "bold",
+           hjust = 0) +
+  labs(title = "Einfache Lineare Regression",
+       subtitle = "OLS minimiert die Summe der quadrierten Residuen",
+       x = "Unabhängige Variable (x)",
+       y = "Abhängige Variable (y)") +
+  theme_minimal(base_size = 10) +
+  theme(plot.title = element_text(color="#D50006",
+                                  face="bold"))
+```
+]
+
+???
+* OLS = Ordinary Least Squares — minimiert Summe der quadrierten Residuen
+* Residuen sind die Abweichungen vom Modell — das ist der Kern von Performance Mining
+* Interpretation: kausale Aussagen nur bei experimentellen Daten!
+
+
+---
+class: left
+
+.blockquote[Lineare Regression]
+
+## Das Bestimmtheitsmaß R²
+
+.pull-left[
+### Was ist R²?
+
+$$R^2 = 1 - \frac{SS_{res}}{SS_{tot}} = \frac{SS_{reg}}{SS_{tot}}$$
+
+* **$SS_{tot}$** = Gesamtvarianz in Y (um den Mittelwert)
+* **$SS_{res}$** = Unerklärte Varianz (Residuen)
+* **$SS_{reg}$** = Erklärte Varianz (Modell)
+
+**Interpretation:** R² = 0.70 → das Modell erklärt **70% der Varianz** in Y.
+
+### Richtwerte (kontextabhängig)
+
+| Kontext | Typisches R² |
+|---------|-------------|
+| Sozialwissenschaften | 0.2–0.4 |
+| Wirtschaftswissenschaften | 0.3–0.6 |
+| Physik/Technik | 0.9+ |
+]
+
+.pull-right[
+
+```{r r-squared-viz, echo=FALSE, fig.width=4.8, fig.height=4.5, out.width='95%'}
+set.seed(99)
+n   <- 22
+x2  <- runif(n, 1, 10)
+y2  <- 2.65 + 1.33 * x2 + rnorm(n, 0, 0.65)
+df2 <- tibble(x=x2, y=y2)
+mod2 <- lm(y~x, df2)
+df2$yhat <- fitted(mod2)
+ymean <- mean(df2$y)
+r2 <- round(summary(mod2)$r.squared, 3)
+
+# Highlight-Punkt für Dekomposition
+hi <- 15
+
+ggplot(df2, aes(x,y)) +
+  geom_hline(yintercept = ymean, color="#686868",
+             linewidth=0.9, linetype="dashed") +
+  annotate("text", x=1.2, y=ymean+0.15,
+           label=sprintf("ȳ = %.1f", ymean),
+           color="#686868", size=2.8) +
+  # Gesamtabweichung (orange)
+  geom_segment(data=df2[hi,],
+               aes(x=x,y=ymean,xend=x,yend=y),
+               color="#ff8c00", linewidth=1.5,
+               arrow=arrow(length=unit(0.18,"cm"),ends="both")) +
+  annotate("text", x=df2$x[hi]+0.4, y=(ymean+df2$y[hi])/2+0.3,
+           label="Gesamt-\nabweichung", color="#ff8c00",
+           size=2.5, lineheight=0.85) +
+  # Erklärte Abweichung (grün)
+  geom_segment(data=df2[hi,],
+               aes(x=x,y=ymean,xend=x,yend=yhat),
+               color="#2e8b57", linewidth=1.5,
+               arrow=arrow(length=unit(0.18,"cm"),ends="both")) +
+  annotate("text", x=df2$x[hi]-0.5, y=(ymean+df2$yhat[hi])/2,
+           label="Erklärt", color="#2e8b57",
+           size=2.5) +
+  # Residuum (rot)
+  geom_segment(data=df2[hi,],
+               aes(x=x,y=yhat,xend=x,yend=y),
+               color="#D50006", linewidth=1.5,
+               arrow=arrow(length=unit(0.18,"cm"),ends="both")) +
+  annotate("text", x=df2$x[hi]+0.4, y=(df2$yhat[hi]+df2$y[hi])/2,
+           label="Residuum", color="#D50006", size=2.5) +
+  geom_smooth(method="lm", color="#502479",
+              se=FALSE, linewidth=1.3) +
+  geom_point(color="#502479", size=2, alpha=0.8) +
+  annotate("label", x=2, y=max(df2$y)-0.1,
+           label=sprintf("R² = %.3f\n(%.1f%% erklärt)",
+                         r2, r2*100),
+           color="#502479", size=3, fontface="bold",
+           fill="white", label.size=0.3) +
+  labs(title=sprintf("Bestimmtheitsmaß R² = %.3f", r2),
+       x="x", y="y") +
+  theme_minimal(base_size=10) +
+  theme(plot.title=element_text(color="#502479",face="bold"))
+```
+]
+
+
+---
+class: left
+
+.blockquote[Lineare Regression]
+
+## R²: Interpretation und Grenzen
+
+.pull-left[
+### Was R² sagt
+
+* Anteil **erklärter Varianz**
+* Wert zwischen 0 und 1
+* R² = 0.70 → 70% der Unterschiede in Y werden erklärt
+* Höher = bessere **In-Sample**-Anpassung
+
+<br>
+
+### Was R² NICHT sagt
+
+`r fa('times-circle')` **Kausalität** — Korrelation ≠ Ursache
+
+`r fa('times-circle')` **Korrektheit** des Modells (falsches Modell, hohes R²!)
+
+`r fa('times-circle')` **Praktische Relevanz** — stat. signifikant ≠ relevant
+
+`r fa('times-circle')` **Out-of-Sample**-Performance
+]
+
+.pull-right[
+
+### Die kritische Warnung
+
+.blockquote[
+**R² steigt immer mit mehr Variablen** — auch bei irrelevanten!
+
+→ Bei multiple Regression: **Adjusted R²** nutzen
+
+$$\bar{R}^2 = 1 - \frac{(1-R^2)(n-1)}{n-p-1}$$
+
+Bestraft unnötige Variablen.
+]
+
+<br>
+
+### Beispiel: Anscombe's Quartet
+
+Vier Datensätze mit **identischem** R² = 0.67 — aber völlig unterschiedlichen Mustern!
+
+`r fa('circle-right')` **Immer visualisieren** — R² allein ist blind!
+]
+
+
+---
+class: left
+
+.blockquote[Lineare Regression]
+
+## Multiple Regression: Mehrere Prädiktoren
+
+.pull-left[
+### Das erweiterte Modell
+
+$$Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \ldots + \beta_pX_p + \varepsilon$$
+
+### Warum mehrere Variablen?
+
+* Mehr Varianz **erklären**
+* Störvariablen **kontrollieren** (Confounder)
+* **Ceteris-paribus**-Interpretation
+* Realität ist **multivariat**
+
+### Beispiel
+
+$$\text{Umsatz} = \beta_0 + \beta_1 \underbrace{\text{Preis}}_{\text{negativ}} + \beta_2 \underbrace{\text{Werbung}}_{\text{positiv}} + \beta_3 \underbrace{\text{Qualität}}_{\text{positiv}} + \varepsilon$$
+
+**Interpretation von $\beta_1$:** Effekt des Preises, **wenn Werbung und Qualität konstant** gehalten werden.
+]
+
+.pull-right[
+
+```{r multiple-reg-plot, echo=FALSE, fig.width=4.8, fig.height=4.5, out.width='95%'}
+# Simuliere Koeffizientenplot (partielle Effekte)
+coefs <- tibble(
+  var   = factor(c("Preis","Werbung","Qualität","Marke","Saison"),
+                 levels=rev(c("Preis","Werbung","Qualität","Marke","Saison"))),
+  beta  = c(-0.45, 0.32, 0.28, 0.15, 0.08),
+  se    = c(0.06, 0.05, 0.06, 0.05, 0.07),
+  sig   = c("***","***","***","**","n.s.")
+) |>
+  mutate(
+    ci_lo = beta - 1.96*se,
+    ci_hi = beta + 1.96*se,
+    col   = if_else(beta < 0, "#D50006", "#502479")
+  )
+
+ggplot(coefs, aes(x=beta, y=var, color=col)) +
+  geom_vline(xintercept=0, color="#686868",
+             linewidth=0.8, linetype="dashed") +
+  geom_errorbarh(aes(xmin=ci_lo, xmax=ci_hi),
+                 height=0.25, linewidth=0.8) +
+  geom_point(size=4) +
+  geom_text(aes(label=sprintf("%.2f %s", beta, sig),
+                x=beta + sign(beta)*0.07),
+            size=3, fontface="bold") +
+  scale_color_identity() +
+  scale_x_continuous(limits=c(-0.65,0.6)) +
+  labs(title="Multiple Regression: Partielle Effekte",
+       subtitle="Koeffizienten mit 95%-Konfidenzintervallen",
+       x="Standardisierter Koeffizient (Beta)",
+       y=NULL,
+       caption="** p<0.01  *** p<0.001  n.s. = nicht signifikant") +
+  theme_minimal(base_size=10) +
+  theme(plot.title=element_text(color="#D50006",face="bold"),
+        plot.caption=element_text(color="#686868"))
+```
+]
+
+
+---
+class: left
+
+.blockquote[Lineare Regression]
+
+## Regressionsoutput interpretieren
+
+.panelset[
+.panel[.panel-name[Koeffizienten-Tabelle]
+
+```r
+library(moderndive)
+get_regression_table(modell)
+```
+
+```{r reg-output, echo=FALSE, message=FALSE, warning=FALSE}
+library(ISLR2); library(moderndive)
+data(Carseats)
+mod_demo <- lm(Sales ~ Price + Advertising + ShelveLoc, data=Carseats)
+get_regression_table(mod_demo) |>
+  knitr::kable(digits=3, format="html") |>
+  kableExtra::kable_styling(font_size=12, full_width=TRUE)
+```
+
+]
+
+.panel[.panel-name[Interpretation]
+
+.pull-left[
+### Wichtige Kennzahlen
+
+| Spalte | Bedeutung |
+|--------|-----------|
+| `term` | Variablenname |
+| `estimate` | Koeffizient $\hat{\beta}$ |
+| `std_error` | Unsicherheit des Koeffizienten |
+| `statistic` | t-Wert = estimate / std_error |
+| `p_value` | Signifikanz (< 0.05 ?) |
+| `lower_ci` / `upper_ci` | 95%-Konfidenzintervall |
+
+]
+
+.pull-right[
+### Interpretationsschema
+
+**Price:** $\hat{\beta}_1 = -0.054$
+→ 1 USD Preiserhöhung senkt Sales um **54 Einheiten**, ceteris paribus.
+
+**Advertising:** $\hat{\beta}_2 = 0.121$
+→ 1.000 USD mehr Werbung steigert Sales um **121 Einheiten**, c.p.
+
+**ShelveLocGood:** $\hat{\beta}_3 = 4.69$
+→ Guter Regalplatz erhöht Sales um **4.690 Einheiten** vs. „Bad", c.p.
+
+.blockquote[
+**Referenzlevel:** „Bad" ist im Intercept enthalten — alle Dummy-Koeffizienten sind Differenzen zu „Bad"!
+]
+]
+]
+]
+
+
+---
+class: left
+
+.blockquote[Overfitting]
+
+## Overfitting: Das zentrale Problem
+
+.pull-left[
+### Definition
+
+Das Modell lernt die Trainingsdaten **zu gut** — inklusive des Rauschens.
+
+### Symptome
+
+`r fa('exclamation-triangle')` Sehr gute **In-Sample**-Performance
+
+`r fa('exclamation-triangle')` Schlechte **Out-of-Sample**-Performance
+
+`r fa('exclamation-triangle')` Extrem große oder instabile Koeffizienten
+
+`r fa('exclamation-triangle')` Modell „memoriert" statt „generalisiert"
+
+### Ursachen
+
+* Zu **viele Variablen** (p ≈ n)
+* Zu **komplexes** Modell
+* Zu **wenig Daten**
+* Fehlende **Validierung**
+
+.blockquote[
+**Kernproblem:** Wir wollen **generalisieren**, nicht memorieren!
+]
+]
+
+.pull-right[
+
+```{r overfitting-viz, echo=FALSE, fig.width=4.8, fig.height=4.5, out.width='95%'}
+complexity <- 1:15
+train_err  <- 1.95 * exp(-0.38 * complexity) + 0.05
+test_err   <- 0.82 * exp(-0.32 * complexity) +
+              0.06 * (complexity - 6.2)^2 * (complexity > 6) + 0.28
+
+df_ov <- tibble(
+  complexity = rep(complexity, 2),
+  error = c(train_err, test_err),
+  Typ = rep(c("Trainingsfehler (In-Sample)",
+              "Testfehler (Out-of-Sample)"), each=15)
+)
+
+opt_x <- complexity[which.min(test_err)]
+opt_y <- min(test_err)
+
+ggplot(df_ov, aes(x=complexity, y=error, color=Typ)) +
+  # Hintergrundfelder
+  annotate("rect", xmin=0.5, xmax=opt_x-0.3,
+           ymin=-Inf, ymax=Inf,
+           fill="#502479", alpha=0.07) +
+  annotate("rect", xmin=opt_x+0.3, xmax=15.5,
+           ymin=-Inf, ymax=Inf,
+           fill="#D50006", alpha=0.07) +
+  # Labels Bereiche
+  annotate("text", x=2.5, y=2.5, label="Under-\nfitting",
+           color="#502479", fontface="bold", size=3) +
+  annotate("text", x=12, y=2.5, label="Over-\nfitting",
+           color="#D50006", fontface="bold", size=3) +
+  # Kurven
+  geom_line(linewidth=1.4) +
+  # Optimum
+  geom_vline(xintercept=opt_x, color="#2e8b57",
+             linetype="dashed", linewidth=1) +
+  geom_point(data=tibble(complexity=opt_x, error=opt_y,
+                          Typ="Testfehler (Out-of-Sample)"),
+             color="#2e8b57", size=4) +
+  annotate("text", x=opt_x+0.3, y=opt_y+0.15,
+           label="Optimum", color="#2e8b57",
+           size=3, fontface="bold", hjust=0) +
+  scale_color_manual(values=c("Trainingsfehler (In-Sample)"="#502479",
+                               "Testfehler (Out-of-Sample)"="#D50006")) +
+  scale_x_continuous(breaks=seq(2,14,2)) +
+  labs(title="Overfitting: Training vs. Test Performance",
+       subtitle="Das optimale Modell minimiert den Testfehler",
+       x="Modellkomplexität",
+       y="Vorhersagefehler",
+       color=NULL) +
+  theme_minimal(base_size=10) +
+  theme(plot.title=element_text(color="#D50006",face="bold"),
+        legend.position="bottom",
+        legend.text=element_text(size=8))
+```
+]
+
+
+---
+class: left
+
+.blockquote[Overfitting]
+
+## In-Sample vs. Out-of-Sample Evaluation
+
+.pull-left[
+### In-Sample (Trainingsdaten)
+
+* Performance auf **Daten, die das Modell kennt**
+* Immer **optimistisch** — zu gut!
+* R² steigt mit jeder zusätzlichen Variable
+* **Nicht** zur Modellwahl geeignet
+
+.blockquote[
+**Problem:** Das Modell „kennt" die Daten bereits. Es memoriert, statt zu lernen.
+]
+]
+
+.pull-right[
+### Out-of-Sample (Testdaten)
+
+* Performance auf **neuen, ungesehenen Daten**
+* **Realistische** Schätzung der echten Güte
+* Erfordert Datenteilung vor der Modellierung
+* **Grundlage** für Modellwahl!
+
+```r
+# Train/Test Split (70/30)
+set.seed(42)
+n     <- nrow(Carseats)
+train_idx <- sample(n, 0.7 * n)
+train <- Carseats[train_idx, ]
+test  <- Carseats[-train_idx, ]
+
+# Modell auf Trainingsdaten
+mod <- lm(Sales ~ Price + Advertising +
+          ShelveLoc, data = train)
+
+# Evaluation auf Testdaten
+pred <- predict(mod, newdata = test)
+rmse <- sqrt(mean((test$Sales - pred)^2))
+```
+
+`r fa('circle-right')` Mehr in Block 3: **Kreuzvalidierung**
+]
+
+
+---
+class: left
+
+.blockquote[Block 1 — Zusammenfassung]
+
+## Synthese: Was haben wir gelernt?
+
+.pull-left[
+### Konzepte
+
+`r fa('check-circle')` **Data Science** = Statistik + CS + Domänenwissen
+
+`r fa('check-circle')` **CRISP-DM** als iterativer Projektstandard (nicht linear!)
+
+`r fa('check-circle')` **Daten als Asset** — Qualität > Quantität
+
+`r fa('check-circle')` **EDA vor Modellierung** — immer!
+
+`r fa('check-circle')` **Regression** als bedingter Mittelwert $E[Y|X]$
+
+`r fa('check-circle')` **Overfitting** — In-Sample ≠ Out-of-Sample
+
+### Praktische Skills
+
+`r fa('code')` R-Projekte · relative Pfade · Tidyverse · ggplot2 · `lm()`
+]
+
+.pull-right[
+<br>
+
+.blockquote[
+**Kernbotschaft:**
+
+Data Science ist **modellbasiertes Denken** mit dem Ziel der **Generalisierung** — nicht das Maximieren von R² auf Trainingsdaten.
+]
+
+<br>
+
+### Ausblick: Block 2
+
+`r fa('dice')` **Inferenz & Unsicherheit**
+
+* Bootstrapping und Permutationstests
+* Hypothesentests: t-Test, ANOVA
+* Fehler 1. und 2. Art als Business-Risiken
+* p-Hacking und Multiple Testing
+
+> *„Wie sicher können wir sein, dass unser Koeffizient nicht nur Zufall ist?"*
+]
+
+
+---
+name: EndThanks
+class: center
+
+background-size: 75%
+background-image: url(https://media.giphy.com/media/KJ1f5iTl4Oo7u/giphy.gif)
+
+
+---
+class: left
+
+## Quellenverzeichnis
+
+.ref-slide[
+```{r, results='asis', echo=FALSE, warning=FALSE}
+PrintBibliography(bib)
+```
+]

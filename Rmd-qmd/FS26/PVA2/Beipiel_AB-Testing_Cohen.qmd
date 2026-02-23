@@ -1,0 +1,402 @@
+---
+title: "A/B Test Analyse: E-Commerce Checkout-Optimierung"
+author: "Datenanalyse"
+date: "`r Sys.Date()`"
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 2
+    code-fold: true
+    code-summary: "Code anzeigen"
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(tidyverse)
+library(rstatix)
+library(effectsize)
+library(knitr)
+library(kableExtra)
+library(scales)
+```
+
+## Hintergrund
+
+### Problemstellung
+
+Ein E-Commerce-Unternehmen möchte den durchschnittlichen Bestellwert (Average Order Value, AOV) erhöhen. Dazu wurde ein neues Checkout-Design mit 1-Click-Upsells entwickelt, das relevante Zusatzprodukte im letzten Schritt des Kaufprozesses anbietet.
+
+### Experimentdesign
+
+- **Control Group**: Altes Checkout-Design (N = 50.000 Kunden)
+- **Test Group**: Neues Checkout-Design mit 1-Click-Upsells (N = 50.000 Kunden)
+- **Zielmetrik**: Durchschnittlicher Bestellwert in Euro
+- **Randomisierung**: Kunden wurden zufällig einer der beiden Gruppen zugewiesen
+- **Zeitraum**: 4 Wochen paralleler Test
+
+**Forschungsfrage**: Erhöht das neue Design den durchschnittlichen Bestellwert signifikant?
+
+**Null-Hypothese (H₀)**: Es gibt keinen Unterschied im durchschnittlichen Bestellwert zwischen den Gruppen (μ₁ = μ₂)
+
+**Alternativ-Hypothese (H₁)**: Das neue Design erhöht den durchschnittlichen Bestellwert (μ₁ < μ₂)
+
+## Daten generieren
+
+```{r data-generation}
+set.seed(42)
+
+# Simulierte Bestellwerte basierend auf historischen Daten
+# Control: μ = 85€, σ = 25€
+# Test: μ = 92€, σ = 25€ (Erwartete Steigerung durch Upsells)
+
+ab_test_data <- tibble(
+  group = c(
+    rep("Control", 50000),
+    rep("Test", 50000)
+  ),
+  order_value = c(
+    rnorm(50000, mean = 85, sd = 25),  # Control: Ø 85€
+    rnorm(50000, mean = 92, sd = 25)   # Test: Ø 92€ (+8%)
+  )
+) %>%
+  # Realistische Constraints: Keine negativen Werte, max 500€
+  # (Mindestbestellwert 5€, sehr große Bestellungen > 500€ sind Ausnahmen)
+  mutate(order_value = pmax(5, pmin(500, order_value)))
+```
+
+:::{.callout-note}
+## Datengenerierung
+
+Die Daten werden hier simuliert, um das Analyseverfahren zu demonstrieren. In der Praxis würden die tatsächlichen Bestelldaten aus dem Tracking-System verwendet. Die Normalverteilung mit μ = 85€ und σ = 25€ entspricht typischen E-Commerce-Mustern.
+:::
+
+## Deskriptive Statistiken
+
+```{r summary-stats}
+summary_stats <- ab_test_data %>%
+  group_by(group) %>%
+  summarise(
+    N = comma(n()),
+    `Mean (€)` = round(mean(order_value), 2),
+    `Median (€)` = round(median(order_value), 2),
+    `SD (€)` = round(sd(order_value), 2),
+    `Min (€)` = round(min(order_value), 2),
+    `Max (€)` = round(max(order_value), 2),
+    .groups = "drop"
+  )
+
+summary_stats %>%
+  kable(align = "lrrrrrr") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  )
+```
+
+**Mittelwert-Differenz**: `r round(diff(summary_stats$"Mean (€)"), 2)` € 
+(+`r round(abs(diff(summary_stats$"Mean (€)")) / summary_stats$"Mean (€)"[1] * 100, 1)`%)
+
+## Statistische Tests
+
+### Wahl der Testmethode
+
+Für diesen A/B-Test verwenden wir den **Welch Two Sample t-Test**.
+
+**Warum t-Test?**
+
+- Wir vergleichen die Mittelwerte zweier unabhängiger Gruppen
+- Die Zielmetrik (Bestellwert) ist kontinuierlich und annähernd normalverteilt
+- Große Stichprobe (N = 50.000 pro Gruppe) → Zentraler Grenzwertsatz gilt
+
+**Warum Welch-Variante (statt Student's t-Test)?**
+
+- **Keine Annahme gleicher Varianzen** erforderlich (robuster)
+- Selbst bei gleichen Varianzen liefert Welch's Test korrekte Ergebnisse
+- In der Praxis sind Varianzen selten exakt gleich
+- **Best Practice** für A/B-Tests: "Always use Welch" (Student's t-Test nur wenn Varianzhomogenität nachgewiesen)
+
+**Warum nicht Mann-Whitney-U-Test?**
+
+- Bei N > 10.000 ist der t-Test robust gegen Verletzungen der Normalverteilung
+- t-Test hat höhere statistische Power bei normalverteilten Daten
+- Mann-Whitney wäre nur bei stark schiefen Verteilungen oder Ausreißern besser
+
+**Warum nicht Bayesianischer Test?**
+
+- Frequentistische Tests sind Standard in der Industrie (bessere Kommunizierbarkeit)
+- Bei großen Stichproben liefern beide Ansätze ähnliche Ergebnisse
+- Bayesianische Tests sind nützlich bei kleinen N oder Prior-Knowledge
+
+```{r statistical-tests}
+# T-Test durchführen
+t_test_result <- ab_test_data %>%
+  t_test(order_value ~ group, detailed = TRUE)
+
+# Cohen's d berechnen - separate Vektoren erstellen
+control_data <- ab_test_data %>% filter(group == "Control") %>% pull(order_value)
+test_data <- ab_test_data %>% filter(group == "Test") %>% pull(order_value)
+
+cohens_result <- cohens_d(control_data, test_data, pooled_sd = TRUE)
+
+# Ergebnisse kombinieren
+test_results <- tibble(
+  Test = "Welch Two Sample t-test",
+  `t-statistic` = round(t_test_result$statistic, 2),
+  `df` = comma(round(t_test_result$df, 0)),
+  `p-value` = format.pval(t_test_result$p, eps = 0.001, digits = 3),
+  `Cohen's d` = round(cohens_result$Cohens_d, 3),
+  Interpretation = cohens_result$magnitude
+)
+
+test_results %>%
+  kable() %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  )
+```
+
+## Visualisierung
+
+### Verteilungsvergleich
+
+```{r plot-distribution, fig.width=10, fig.height=6}
+ab_test_data %>%
+  ggplot(aes(x = group, y = order_value, fill = group)) +
+  geom_violin(alpha = 0.5, trim = FALSE) +
+  geom_boxplot(width = 0.2, alpha = 0.7, outlier.alpha = 0.3) +
+  stat_summary(
+    fun = mean, 
+    geom = "point", 
+    size = 4, 
+    color = "red",
+    shape = 18
+  ) +
+  stat_summary(
+    fun = mean,
+    geom = "text",
+    aes(label = sprintf("%.2f €", after_stat(y))),
+    vjust = -1.5,
+    color = "red",
+    fontface = "bold"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  scale_y_continuous(labels = label_dollar(prefix = "", suffix = " €")) +
+  labs(
+    title = "Vergleich des durchschnittlichen Bestellwerts",
+    subtitle = sprintf(
+      "Cohen's d = %.3f (%s) | p < 0.001", 
+      cohens_result$Cohens_d, 
+      cohens_result$magnitude
+    ),
+    x = "Gruppe",
+    y = "Bestellwert (€)",
+    caption = "Rote Rauten zeigen Mittelwerte"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(color = "gray40")
+  )
+```
+
+### Dichteverteilung
+
+```{r plot-density, fig.width=10, fig.height=5}
+ab_test_data %>%
+  ggplot(aes(x = order_value, fill = group)) +
+  geom_density(alpha = 0.6) +
+  geom_vline(
+    data = summary_stats,
+    aes(xintercept = `Mean (€)`, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set2") +
+  scale_x_continuous(labels = label_dollar(prefix = "", suffix = " €")) +
+  labs(
+    title = "Dichteverteilung der Bestellwerte",
+    x = "Bestellwert (€)",
+    y = "Dichte",
+    fill = "Gruppe",
+    color = "Mittelwert"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16)
+  )
+```
+
+## Business Impact
+
+### Hochrechnung auf Jahresumsatz
+
+Um die praktische Bedeutung des Effekts zu quantifizieren, rechnen wir den Unterschied auf den erwarteten Jahresumsatz hoch. Diese Betrachtung ist entscheidend für die ROI-Bewertung der Optimierungsmaßnahme.
+
+```{r business-impact}
+# Berechnungen für Business Impact
+control_mean <- summary_stats$`Mean (€)`[summary_stats$group == "Control"]
+test_mean <- summary_stats$`Mean (€)`[summary_stats$group == "Test"]
+lift_absolute <- test_mean - control_mean
+lift_percent <- (lift_absolute / control_mean) * 100
+
+# Hochrechnung auf erwartete Jahreszahlen
+# Test lief 4 Wochen mit 100.000 Bestellungen → ~1,3 Mio Bestellungen/Jahr
+test_period_weeks <- 4
+weeks_per_year <- 52
+orders_in_test <- 100000
+annual_orders <- (orders_in_test / test_period_weeks) * weeks_per_year
+
+# Umsatzberechnung
+test_revenue <- test_mean * orders_in_test
+control_revenue <- control_mean * orders_in_test
+test_period_lift <- test_revenue - control_revenue
+
+annual_revenue_test <- test_mean * annual_orders
+annual_revenue_control <- control_mean * annual_orders
+annual_lift <- annual_revenue_test - annual_revenue_control
+
+impact_table <- tibble(
+  Metrik = c(
+    "Durchschnittlicher Bestellwert (Control)",
+    "Durchschnittlicher Bestellwert (Test)",
+    "Absolute Steigerung pro Bestellung",
+    "Relative Steigerung",
+    "",
+    "Bestellungen im 4-Wochen-Test",
+    "Zusätzlicher Umsatz im Test (4 Wochen)",
+    "",
+    "Hochrechnung auf Jahresbasis:",
+    "Erwartete Bestellungen pro Jahr",
+    "Jahresumsatz (bei altem Design)",
+    "Jahresumsatz (bei neuem Design)",
+    "Zusätzlicher Jahresumsatz"
+  ),
+  Wert = c(
+    sprintf("%.2f €", control_mean),
+    sprintf("%.2f €", test_mean),
+    sprintf("%.2f €", lift_absolute),
+    sprintf("%.1f%%", lift_percent),
+    "",
+    sprintf("%s", comma(orders_in_test)),
+    sprintf("%s €", comma(test_period_lift)),
+    "",
+    "",
+    sprintf("%s", comma(round(annual_orders))),
+    sprintf("%s €", comma(round(annual_revenue_control))),
+    sprintf("%s €", comma(round(annual_revenue_test))),
+    sprintf("%s €", comma(round(annual_lift)))
+  )
+)
+
+impact_table %>%
+  kable() %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  ) %>%
+  row_spec(7, bold = TRUE, background = "#fff3cd") %>%
+  row_spec(13, bold = TRUE, background = "#e8f4f8")
+```
+
+## Interpretation & Fazit
+
+```{r calc-for-interpretation, include=FALSE}
+# Berechnungen für Inline-Verwendung
+mean_diff <- abs(diff(summary_stats$`Mean (€)`))
+p_val <- t_test_result$p
+cohens_d <- cohens_result$Cohens_d
+magnitude <- cohens_result$magnitude
+```
+
+### Statistische Signifikanz
+
+✅ **Statistisch hochsignifikant** (p < 0.001)
+
+Mit N = 100.000 Beobachtungen zeigt der t-Test einen t-Wert von `r round(t_test_result$statistic, 2)` bei einem p-Wert < 0.001. Der Unterschied ist statistisch eindeutig nachweisbar.
+
+### Praktische Relevanz
+
+- **Absolute Differenz**: `r sprintf("%.2f €", mean_diff)` pro Bestellung
+- **Relative Steigerung**: +`r sprintf("%.1f%%", lift_percent)`
+- **Cohen's d**: `r round(cohens_d, 3)`
+
+✅ **Small to Medium Effect Size** - Praktisch relevant!
+
+**Bewertung**: Mit einem Cohen's d von `r round(cohens_d, 3)` liegt ein kleiner bis mittlerer Effekt vor, der im E-Commerce-Kontext **hochrelevant** ist. Eine Steigerung von `r sprintf("%.1f%%", lift_percent)` beim durchschnittlichen Bestellwert hat erhebliche finanzielle Auswirkungen.
+
+### Key Takeaways
+
+:::{.callout-important}
+## Wichtigste Ergebnisse
+
+1. **Statistisch und praktisch signifikant**: Der Test zeigt sowohl statistische Signifikanz als auch praktische Relevanz
+
+2. **Effect Size**: Cohen's d von `r round(cohens_d, 3)` entspricht einem kleinen bis mittleren Effekt - im E-Commerce ein substanzieller Erfolg
+
+3. **Business Impact**: Bei 100.000 Bestellungen während des 4-Wochen-Tests entspricht dies einem zusätzlichen Umsatz von **`r comma(round(test_period_lift))` €**. Hochgerechnet auf ein Jahr (~1,3 Mio Bestellungen) ergibt sich ein Potenzial von **`r comma(round(annual_lift))` €**
+
+4. **ROI-Perspektive**: Selbst wenn die Implementierung 50.000€ gekostet hätte, würde sich die Investition bereits im ersten Jahr amortisieren
+:::
+
+### Handlungsempfehlung
+
+Basierend auf dieser Analyse:
+
+- ✅ **Rollout empfohlen**: Das neue Checkout-Design sollte für alle Kunden ausgerollt werden
+- ✅ **Quick Win**: Die Verbesserung ist signifikant und sofort umsetzbar
+- 📊 **Monitoring**: Langfristige Überwachung der Metriken zur Validierung des Effekts
+- 🔍 **Weitere Optimierung**: Analyse, welche Upsells am besten funktionieren
+
+:::{.callout-tip}
+## Nächste Schritte
+
+1. Segmentanalyse durchführen (unterschiedliche Effekte nach Produktkategorie?)
+2. Conversion Rate parallel analysieren (kein Trade-off?)
+3. Langzeit-Kohorten-Analyse (6-12 Monate)
+:::
+
+## Methodische Hinweise
+
+### Verwendete statistische Verfahren
+
+**Welch Two Sample t-Test**
+
+- Prüft, ob sich die Mittelwerte zweier unabhängiger Gruppen signifikant unterscheiden
+- Verwendet die Satterthwaite-Approximation für die Freiheitsgrade
+- Annahmen: Unabhängige Beobachtungen, annähernde Normalverteilung (bei großem N nicht kritisch)
+- Keine Annahme gleicher Varianzen nötig (im Gegensatz zu Student's t-Test)
+
+**Cohen's d (Effect Size)**
+
+- Standardisierte Mittelwertsdifferenz: d = (μ₁ - μ₂) / σ_pooled
+- Unabhängig von Stichprobengröße und Maßeinheit
+- Ermöglicht Vergleich über verschiedene Studien hinweg
+- Berechnung mit pooled standard deviation für zwei Gruppen
+
+**Warum beides wichtig ist:**
+
+- **p-Wert**: Beantwortet "Ist der Effekt real?" (statistische Signifikanz)
+- **Effect Size**: Beantwortet "Wie groß ist der Effekt?" (praktische Relevanz)
+- Bei großem N sind auch winzige Effekte signifikant → Effect Size ist entscheidend!
+
+### Interpretation nach Cohen (1988)
+
+- |d| < 0.2: negligible (vernachlässigbar)
+- 0.2 ≤ |d| < 0.5: small (klein)
+- 0.5 ≤ |d| < 0.8: medium (mittel)
+- |d| ≥ 0.8: large (groß)
+
+**Wichtig**: Diese Grenzen sind Richtwerte. Die praktische Relevanz hängt stark vom Kontext ab. Im E-Commerce kann bereits ein "small" Effect eine große finanzielle Wirkung haben!
+
+:::{.callout-note}
+## Reproduzierbarkeit
+
+Dieser Report verwendet `set.seed(42)` für reproduzierbare Ergebnisse. Die Daten simulieren realistische E-Commerce-Bestellwerte mit Normalverteilung und Constraints (5€ - 500€).
+:::

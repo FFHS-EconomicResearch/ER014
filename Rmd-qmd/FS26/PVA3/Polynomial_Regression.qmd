@@ -1,0 +1,129 @@
+---
+title: "Polynomial_Regression"
+format: html
+---
+
+
+🎯 Warum steigt $R^2$ automatisch?
+Bei linearem Term:
+
+$y=\beta_0+\beta_1\cdot x$
+
+Konsequenzen des Hinzufügens eines quadratischen Terms:
+
+$y=\beta_0+\beta_1\cdot x+\beta_2\cdot x^2$
+
+* Modell hat mehr Freiheitsgrade.
+* Modell kann mindestens genauso gut wie das lineare Modell fitten.
+* Modell kann niemals schlechter werden, weil das lineare Modell ein Spezialfall ($\beta_2=0$) ist.
+
+Somit gilt:
+
+$R_{\mbox{Poly}}^2\geq R_{\mbox{Linear}}$
+
+Das ist ein mathematisches Gesetz, kein empirischer Zufall.
+
+⚠️ Warum das gefährlich ist
+Ein höheres $R^2$ bedeutet **nicht**:
+
+* dass das Modell besser generalisiert
+* dass es die wahre Struktur besser trifft
+* dass es sinnvoll ist, einen höheren Grad zu nehmen
+
+Im Gegenteil: Höhere Polynomgrade → Overfitting
+$R^2$ steigt → aber nur, weil das Modell die Trainingsdaten "auswendig lernt"
+
+Um zu prüfen, ob der zusätzliche Term wirklich etwas bringt:
+* Adjusted $R^2$ 
+* Kreuzvalidierung
+* AIC/BIC
+* Regularisierung (Ridge/Lasso)
+
+
+🧠 Intuition in einem Satz
+Polynomialterme erhöhen die Flexibilität des Modells – und Flexibilität erhöht immer das $R^2$.
+
+
+📌 Beispiel: Polynomialterme und künstliche $R^2$-Inflation
+
+
+Wir erzeugen zuerst eine klar lineare Beziehung, damit man sieht, wie ein Polynom "künstlich" das 
+$R^2$ verbessert.
+
+```{r}
+set.seed(123)
+
+# Daten erzeugen
+n <- 100
+x <- runif(n, 0, 10)
+y <- 3 + 2*x + rnorm(n, sd = 3)   # echte Beziehung ist linear
+
+data <- data.frame(x, y)
+```
+
+
+📘 1. Lineares Modell
+```{r}
+model_linear <- lm(y ~ x, data = data)
+summary(model_linear)$r.squared
+```
+
+
+📘 2. Quadratisches Modell (2. Grad)
+```{r}
+model_quad <- lm(y ~ poly(x, 2, raw = TRUE), data = data)
+summary(model_quad)$r.squared
+```
+
+
+📘 3. Kubisches Modell (3. Grad)
+```{r}
+model_cubic <- lm(y ~ poly(x, 3, raw = TRUE), data = data)
+summary(model_cubic)$r.squared
+```
+
+
+📊 4. Vergleich der $R^2$-Werte
+```{r}
+r2_values <- c(
+  linear = summary(model_linear)$r.squared,
+  quadratic = summary(model_quad)$r.squared,
+  cubic = summary(model_cubic)$r.squared
+)
+r2_values
+```
+
+
+
+$R_{\mbox{Linear}}^2\leq R_{\mbox{Quadratisch}}\leq$R_{\mbox{Kubisch}}^2$
+
+obwohl die wahre Beziehung rein linear ist.
+
+Das ist die klassische $R^2$-Inflation.
+
+📉 5. Optional: Visualisierung des Overfitting
+
+```{r}
+plot(x, y, main = "Polynomial Fit Inflation", pch = 19, col = "grey")
+
+```
+
+
+# Vorhersagegitter
+```{r}
+x_grid <- seq(min(x), max(x), length.out = 200)
+
+lines(x_grid, predict(model_linear, data.frame(x = x_grid)), col = "blue", lwd = 2)
+lines(x_grid, predict(model_quad, data.frame(x = x_grid)), col = "red", lwd = 2)
+lines(x_grid, predict(model_cubic, data.frame(x = x_grid)), col = "darkgreen", lwd = 2)
+
+legend("topleft",
+       legend = c("Linear", "Quadratic", "Cubic"),
+       col = c("blue", "red", "darkgreen"),
+       lwd = 2)
+```
+
+* Der lineare Fit ist korrekt
+* Der quadratische Fit biegt sich unnötig
+* Der kubische Fit beginnt zu "schwingen" → klassisches Overfitting
+

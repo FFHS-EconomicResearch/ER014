@@ -1,0 +1,155 @@
+---
+title: "ER014 Session 1"
+output: html_document
+author: "Anastasija Tetereva, PhD & Prof. Dr. Jörg Schoder"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+```
+
+## ANOVA
+### Verbesserung der Fahrleistung bei Übermüdung
+
+
+Langstrecken-Lkw-Fahrer sind nicht selten gezwungen, auch bei Ermüdung zu fahren. Kann eine sekundäre Aufgabe - z. B. eine Wortassoziationsaufgabe - die 
+die Leistung eines übermüdeten Fahrers verbessern? Diese Frage stand im Mittelpunkt einer Studie von Human Factors (Mai 2014). Die Forscher verwendeten einen Fahrsimulator, um ihre Daten zu erhalten. Jeder der 40 College-Studenten wurde beauftragt, eine lange Strecke im Simulator zu fahren. Allerdings wurden die Fahrschüler in vier Gruppen zu je 10 Fahrern aufgeteilt. Gruppe 1 führte die verbale Aufgabe kontinuierlich aus (kontinuierliche verbale 
+Gruppe 2 führte die Aufgabe nur am Ende der Fahrt aus (späte verbale Bedingung); Gruppe 3 führte die Aufgabe überhaupt nicht aus (keine verbale Bedingung); und Gruppe 4 hörte ein Programm im Autoradio (Radioshow-Bedingung). Am Ende der simulierten Fahrt wurden die Fahrer gebeten, sich an Werbetafeln zu erinnern, die sie auf der Strecke gesehen hatten. Der Prozentsatz der Werbetafeln, an die sich die einzelnen Fahrschüler erinnern konnten, ist in den nachstehenden Daten angegeben. Bestimmen Sie, ob sich der durchschnittliche Prozentsatz der Fahrschüler in den vier Gruppen unterscheidet.
+
+
+```{r}
+library(readxl)
+my_in_file <- "FATIGUE.xlsx"
+data.fatigue <- read_excel(xfun::from_root('data','raw',my_in_file))
+head(data.fatigue)
+```
+
+#### Zu erledigende Aufgaben
+- Prüfen Sie die Daten
+- Berechnen Sie den Mittelwert, den Median und die Standardabweichung für den prozentualen Anteil der Werbetafeln in jeder Gruppe von Fahrschülern
+- Erstellen Sie Boxplots für den prozentualen Anteil der Reklametafeln für jede Gruppe von Fahrschülern
+- Erstellen eines Histogramms für den prozentualen Anteil von Reklametafeln für jede Gruppe von Fahrschülern
+- Erstellen Sie einen qqplot, um visuell zu überprüfen, ob die Daten einer Gauß-Verteilung entstammen.
+- Führen Sie einen Test durch, um die Nullhypothese zu testen, dass die Daten der Gauß-Verteilung entsprechen.
+- Was können Sie über die Mittelwerte und die Varianzen sagen? Sind sie für alle Gruppen gleich? Oder gibt es einige Gruppen, die sich unterscheiden?
+
+#### Hypothese der gleichen Varianzen
+Bevor man eine ANOVA durchführt, sollte man die Hypothese der gleichen Varianzen testen. Dies kann mit den folgenden Tests geschehen:
+
+- Bartlett's Test: Vergleich der Varianzen von zwei oder mehr Gruppen. Die Daten müssen normalverteilt sein.
+- Levene-Test: Eine robuste Alternative zum Bartlett-Test, die weniger empfindlich auf Abweichungen von der Normalität reagiert.
+- Fligner-Killeen-Test: Ein nichtparametrischer Test, der sehr robust gegenüber Abweichungen von der Normalität ist.
+
+
+
+
+```{r}
+res <- bartlett.test(RECALL ~ GROUP, data = data.fatigue)
+res
+```
+
+Das Ergebnis zeigt, dass der $p$-Wert von 0,4387 nicht unter dem Signifikanzniveau von 0,05 liegt. Dies bedeutet, dass es keinen Hinweis darauf gibt, dass sich die Varianz im Pflanzenwachstum für die drei Behandlungsgruppen statistisch signifikant unterscheidet.
+
+```{r}
+library(car)
+# Levene's test with one independent variable
+leveneTest(RECALL ~ GROUP, data = data.fatigue)
+```
+Das Ergebnis zeigt, dass der $p$-Wert von 0,5949 nicht unter dem Signifikanzniveau von 0,05 liegt. Dies bedeutet, dass es keinen Hinweis darauf gibt, dass sich die Varianz im Pflanzenwachstum für die drei Behandlungsgruppen statistisch signifikant unterscheidet.
+
+Der Fligner-Killeen-Test ist einer der vielen Tests auf Homogenität der Varianzen, der am robustesten gegenüber Abweichungen von der Normalität ist.
+
+```{r}
+fligner.test(RECALL ~ GROUP, data = data.fatigue)
+```
+
+- Welche Schlussfolgerung ergibt sich aus dem Fligner-Killeen-Test?
+```{r}
+anova.test <- aov(RECALL ~ GROUP, data = data.fatigue)
+summary(anova.test)
+```
+In der Ergebnisübersicht werden zunächst die unabhängigen Variablen, die im Modell getestet werden (in diesem Fall haben wir nur eine, "GROUP"), und die Modellresiduen ("Residual") aufgeführt. Die gesamte Variation, die nicht durch die unabhängigen Variablen erklärt wird, wird als Restvarianz bezeichnet.
+
+Die übrigen Werte in der Ausgabetabelle beschreiben die unabhängige Variable und die Residuen:
+
+Die Spalte **Df** zeigt die Freiheitsgrade für die unabhängige Variable (die Anzahl der Niveaus der Variable minus 1) und die Freiheitsgrade für die Residuen (die Gesamtzahl der Beobachtungen minus 1 und minus die Anzahl der Niveaus der unabhängigen Variablen).
+
+Die Spalte **Sum Sq** zeigt die Summe der Quadrate (auch bekannt als die Gesamtvariation zwischen den Gruppenmitteln und dem Gesamtmittelwert).
+Die Spalte Mittelwert** ist der Mittelwert der Summe der Quadrate, berechnet durch Division der Summe der Quadrate durch die Freiheitsgrade für jeden Parameter.
+
+Die Spalte **F-Wert** ist die Teststatistik des F-Tests. Dies ist das mittlere Quadrat jeder unabhängigen Variablen geteilt durch das mittlere Quadrat der Residuen. Je größer der F-Wert ist, desto wahrscheinlicher ist es, dass die durch die unabhängige Variable verursachte Variation real ist und nicht auf Zufall beruht.
+
+Die Spalte **Pr(>F)** ist der p-Wert der F-Statistik. Sie gibt an, wie wahrscheinlich es ist, dass der aus dem Test berechnete F-Wert eingetreten wäre, wenn die Nullhypothese, dass es keinen Unterschied zwischen den Gruppenmitteln gibt, wahr wäre.
+
+Der $p$-Wert der Variable GRUPPE ist niedrig (p < 0,001), so dass es scheint, dass die Art der GRUPPE einen realen Einfluss auf den Prozentsatz der Werbetafeln hat, an die sich der Fahrer erinnern kann.
+
+Um zu überprüfen, ob das Modell die Annahme der Homoskedastizität erfüllt, sehen Sie sich die Modelldiagnoseplots in R mit der Funktion plot() an:
+
+```{r}
+plot(anova.test)
+```
+
+Die Diagnosediagramme zeigen die unerklärte Varianz (Residuen) über den Bereich der beobachteten Daten.
+
+Jedes Diagramm liefert eine bestimmte Information über die Anpassung des Modells, aber es reicht zu wissen, dass die rote Linie, die den Mittelwert der Residuen darstellt, horizontal und auf Null zentriert sein sollte (oder auf Eins, im Skalenortdiagramm), was bedeutet, dass es keine großen Ausreißer gibt, die eine Verzerrung des Modells verursachen würden.
+
+Das normale qqplot-Diagramm stellt eine Regression zwischen den theoretischen Residuen eines perfekt homoskedastischen Modells und den tatsächlichen Residuen Ihres Modells dar; je näher die Steigung bei 1 liegt, desto besser. Diese qqplot-Darstellung liegt sehr nahe beieinander, mit nur einer kleinen Abweichung. Anhand dieser Diagnoseplots können wir sagen, dass das Modell nicht gegen die Annahme der Homoskedastizität verstößt.
+
+Wenn Ihr Modell die Annahme der Homoskedastizität nicht erfüllt, können Sie stattdessen den Kruskall-Wallis-Test versuchen. Oder führen Sie Bootstrap durch.
+
+Die ANOVA gibt Aufschluss darüber, ob es Unterschiede zwischen den Gruppenmitteln gibt, aber nicht darüber, wie groß diese Unterschiede sind. Um herauszufinden, welche Gruppen sich statistisch voneinander unterscheiden, können Sie einen Tukey's Honestly Significant Difference (Tukey's HSD) Post-hoc-Test für paarweise Vergleiche durchführen:
+
+```{r}
+tukey.anova.test<-TukeyHSD(anova.test)
+tukey.anova.test
+```
+
+
+```{r}
+plot(tukey.anova.test, las = 1)
+```
+Wenn einige Annahmen nicht erfüllt sind oder der Stichprobenumfang zu gering ist, wird empfohlen, eine Bootstrap-ANOVA durchzuführen.
+```{r}
+library(lmboot)
+anova.boot <- ANOVA.boot(RECALL ~ GROUP, data = data.fatigue)
+anova.boot$`p-values`
+```
+- Führen Sie einen Bootstrap-Test durch, um die Mittelwerte in den folgenden Gruppen zu vergleichen: LateVerb-ContVerb
+- Führen Sie einen Permutationstest durch, um die Mittelwerte in den folgenden Gruppen zu vergleichen: LateVerb-ContVerb
+
+## Zweiwege-ANOVA
+### Verbraucherbewertungen
+
+Die "Just-World"-Theorie besagt, dass Menschen die Belohnungen und/oder Bestrafungen erhalten, die sie verdienen. Marketingforscher untersuchten die Just-World-Theorie im Zusammenhang mit dem fairen Handel (Journal of Marketing, Januar 2012). Insbesondere wollten die Forscher wissen, ob die Manipulation der Marktbedingungen einen Einfluss darauf hat, ob Verbraucher fair gehandelte Produkte kaufen. Es wurde ein konstruiertes Experiment mit zwei manipulierten Marktfaktoren durchgeführt. Ein Faktor war das Gerechtigkeitspotenzial (niedrig oder hoch), ein zweiter Faktor war das Bedürfnis der Produzenten (mäßig oder hoch). Eine Stichprobe von Wirtschaftsstudenten wurde in vier Gruppen aufgeteilt - 34 Studenten wurden nach dem Zufallsprinzip jeder der folgenden Gruppen zugewiesen 
+2 * 2 = 4 Behandlungen der Marktbedingungen zugeteilt. Nach der Lektüre eines Nachrichtenartikels und einer Pressemitteilung, die die Marktbedingungen beeinflussten, berichteten die Studenten über ihre Absicht, ein fair gehandeltes Produkt zu kaufen. Die Absicht wurde auf einer Skala von 0 bis 6 Punkten gemessen. Die Daten aller 136 Schüler (simuliert auf der Grundlage der im Zeitschriftenartikel enthaltenen Informationen) sind in der beigefügten 
+Datei gespeichert.
+
+```{r}
+my_in_file <- "FTRADE.xlsx"
+data.ftrade <- read_excel(xfun::from_root('data','raw',my_in_file))
+head(data.ftrade)
+```
+```{r}
+interaction.plot(x.factor = data.ftrade$NEED, trace.factor = data.ftrade$JRP,
+                 response = data.ftrade$INT, fun = mean,
+                 type = "b", legend = TRUE,
+                 xlab = "NEED", ylab="INT",
+                 pch=c(1,19), col = c("#00AFBB", "#E7B800"))
+```
+Um die Art des Behandlungseffekts, falls vorhanden, auf die Reaktion in einem faktoriellen Experiment zu bestimmen, müssen wir die Behandlungsvariabilität in drei Komponenten aufteilen:  Interaktion zwischen den Faktoren A und B, Haupteffekt von Faktor A und Haupteffekt von Faktor B. 
+Faktor B. Die Komponente Faktorinteraktion wird verwendet, um zu prüfen, ob die Faktoren zusammen die 
+die Antwort beeinflussen, während die Komponenten des Haupteffekts des Faktors verwendet werden, um festzustellen 
+ob die Faktoren einzeln die Antwort beeinflussen. Die obige Abbildung zeigt, dass die Differenz 
+zwischen den mittleren Abständen zwischen NEED und JRP variiert. Somit ist die Wirkung von NEED auf 
+Entfernung von JRP ab, so dass eine Wechselwirkung zwischen den beiden Faktoren besteht.
+
+```{r}
+boxplot(INT ~ NEED * JRP, data = data.ftrade, frame = FALSE,  col = c("#00AFBB", "#E7B800"), ylab="NEED")
+```
+
+```{r}
+ftrade.aov <- aov(INT ~ NEED + JRP + NEED:JRP, data = data.ftrade)
+summary(ftrade.aov)
+```

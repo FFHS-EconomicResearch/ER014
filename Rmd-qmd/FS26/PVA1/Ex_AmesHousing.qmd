@@ -1,0 +1,55 @@
+---
+title: "Beispiel AmesHousing"
+format: html
+---
+
+# Daten
+
+Enthalten im Paket AmesHousing
+
+```{r}
+#install.packages("AmesHousing").  #Paket ggf. installieren
+## Laden ----
+library(AmesHousing) # Datensatz laden
+```
+
+
+```{r}
+library(tidyverse) # tidyverse-Pakete laden
+## Bereinigen und als tibble-Objekt speichern -----
+tbl_ames <- ames_raw %>%
+              janitor::clean_names()  #Funktion clean_names() aus janitor-Paket für einheitlichen Variablenbezeichnung gemäss Konvention
+head(tbl_ames)
+```
+
+
+
+# Datenvisualisierung
+
+Abbildungen aus Taddy/Hendrix/Harding (2023, S. 121)
+
+## Histogramm
+```{r}
+p <- tbl_ames %>% ggplot(aes(sale_price)) +
+                            geom_histogram(bins=13,color="yellow",fill="yellow")
+p
+```
+
+
+
+## Streudiagramm
+
+
+```{r}
+p <- tbl_ames %>% ggplot(aes(lot_area,sale_price)) +
+                                    geom_point(color="red",shape=21)
+p
+```
+
+
+mit logarithmierten Werten
+```{r}
+p + scale_y_log10() + scale_x_log10() 
+```
+
+

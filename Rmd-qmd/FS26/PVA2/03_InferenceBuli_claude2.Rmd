@@ -1,0 +1,828 @@
+---
+title: "Statistische Inferenz und Regressionsanalyse"
+author: "Statistik Masterkurs"
+date: "`r Sys.Date()`"
+output: 
+  slidy_presentation:
+    highlight: tango
+    css: custom.css
+    fig_width: 10
+    fig_height: 6
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      fig.align = "center")
+
+# Load libraries
+library(tidyverse)
+library(glue)
+library(gt)
+library(infer)
+library(moderndive)
+library(broom)
+library(performance)
+library(see)
+library(GGally)
+library(car)
+library(patchwork)
+
+options(scipen = 999) # Zahlenformat (kein wiss. Format)
+
+# Daten laden
+date <- '2023-09-06'
+my_in_file <- glue('buli_raw_{date}.rds')
+buli <- read_rds(file = xfun::from_root("data", "raw", my_in_file))
+
+# Data Wrangling
+tbl_buli <- buli %>% 
+  mutate(age = lubridate::year("2022-07-31") - lubridate::year(player_dob),
+         pos_player = factor(player_position),
+         pos_bin = factor(if_else(player_position == "Goalkeeper", "Goalkeeper", "Fieldplayer")),
+         pos_cat = factor(case_when(
+           player_position == "Goalkeeper" ~ "Goalkeeper",
+           player_position %in% c("Centre-Back", "Left-Back", "Right-Back") ~ "Defense",
+           player_position %in% c("Central Midfield", "Defensive Midfield", "Left Midfield", 
+                                 "Right Midfield", "Attacking Midfield") ~ "Midfield",
+           player_position %in% c("Centre-Forward", "Left Winger", "Right Winger", "Second Striker") ~ "Offense",
+           TRUE ~ NA_character_
+         ))) %>% 
+  rename(name = player_name, mv = player_market_value_euro) %>% 
+  select(name, age, mv, pos_player, pos_bin, pos_cat, player_height_mtrs, player_foot)
+```
+
+# Übersicht
+
+-   **Einführung**: Datensatz und Überblick
+-   **t-Test**: Vergleich von Torhütern und Feldspielern (Marktwert)
+-   **ANOVA**: Vergleich aller Positionsgruppen (Marktwert)
+-   **Einfache lineare Regression**: Einfluss des Alters auf den Marktwert
+-   **Multiple Regression**: Kombination von Alter und Position
+-   **OLS-Regressionsdiagnostik**: BLUE-Eigenschaften und Annahmen
+
+# Datensatzüberblick
+
+```{r dataset_overview}
+glimpse(tbl_buli)
+```
+
+```{r summary_stats}
+tbl_buli %>%
+  summarise(
+    n = n(),
+    mean_age = mean(age, na.rm = TRUE),
+    mean_mv = mean(mv, na.rm = TRUE) / 1000000,
+    sd_mv = sd(mv, na.rm = TRUE) / 1000000
+  ) %>%
+  gt() %>%
+  fmt_number(columns = c("mean_age", "mean_mv", "sd_mv"), decimals = 2) %>%
+  cols_label(
+    n = "Spieleranzahl",
+    mean_age = "Durchschnittsalter",
+    mean_mv = "Durchschnittlicher Marktwert (Mio. €)",
+    sd_mv = "Standardabweichung Marktwert (Mio. €)"
+  )
+```
+
+# t-Test: Visualisierung der Daten
+
+Vergleich des Marktwerts zwischen Torhütern und Feldspielern
+
+```{r ttest_viz}
+# Visualisierung des Marktwerts nach Position (binär)
+tbl_buli %>%
+  mutate(mv_mio = mv / 1000000) %>% 
+  ggplot(aes(x = pos_bin, y = mv_mio, fill = pos_bin)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(
+    title = "Marktwert nach Position",
+    x = "Position",
+    y = "Marktwert (Millionen €)",
+    fill = "Position"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+```
+
+# t-Test mit infer: Resampling-Methode
+
+```{r ttest_infer}
+# Resampling mit infer
+set.seed(123)
+null_dist <- tbl_buli %>%
+  drop_na(mv, pos_bin) %>%
+  specify(mv ~ pos_bin) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 5000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("Goalkeeper", "Fieldplayer"))
+
+# Beobachtete Differenz berechnen
+obs_diff <- tbl_buli %>%
+  drop_na(mv, pos_bin) %>%
+  specify(mv ~ pos_bin) %>%
+  calculate(stat = "diff in means", order = c("Goalkeeper", "Fieldplayer"))
+
+# Visualisierung
+null_dist %>%
+  visualize() +
+  shade_p_value(obs_stat = obs_diff, direction = "two-sided") +
+  labs(
+    title = "Null-Verteilung für Differenz der Mittelwerte",
+    subtitle = "Marktwert: Torhüter vs. Feldspieler",
+    x = "Differenz der Mittelwerte",
+    y = "Häufigkeit"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+# p-Wert Berechnung mit infer
+
+```{r ttest_pvalue_infer}
+# p-Wert berechnen
+p_value <- null_dist %>%
+  get_p_value(obs_stat = obs_diff, direction = "two-sided")
+
+# Ergebnisse anzeigen
+p_value %>%
+  gt() %>%
+  fmt_number(columns = "p_value", decimals = 4) %>%
+  cols_label(p_value = "p-Wert (zweiseitig)")
+```
+
+# t-Test: Traditionelle Methode mit infer
+
+```{r t-test-traditional}
+# Using infer's t_test function (preferred over stats::t.test here)
+t_test_result_traditional <- tbl_buli %>%
+  t_test(
+    formula = mv ~ pos_bin,
+    order = c("Fieldplayer", "Goalkeeper"),
+    alternative = "two-sided"
+  )
+
+# Extract group means for display
+group_means <- tbl_buli %>%
+  group_by(pos_bin) %>%
+  summarize(mean_value = mean(mv))
+
+# Display t-test results with properly formatted columns
+t_test_result_traditional %>%
+  gt() %>%
+  fmt_number(
+    columns = c("statistic", "estimate"),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c("p_value"),
+    decimals = 4
+  ) %>%
+  cols_label(
+    statistic = "t-statistic",
+    p_value = "p-value",
+    estimate = "Mean Difference (€)"
+  )
+
+# Display group means separately
+group_means %>%
+  gt() %>%
+  fmt_number(
+    columns = "mean_value",
+    decimals = 2
+  ) %>%
+  cols_label(
+    pos_bin = "Position",
+    mean_value = "Mean Market Value (€)"
+  )
+```
+
+
+# t-Test vs. lineare Regression: Äquivalenz
+
+```{r ttest_regression_equivalence}
+# t-Test als Regression
+lm_ttest <- lm(mv ~ pos_bin, data = tbl_buli)
+tidy_lm <- tidy(lm_ttest)
+
+# Ergebnisse anzeigen
+tidy_lm %>%
+  gt() %>%
+  fmt_number(columns = c("estimate", "std.error", "statistic"), decimals = 2) %>%
+  fmt_number(columns = c("p.value"), decimals = 4) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Schätzwert",
+    std.error = "Standardfehler",
+    statistic = "t-Wert",
+    p.value = "p-Wert"
+  )
+```
+
+# Abhängige vs. unabhängige Stichproben
+
+## Unabhängige Stichproben (wie in unserem Fall)
+
+-   Messungen stammen von verschiedenen Gruppen/Individuen
+-   Jede Beobachtung ist unabhängig von anderen Beobachtungen
+-   Beispiel: Vergleich von Torhütern vs. Feldspielern
+
+## Abhängige Stichproben (repeated measures)
+
+-   Messungen stammen von denselben Individuen zu verschiedenen Zeitpunkten
+-   Beobachtungen sind korreliert
+-   Beispiel: Marktwertentwicklung derselben Spieler vor und nach der Saison
+-   Benötigt andere Testverfahren (paired t-test, repeated measures ANOVA, etc.)
+
+# ANOVA: Visualisierung der Daten
+
+Vergleich des Marktwerts zwischen verschiedenen Positionsgruppen
+
+```{r anova_viz}
+# Visualisierung des Marktwerts nach Positionskategorie
+tbl_buli %>%
+  drop_na(pos_cat) %>%
+  mutate(
+    mv_mio = mv / 1000000,
+    pos_cat = fct_relevel(pos_cat, "Midfield", "Goalkeeper", "Defense", "Offense")
+  ) %>%
+  ggplot(aes(x = pos_cat, y = mv_mio, fill = pos_cat)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Marktwert nach Positionskategorie",
+    x = "Position",
+    y = "Marktwert (Millionen €)",
+    fill = "Position"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+```
+
+# ANOVA mit infer: Resampling-Methode
+
+```{r anova_infer, fig.height=7}
+# Resampling mit infer für ANOVA
+set.seed(456)
+
+# Referenzlevel setzen
+tbl_buli_midfield <- tbl_buli %>%
+  drop_na(pos_cat) %>%
+  mutate(pos_cat = fct_relevel(pos_cat, "Midfield"))
+
+# Beobachtete F-Statistik
+obs_f <- tbl_buli_midfield %>%
+  specify(mv ~ pos_cat) %>%
+  calculate(stat = "F")
+
+# Null-Verteilung
+null_dist_anova <- tbl_buli_midfield %>%
+  specify(mv ~ pos_cat) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 5000, type = "permute") %>%
+  calculate(stat = "F")
+
+# Visualisierung
+null_dist_anova %>%
+  visualize() +
+  shade_p_value(obs_stat = obs_f, direction = "greater") +
+  labs(
+    title = "Null-Verteilung für F-Statistik",
+    subtitle = "Marktwert nach Positionskategorie",
+    x = "F-Statistik",
+    y = "Häufigkeit"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+# p-Wert Berechnung für ANOVA mit infer
+
+```{r anova_pvalue_infer}
+# p-Wert berechnen
+p_value_anova <- null_dist_anova %>%
+  get_p_value(obs_stat = obs_f, direction = "greater")
+
+# Ergebnisse anzeigen
+p_value_anova %>%
+  gt() %>%
+  fmt_number(columns = "p_value", decimals = 4) %>%
+  cols_label(p_value = "p-Wert (einseitig)")
+```
+
+# ANOVA: Traditionelle Methode mit infer
+
+```{r anova-traditional}
+# Make Midfield the reference level for comparison
+tbl_buli <- tbl_buli %>%
+  mutate(pos_cat = relevel(pos_cat, ref = "Midfield"))
+
+# Using traditional ANOVA
+anova_model <- aov(mv ~ pos_cat, data = tbl_buli)
+anova_table <- broom::tidy(anova_model)
+
+anova_table %>%
+  gt() %>%
+  fmt_number(
+    columns = c("statistic", "sumsq", "meansq"),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c("p.value"),
+    decimals = 4
+  ) %>%
+  cols_label(
+    term = "Source",
+    df = "df",
+    sumsq = "Sum of Squares",
+    meansq = "Mean Square",
+    statistic = "F-statistic",
+    p.value = "p-value"
+  )
+```
+
+```{r}
+# Daten vorbereiten mit Midfield als Referenzlevel
+tbl_buli_midfield <- tbl_buli %>%
+  drop_na(pos_cat) %>%
+  mutate(pos_cat = fct_relevel(pos_cat, "Midfield"))
+
+# ANOVA mit lm() und dann anova()
+lm_anova <- lm(mv ~ pos_cat, data = tbl_buli_midfield)
+anova_result <- anova(lm_anova) %>% 
+  as.data.frame() %>%
+  rownames_to_column(var = "term")
+
+# Ergebnisse anzeigen
+anova_result %>%
+  gt() %>%
+  fmt_number(columns = c("Df", "Sum Sq", "Mean Sq", "F value"), decimals = 2) %>%
+  fmt_number(columns = c("Pr(>F)"), decimals = 4) %>%
+  cols_label(
+    term = "Term",
+    Df = "df",
+    `Sum Sq` = "Quadratsumme",
+    `Mean Sq` = "Mittlere Quadratsumme",
+    `F value` = "F-Wert",
+    `Pr(>F)` = "p-Wert"
+  )
+```
+
+
+# ANOVA als Regression
+
+```{r anova_regression}
+# ANOVA als Regression mit Midfield als Referenz
+lm_anova <- lm(mv ~ pos_cat, data = tbl_buli_midfield)
+tidy_lm_anova <- tidy(lm_anova)
+
+# Ergebnisse anzeigen
+tidy_lm_anova %>%
+  gt() %>%
+  fmt_number(columns = c("estimate", "std.error", "statistic"), decimals = 2) %>%
+  fmt_number(columns = c("p.value"), decimals = 4) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Schätzwert",
+    std.error = "Standardfehler",
+    statistic = "t-Wert",
+    p.value = "p-Wert"
+  )
+```
+
+
+
+# Post-hoc Tests für ANOVA
+
+```{r anova_posthoc}
+# Paarweise Vergleiche mit Bonferroni-Korrektur
+pairwise_result <- tbl_buli_midfield %>%
+  drop_na(mv, pos_cat) %>%
+  {
+    pairwise_data <- .
+    pairwise_tests <- stats::pairwise.t.test(
+      x = pairwise_data$mv,
+      g = pairwise_data$pos_cat,
+      p.adjust.method = "bonferroni"
+    )
+
+    # tidy() gibt hier nur p.value zurück
+    broom::tidy(pairwise_tests)
+  }
+
+# Ausgabe mit nur vorhandenen Spalten
+pairwise_result %>%
+  gt() %>%
+  fmt_number(columns = "p.value", decimals = 4) %>%
+  cols_label(
+    group1 = "Gruppe 1",
+    group2 = "Gruppe 2",
+    p.value = "p-Wert (Bonferroni-korrigiert)"
+  )
+```
+  
+# Einfache Lineare Regression: Visualisierung
+
+Zusammenhang zwischen Alter und Marktwert
+
+```{r slr_viz}
+# Visualisierung des Zusammenhangs zwischen Alter und Marktwert
+tbl_buli %>%
+  mutate(mv_mio = mv / 1000000) %>%
+  ggplot(aes(x = age, y = mv_mio)) +
+  geom_point(alpha = 0.5, color = "steelblue") +
+  geom_smooth(method = "lm", color = "darkred", se = TRUE) +
+  labs(
+    title = "Zusammenhang zwischen Alter und Marktwert",
+    x = "Alter (Jahre)",
+    y = "Marktwert (Millionen €)"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+# Lineare Regression mit infer: Resampling-Methode
+
+```{r slr_infer}
+# Resampling für Regressionskoeffizient
+# Nullverteilung aufbauen
+set.seed(23)
+
+null_slopes <- tbl_buli %>%
+  drop_na(mv, age) %>%
+  specify(mv ~ age) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 5000, type = "permute") %>%
+  calculate(stat = "slope")
+
+# Beobachteter Slope
+obs_slope <- tbl_buli %>%
+  drop_na(mv, age) %>%
+  specify(mv ~ age) %>%
+  calculate(stat = "slope")
+
+# Visualisierung
+null_slopes %>%
+  visualize(method = "simulation") +  # Nur resampling-basierte Nullverteilung anzeigen
+  shade_p_value(obs_stat = obs_slope$stat, direction = "two-sided") +
+  labs(
+    title = "Null-Verteilung für Steigungskoeffizient",
+    subtitle = "Marktwert ~ Alter",
+    x = "Steigungskoeffizient",
+    y = "Häufigkeit"
+  )
+```
+
+# p-Wert Berechnung für Regression mit infer
+
+```{r slr_pvalue_infer}
+# Berechne den kompletten Fit für das beobachtete Modell
+obs_slope <- lm(mv ~ age, data = tbl_buli %>% drop_na(mv, age))
+
+# Extrahiere den Steigungskoeffizienten für 'age' aus dem Modellsummary
+obs_stat <- summary(obs_slope)$coefficients["age", "t value"]
+
+# p-Wert berechnen
+p_value_reg <- null_slopes %>%
+  get_p_value(obs_stat = obs_stat, direction = "two-sided")
+
+# Ergebnisse anzeigen
+p_value_reg %>%
+  gt() %>%
+  fmt_number(columns = "p_value", decimals = 4) %>%
+  cols_label(p_value = "p-Wert (zweiseitig)")
+```
+
+# Einfache Lineare Regression: Traditionelle Methode
+
+```{r slr_traditional}
+# Lineare Regression
+lm_slr <- lm(mv ~ age, data = tbl_buli)
+tidy_lm_slr <- tidy(lm_slr)
+glance_lm_slr <- glance(lm_slr)
+
+# Koeffizienten anzeigen
+tidy_lm_slr %>%
+  gt() %>%
+  fmt_number(columns = c("estimate", "std.error", "statistic"), decimals = 2) %>%
+  fmt_number(columns = c("p.value"), decimals = 4) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Schätzwert",
+    std.error = "Standardfehler",
+    statistic = "t-Wert",
+    p.value = "p-Wert"
+  )
+```
+
+# Modellzusammenfassung für einfache Regression
+
+```{r slr_summary}
+# Modellzusammenfassung
+glance_lm_slr %>%
+  select(r.squared, adj.r.squared, sigma, statistic, p.value, AIC, BIC) %>%
+  gt() %>%
+  fmt_number(columns = c("r.squared", "adj.r.squared", "sigma", "statistic"), decimals = 3) %>%
+  fmt_number(columns = c("p.value"), decimals = 4) %>%
+  fmt_number(columns = c("AIC", "BIC"), decimals = 1) %>%
+  cols_label(
+    r.squared = "R²",
+    adj.r.squared = "Adjusted R²",
+    sigma = "RSE",
+    statistic = "F-Statistik",
+    p.value = "p-Wert",
+    AIC = "AIC",
+    BIC = "BIC"
+  )
+```
+
+# Interpretation des einfachen Regressionsmodells
+
+-   **Steigungskoeffizient**: `r round(tidy_lm_slr$estimate[2], 2)` €
+    -   Mit jedem zusätzlichen Altersjahr ändert sich der Marktwert um diesen Betrag
+    -   Negativer Koeffizient bedeutet Abnahme des Marktwerts mit zunehmendem Alter
+-   **Intercept**: `r format(round(tidy_lm_slr$estimate[1], 2), scientific = FALSE)` €
+    -   Theoretischer Marktwert bei Alter = 0 (hat keine praktische Bedeutung)
+-   **R²**: `r round(glance_lm_slr$r.squared, 3)`
+    -   Etwa `r round(glance_lm_slr$r.squared * 100, 1)`% der Variation im Marktwert wird durch das Alter erklärt
+
+# Multiple Regression: Visualisierung
+
+Zusammenhang zwischen Alter, Position und Marktwert
+
+```{r mlr_viz}
+# Visualisierung des Zusammenhangs zwischen Alter und Marktwert, gruppiert nach Position
+tbl_buli %>%
+  drop_na(pos_cat) %>%
+  mutate(
+    mv_mio = mv / 1000000,
+    pos_cat = fct_relevel(pos_cat, "Midfield")
+  ) %>%
+  ggplot(aes(x = age, y = mv_mio, color = pos_cat)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_brewer(palette = "Set2") +
+  labs(
+    title = "Zusammenhang zwischen Alter und Marktwert nach Position",
+    x = "Alter (Jahre)",
+    y = "Marktwert (Millionen €)",
+    color = "Position"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+# Parallel Slopes Model
+
+```{r parallel_slopes}
+# Parallel Slopes Model
+lm_parallel <- lm(mv ~ age + pos_cat, data = tbl_buli %>% mutate(pos_cat = fct_relevel(pos_cat, "Midfield")))
+tidy_lm_parallel <- tidy(lm_parallel)
+glance_lm_parallel <- glance(lm_parallel)
+
+# Koeffizienten anzeigen
+tidy_lm_parallel %>%
+  gt() %>%
+  fmt_number(columns = c("estimate", "std.error", "statistic"), decimals = 2) %>%
+  fmt_number(columns = c("p.value"), decimals = 4) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Schätzwert",
+    std.error = "Standardfehler",
+    statistic = "t-Wert",
+    p.value = "p-Wert"
+  )
+```
+
+# Parallel Slopes: Visualisierung
+
+```{r parallel_slopes_viz}
+# Visualisierung des Parallel Slopes Modells
+get_regression_table(lm_parallel) %>%
+  select(term, estimate) %>%
+  mutate(term = case_when(
+    term == "(Intercept)" ~ "Intercept (Midfield)",
+    term == "age" ~ "Steigung (Alter)",
+    term == "pos_catDefense" ~ "Defense vs. Midfield",
+    term == "pos_catGoalkeeper" ~ "Goalkeeper vs. Midfield",
+    term == "pos_catOffense" ~ "Offense vs. Midfield",
+    TRUE ~ term
+  )) %>%
+  gt() %>%
+  fmt_number(columns = "estimate", decimals = 2) %>%
+  cols_label(
+    term = "Parameter",
+    estimate = "Schätzwert"
+  )
+```
+
+# Interaction Model
+
+```{r interaction_model}
+# Interaktionsmodell
+lm_interaction <- lm(mv ~ age * pos_cat, data = tbl_buli %>% mutate(pos_cat = fct_relevel(pos_cat, "Midfield")))
+tidy_lm_interaction <- tidy(lm_interaction)
+glance_lm_interaction <- glance(lm_interaction)
+
+# Koeffizienten anzeigen
+tidy_lm_interaction %>%
+  gt() %>%
+  fmt_number(columns = c("estimate", "std.error", "statistic"), decimals = 2) %>%
+  fmt_number(columns = c("p.value"), decimals = 4) %>%
+  cols_label(
+    term = "Term",
+    estimate = "Schätzwert",
+    std.error = "Standardfehler",
+    statistic = "t-Wert",
+    p.value = "p-Wert"
+  )
+```
+
+# Modellvergleich: Parallel Slopes vs. Interaction
+
+```{r model_comparison}
+# Modellvergleich
+anova_models <- anova(lm_parallel, lm_interaction)
+
+# Ergebnisse anzeigen
+anova_models %>%
+  as_tibble() %>%
+  gt() %>%
+  fmt_number(columns = c("RSS", "Sum of Sq", "F"), decimals = 2) %>%
+  fmt_number(columns = c("Pr(>F)"), decimals = 4) %>%
+  cols_label(
+    Res.Df = "Residual DF",
+    RSS = "Residual Sum of Squares",
+    Df = "DF",
+    `Sum of Sq` = "Sum of Squares",
+    F = "F-Wert",
+    `Pr(>F)` = "p-Wert"
+  )
+```
+
+# Visualisierung des Interaktionsmodells
+
+```{r interaction_viz}
+# Visualisierung des Interaktionsmodells
+tbl_buli %>%
+  drop_na(age, pos_cat) %>%  # Entferne NA-Werte für die relevanten Variablen
+  mutate(
+    mv_mio = mv / 1000000,
+    pos_cat = fct_relevel(pos_cat, "Midfield"),
+    fitted_values = predict(lm_interaction, newdata = .) / 1000000  # Vorhersagen basierend auf den gefilterten Daten
+  ) %>%
+  ggplot() +
+  geom_point(aes(x = age, y = mv_mio, color = pos_cat), alpha = 0.5) +
+  geom_line(aes(x = age, y = fitted_values, color = pos_cat), size = 1) +
+  scale_color_brewer(palette = "Set2") +
+  labs(
+    title = "Interaktionsmodell: Alter × Position",
+    x = "Alter (Jahre)",
+    y = "Marktwert (Millionen €)",
+    color = "Position"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+# BLUE: Best Linear Unbiased Estimator
+
+Die OLS-Regression (Ordinary Least Squares) liefert BLUE-Schätzer, wenn folgende Gauss-Markov-Annahmen erfüllt sind:
+
+1.  **Linearität**: Die Beziehung zwischen X und Y ist linear
+2.  **Unverzerrtheit**: Der Erwartungswert der Residuen ist Null
+3.  **Homoskedastizität**: Konstante Varianz der Residuen
+4.  **Keine Autokorrelation**: Die Residuen sind unabhängig voneinander
+5.  **Keine perfekte Multikollinearität**: Keine der unabhängigen Variablen kann als lineare Kombination der anderen ausgedrückt werden
+
+Diese Eigenschaften garantieren, dass unsere Schätzer die besten (kleinste Varianz), linearen und unverzerrten Schätzer der wahren Populationsparameter sind.
+
+# Annahmenüberprüfung: Linearität und Homoskedastizität
+
+```{r assumptions_check1}
+# Residuenplot für Linearitäts- und Homoskedastizitätsannahme
+p1 <- augment(lm_interaction) %>%
+  ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.5, color = "steelblue") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "darkred") +
+  geom_smooth(method = "loess", se = FALSE, color = "darkred") +
+  labs(
+    title = "Residuen vs. gefittete Werte",
+    x = "Gefittete Werte",
+    y = "Residuen"
+  ) +
+  theme_minimal(base_size = 14)
+
+# Scale-Location Plot für Homoskedastizität
+p2 <- augment(lm_interaction) %>%
+  ggplot(aes(x = .fitted, y = sqrt(abs(.std.resid)))) +
+  geom_point(alpha = 0.5, color = "steelblue") +
+  geom_smooth(method = "loess", se = FALSE, color = "darkred") +
+  labs(
+    title = "Scale-Location Plot",
+    x = "Gefittete Werte",
+    y = "√|Standardisierte Residuen|"
+  ) +
+  theme_minimal(base_size = 14)
+
+p1 + p2
+```
+
+# Annahmenüberprüfung: Normalverteilung der Residuen
+
+```{r assumptions_check2}
+# QQ-Plot für Normalverteilungsannahme
+p3 <- augment(lm_interaction) %>%
+  ggplot(aes(sample = .std.resid)) +
+  geom_qq(color = "steelblue") +
+  geom_qq_line(color = "darkred") +
+  labs(
+    title = "QQ-Plot der standardisierten Residuen",
+    x = "Theoretische Quantile",
+    y = "Stichprobenquantile"
+  ) +
+  theme_minimal(base_size = 14)
+
+# Histogramm der Residuen
+p4 <- augment(lm_interaction) %>%
+  ggplot(aes(x = .resid)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "white", alpha = 0.7) +
+  labs(
+    title = "Verteilung der Residuen",
+    x = "Residuen",
+    y = "Häufigkeit"
+  ) +
+  theme_minimal(base_size = 14)
+
+p3 + p4
+```
+
+# Annahmenüberprüfung: Multikollinearität
+
+```{r multicollinearity}
+# VIF-Werte berechnen
+vif_values <- car::vif(lm_interaction)
+
+# VIF-Werte als Tabelle darstellen
+data.frame(
+  Variable = rownames(vif_values),
+  VIF = vif_values[, "GVIF^(1/(2*Df))"]  # Zugriff auf die richtige Spalte
+) %>%
+  gt() %>%
+  fmt_number(columns = "VIF", decimals = 2) %>%
+  cols_label(
+    Variable = "Variable",
+    VIF = "VIF-Wert"
+  ) %>%
+  tab_header(
+    title = "Varianzinflationsfaktoren (VIF)"
+  )
+
+```
+
+# Annahmenverletzung: Nicht-Linearität
+
+```{r nonlinearity_example}
+# Künstlicher quadratischer Zusammenhang
+set.seed(123)
+tbl_nonlinear <- tbl_buli %>%
+  mutate(
+    mv_quadratic = 10000 + 200 * age - 0.5 * age^2  # Quadratischer Zusammenhang erstellen
+  )
+
+# Visualisierung der Daten: Alter vs. Marktwert
+tbl_nonlinear %>%
+  ggplot(aes(x = age, y = mv_quadratic)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = FALSE, color = "blue") +  # Lineare Regression mit quadratischem Term
+  labs(
+    title = "Nicht-Linearität: Alter vs. Marktwert",
+    x = "Alter (Jahre)",
+    y = "Marktwert (künstlich erstellt)"
+  ) +
+  theme_minimal(base_size = 14)
+
+# Lineares Modell ohne Nicht-Linearität
+lm_nonlinear <- lm(mv_quadratic ~ age, data = tbl_nonlinear)
+
+# Fitting eines quadratischen Modells
+lm_quadratic <- lm(mv_quadratic ~ age + I(age^2), data = tbl_nonlinear)
+
+# Modellvergleich
+summary(lm_nonlinear)
+summary(lm_quadratic)
+
+# Residuen der beiden Modelle vergleichen
+tbl_nonlinear %>%
+  mutate(
+    lm_nonlinear_resid = residuals(lm_nonlinear),
+    lm_quadratic_resid = residuals(lm_quadratic)
+  ) %>%
+  ggplot(aes(x = age)) +
+  geom_point(aes(y = lm_nonlinear_resid), color = "red", alpha = 0.5) +
+  geom_point(aes(y = lm_quadratic_resid), color = "blue", alpha = 0.5) +
+  labs(
+    title = "Vergleich der Residuen: Lineares Modell vs. Quadratisches Modell",
+    x = "Alter (Jahre)",
+    y = "Residuen"
+  ) +
+  theme_minimal(base_size = 14)
+
+```

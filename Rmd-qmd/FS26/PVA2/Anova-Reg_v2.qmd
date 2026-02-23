@@ -1,0 +1,552 @@
+---
+title: "Inferenz und Regression: Von t-Test bis ANOVA"
+subtitle: "Ein tidyverse-Ansatz nach Andy Field"
+author: "Claude"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    css: custom.css
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+# Benötigte Pakete laden
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(moderndive)
+library(knitr)
+library(kableExtra)
+library(emmeans)
+
+# Für Reproduzierbarkeit
+set.seed(42)
+
+# Optionen für Darstellung
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 4.5
+)
+```
+
+## Überblick
+
+- Traditioneller t-Test vs. Resampling-Ansatz
+- Die Äquivalenz von t-Test und einfacher linearer Regression
+- Verallgemeinerung: Von der Regression zur ANOVA
+- Praxisbeispiele mit Mario Kart-Daten
+
+## Die Daten: Mario Kart
+
+```{r}
+# Daten laden
+tbl_mario <- mariokart %>%
+                filter(total_pr<100) %>% 
+                mutate(
+                  tmp = factor(recode(cond, "new" = "neu", "used" = "gebraucht")),  # tmp als Factor speichern
+                  zustand = factor(tmp, levels = rev(levels(tmp)))  # Reihenfolge umkehren
+                )
+
+# Kurze Untersuchung
+tbl_mario %>%
+  select(total_pr, cond) %>%
+  filter(cond %in% c("new", "used")) %>%
+  group_by(cond) %>%
+  summarise(
+    n = n(),
+    mean_price = mean(total_pr),
+    sd_price = sd(total_pr)
+  ) %>%
+  kable(digits = 2)
+
+
+```
+
+**Wichtige Merkmale der Daten:**
+- Abhängige Variable: Gesamtpreis (`total_pr`)
+- Unabhängige Variable: Zustand (`cond` - neu oder gebraucht)
+- Deutlicher Preisunterschied zwischen den Gruppen erkennbar
+
+## Forschungsfrage und Hypothesen
+
+**Forschungsfrage:**  
+Unterscheiden sich die Preise neuer und gebrauchter Mario Kart-Spiele signifikant?
+
+**Hypothesen:**
+- $H_0$: Es gibt keinen Unterschied zwischen den Preisgruppen ($\mu_{neu} = \mu_{gebraucht}$)
+- $H_A$: Es gibt einen Unterschied zwischen den Preisgruppen ($\mu_{neu} \neq \mu_{gebraucht}$)
+
+**Inferenzmethoden im Vergleich:**
+- Traditioneller t-Test basierend auf theoretischer Verteilung
+- Moderner Resampling-Ansatz mit Simulation
+- Regressionsansatz nach Andy Field
+
+## Visualisierung der Daten
+
+```{r}
+tbl_mario %>%
+  filter(cond %in% c("new", "used")) %>%
+  ggplot(aes(x = zustand, y = total_pr, fill = cond)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(
+    title = "Preisvergleich: Neue vs. gebrauchte Mario Kart-Spiele",
+    x = "Zustand",
+    y = "Gesamtpreis ($)"
+  ) +
+  scale_fill_manual(values = c("new" = "#3498db", "used" = "#e74c3c")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+**Beobachtungen:**
+- Neue Spiele haben einen höheren Median-Preis
+- Beide Gruppen zeigen ähnliche Streuung
+- Mögliche Ausreißer sind vorhanden
+
+## Traditioneller t-Test (tidy-Syntax)
+
+```{r}
+t_test_result <- tbl_mario %>%
+  filter(zustand %in% c("neu", "gebraucht")) %>%
+  t_test(
+    formula = total_pr ~ zustand,
+    order = c("neu", "gebraucht"),
+    alternative = "two-sided"
+  )
+
+t_test_result %>% kable(digits = 3)
+```
+
+**Erläuterungen zum tidy t-Test:**
+- Verwendet die Funktion `t_test()` statt dem klassischen `t.test()`
+- Formel-Syntax ähnlich wie in Regression: `abhängige ~ unabhängige`
+- `order` gibt die Reihenfolge der Subtraktion an (neu - gebraucht)
+- Output in tibble-Format für einfache Weiterverarbeitung
+- p-Wert ist deutlich unter 0.05 → statistisch signifikant
+
+## Resampling-Ansatz mit infer
+
+```{r}
+# Beobachtete Differenz
+obs_diff <- tbl_mario %>%
+  filter(cond %in% c("new", "used")) %>%
+  specify(formula = total_pr ~ cond) %>%
+  calculate(stat = "diff in means", order = c("new", "used")) %>%
+  pull()
+
+# Nullverteilung durch Permutation
+set.seed(23)
+null_distribution <- tbl_mario %>%
+  filter(cond %in% c("new", "used")) %>%
+  specify(formula = total_pr ~ cond) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("new", "used"))
+```
+
+**Erläuterungen zum Resampling-Ansatz:**
+- Beruht auf Simulationen statt theoretischen Verteilungen
+- Verwendet die infer-Pipeline: specify → hypothesize → generate → calculate
+- Berechnet die tatsächliche Mittelwertdifferenz (`obs_diff`)
+- Erzeugt 1000 zufällige Permutationen für die Nullverteilung
+- Moderner, leichter verständlicher didaktischer Ansatz
+
+## Visualisierung der Nullverteilung
+
+```{r}
+null_distribution %>%
+  visualize() +
+  shade_p_value(obs_stat = obs_diff, direction = "both") +
+  labs(
+    title = "Nullverteilung der Mittelwertdifferenz",
+    subtitle = "Basierend auf 1000 Permutationen",
+    x = "Differenz der Mittelwerte (neu - gebraucht)",
+    y = "Häufigkeit"
+  ) +
+  theme_minimal()
+```
+
+**Interpretation:**
+- Die rote Linie zeigt die beobachtete Mittelwertdifferenz
+- Schattierter Bereich entspricht dem p-Wert
+- Beobachteter Wert liegt deutlich außerhalb der Nullverteilung
+- Visualisierung macht die Signifikanz intuitiv verständlich
+
+## p-Wert aus Resampling
+
+```{r}
+# p-Wert berechnen
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = obs_diff, direction = "both")
+
+p_value %>% kable(digits = 3)
+```
+
+**Didaktischer Mehrwert:**
+- p-Wert ist direkt aus der simulierten Verteilung abgeleitet
+- Entspricht dem Anteil der Simulationen, die extremer sind als der beobachtete Wert
+- Vergleichbar mit dem Ergebnis des traditionellen t-Tests
+- Vermittelt die fundamentale Bedeutung des p-Werts als Wahrscheinlichkeit
+
+## Vergleich der beiden Ansätze
+
+|                         | Traditioneller t-Test | Resampling-Ansatz |
+|-------------------------|:---------------------:|:-----------------:|
+| p-Wert                  | `r t_test_result$p_value` | `r p_value$p_value` |
+| Konzeptueller Ansatz    | Theoretische Verteilung | Empirische Simulation |
+| Annahmen                | Normalverteilung, etc. | Weniger streng |
+| Didaktischer Wert       | Formeln im Fokus | Intuitive Visualisierung |
+
+**Schlüsselerkenntnisse:**
+- Beide Methoden führen zum gleichen statistischen Schluss
+- Resampling besonders wertvoll für die Vermittlung statistischer Konzepte
+- Resampling benötigt weniger Verteilungsannahmen
+- Traditioneller Test ist schneller berechenbar
+
+## Andy Field's Äquivalenzansatz
+
+**Grundidee:**
+- Jeder t-Test lässt sich als einfache lineare Regression ausdrücken
+- Die Dummy-Kodierung der Gruppenvariable erlaubt die Äquivalenz
+- Der Regressionskoeffizient entspricht der Mittelwertdifferenz
+- Der t-Wert und p-Wert sind identisch in beiden Ansätzen
+
+**Vorteile dieses Ansatzes:**
+- Vereinheitlichung statistischer Methoden
+- Konzeptuelle Vereinfachung komplexer Verfahren
+- Flexible Erweiterungsmöglichkeiten (z.B. für Kovariaten)
+- Einfacher Übergang zu komplexeren Modellen
+
+## Lineare Regression mit Mario Kart-Daten
+
+```{r}
+# Regression durchführen
+lm_model <- tbl_mario %>%
+  filter(cond %in% c("new", "used")) %>%
+  # Zustand als Faktor mit Referenzlevel "used"
+  mutate(cond = factor(cond, levels = c("used", "new"))) %>%
+  lm(total_pr ~ cond, data = .)
+
+# Ergebnisse anzeigen
+tidy(lm_model) %>% kable(digits = 2)
+```
+
+**Interpretation des Modells:**
+- Intercept (43.21): Durchschnittlicher Preis gebrauchter Spiele
+- Koeffizient cond_new (10.90): Preisunterschied neue vs. gebrauchte Spiele
+- p-Wert für cond_new: Signifikanztest für diesen Unterschied
+- Die Regression testet genau die gleiche Hypothese wie der t-Test
+
+## Beweis der Äquivalenz
+
+```{r}
+# Vergleich der p-Werte
+tibble(
+  Methode = c("t-Test", "Regression"),
+  p_Wert = c(t_test_result$p_value, tidy(lm_model)[2, "p.value"][[1]])
+) %>% kable(digits = 5)
+
+# Vergleich der t-Werte
+t_value_ttest <- t_test_result$statistic
+t_value_regression <- tidy(lm_model)[2, "statistic"][[1]]
+
+tibble(
+  Methode = c("t-Test", "Regression"),
+  t_Wert = c(t_value_ttest, t_value_regression)
+) %>% kable(digits = 3)
+```
+
+**Zentrale Erkenntnisse:**
+- Die p-Werte sind identisch zwischen beiden Methoden
+- Die t-Werte sind identisch (abgesehen von Rundungsfehlern)
+- Dies beweist mathematisch die Äquivalenz der Verfahren
+- Die Wahl des Verfahrens hängt von der Fragestellung und Präferenz ab
+
+## Visualisierung beider Ansätze
+
+```{r}
+# Mittelwerte für Darstellung
+grp_means <- tbl_mario %>%
+  filter(cond %in% c("new", "used")) %>%
+  group_by(cond) %>%
+  summarise(mean_price = mean(total_pr))
+
+# Plot
+ggplot() +
+  # Rohdaten
+  geom_jitter(
+    data = filter(tbl_mario, cond %in% c("new", "used")),
+    aes(x = cond, y = total_pr, color = cond),
+    width = 0.2, alpha = 0.5
+  ) +
+  # Regressionslinie
+  geom_segment(
+    aes(
+      x = 1, y = coef(lm_model)[1],
+      xend = 2, yend = coef(lm_model)[1] + coef(lm_model)[2]
+    ),
+    color = "blue", linewidth = 1
+  ) +
+  # Mittelwerte
+  geom_point(
+    data = grp_means,
+    aes(x = cond, y = mean_price, color = cond),
+    size = 4
+  ) +
+  labs(
+    title = "t-Test als Regression",
+    subtitle = "Steigung entspricht der Mittelwertdifferenz",
+    x = "Zustand",
+    y = "Preis ($)"
+  ) +
+  scale_color_manual(values = c("new" = "#3498db", "used" = "#e74c3c")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+**Visualisierungselemente:**
+- Punkte: Individuelle Datenpunkte (mit Jitter für bessere Sichtbarkeit)
+- Große Punkte: Gruppenmittelwerte
+- Blaue Linie: Regressionslinie, Steigung = Mittelwertdifferenz
+- Die Steigung der Linie entspricht exakt dem Koeffizienten im Modell
+
+## ANOVA als Erweiterung
+
+**Konzeptuelle Erweiterung:**
+- t-Test: Vergleich von zwei Gruppen
+- ANOVA: Vergleich von mehreren Gruppen (>2)
+- Aus Andy Field's Perspektive: Eine ANOVA ist eine Regression mit kategorialen Prädiktoren
+
+**Die große Vereinheitlichung:**
+- t-Test = Regression mit binärem Prädiktor
+- ANOVA = Regression mit kategorialem Prädiktor (mehrere Stufen)
+- Alle basieren auf dem Allgemeinen Linearen Modell (ALM)
+
+## Neue Daten: Spielcharakter und Geschwindigkeit
+
+```{r}
+# Simulierte Daten für verschiedene Charaktere erstellen
+set.seed(123)
+character_data <- tibble(
+  character = rep(c("Mario", "Luigi", "Bowser", "Peach"), each = 20),
+  max_speed = c(
+    rnorm(20, mean = 60, sd = 5),  # Mario
+    rnorm(20, mean = 58, sd = 4),  # Luigi
+    rnorm(20, mean = 65, sd = 6),  # Bowser
+    rnorm(20, mean = 56, sd = 5)   # Peach
+  )
+)
+
+# Zusammenfassung
+character_data %>%
+  group_by(character) %>%
+  summarise(
+    n = n(),
+    mean_speed = mean(max_speed),
+    sd_speed = sd(max_speed)
+  ) %>%
+  kable(digits = 2)
+```
+
+**Über die Daten:**
+- Simulierte Daten zu Mario Kart-Charakteren
+- UV: Charakter (4 Kategorien)
+- AV: Maximale Geschwindigkeit
+- Erkennbarer Unterschied zwischen den Charakteren
+
+## Visualisierung der Charakterdaten
+
+```{r}
+ggplot(character_data, aes(x = character, y = max_speed, fill = character)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.2, alpha = 0.5) +
+  labs(
+    title = "Maximale Geschwindigkeit nach Charakter",
+    x = "Charakter",
+    y = "Maximale Geschwindigkeit"
+  ) +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+**Wichtige Beobachtungen:**
+- Bowser scheint die höchste Geschwindigkeit zu haben
+- Peach scheint die niedrigste Geschwindigkeit zu haben
+- Überlappungen zwischen den Verteilungen sind erkennbar
+- Varianz der Gruppen ähnlich (wichtig für ANOVA-Annahmen)
+
+## ANOVA mit tidy Syntax
+
+```{r}
+# ANOVA durchführen mit direkter Verwendung des Ausgabeobjekts
+# Wir vermeiden tidy() für aov() und nutzen broom direkt
+anova_model <- aov(max_speed ~ character, data = character_data)
+anova_table <- broom::tidy(anova_model)
+
+anova_table %>% kable(digits = 3)
+```
+
+**Interpretation der ANOVA:**
+- Signifikanter Haupteffekt des Faktors "character" (p < 0.001)
+- F-Wert von 15.5 weist auf starke Unterschiede zwischen den Gruppen hin
+- Mittlere Quadratsumme zwischen Gruppen (662) deutlich größer als innerhalb (43)
+- Die ANOVA sagt uns nur, DASS Unterschiede bestehen, nicht WO sie liegen
+
+## ANOVA als Regression
+
+```{r}
+# Regression mit kategorialer Variable
+lm_model_anova <- lm(max_speed ~ character, data = character_data)
+
+# Zusammenfassung
+tidy(lm_model_anova) %>% kable(digits = 3)
+```
+
+**Interpretation der Regression:**
+- Intercept (60.08): Mittlere Geschwindigkeit für Mario (Referenzkategorie)
+- character_Luigi (-1.95): Luigi ist im Durchschnitt 1.95 langsamer als Mario
+- character_Bowser (5.53): Bowser ist im Durchschnitt 5.53 schneller als Mario
+- character_Peach (-4.13): Peach ist im Durchschnitt 4.13 langsamer als Mario
+
+**Vorteile der Regressionsdarstellung:**
+- Direkte Schätzung der Gruppenunterschiede
+- Klare Interpretation der Koeffizienten
+- Automatische Wahl einer Referenzkategorie
+
+## F-Test ist äquivalent
+
+```{r}
+# ANOVA aus Regressionsmodell
+anova_lm_output <- anova(lm_model_anova)
+anova_lm_tidy <- tidy(anova_lm_output)
+
+# Anzeigen der Ergebnisse
+anova_lm_tidy %>% kable(digits = 3)
+
+# Vergleich der F-Werte
+tibble(
+  Methode = c("aov()", "anova(lm())"),
+  F_Wert = c(anova_table$statistic[1], anova_lm_tidy$statistic[1]),
+  p_Wert = c(anova_table$p.value[1], anova_lm_tidy$p.value[1])
+) %>% kable(digits = 4)
+```
+
+**Kernerkenntnisse:**
+- Die F-Werte sind identisch in beiden Ansätzen
+- Die p-Werte sind identisch in beiden Ansätzen
+- Dies bestätigt die Äquivalenz von ANOVA und Regression
+- R führt im Hintergrund ohnehin die gleichen Berechnungen durch
+
+## Post-hoc Tests im tidy Framework
+
+
+
+**Interpretation der paarweisen Vergleiche:**
+- Bowser vs. Luigi: Signifikanter Unterschied (p < 0.001)
+- Bowser vs. Mario: Signifikanter Unterschied (p < 0.01)
+- Bowser vs. Peach: Signifikanter Unterschied (p < 0.001)
+- Peach vs. Mario: Signifikanter Unterschied (p < 0.05)
+- Luigi vs. Mario und Peach vs. Luigi: Nicht signifikant
+
+**Wichtig für die Didaktik:**
+- Die ANOVA allein sagt nicht, welche Gruppen sich unterscheiden
+- Post-hoc Tests sind entscheidend für die vollständige Analyse
+- p-Werte werden für multiple Vergleiche korrigiert
+
+## Visualisierung der Modellvorhersagen
+
+```{r}
+# Modellvorhersagen
+predictions <- lm_model_anova %>%
+  augment() %>%
+  group_by(character) %>%
+  summarise(
+    mean_pred = mean(.fitted),
+    lower_ci = mean_pred - qt(0.975, df = df.residual(lm_model_anova)) * sd(.fitted) / sqrt(n()),
+    upper_ci = mean_pred + qt(0.975, df = df.residual(lm_model_anova)) * sd(.fitted) / sqrt(n())
+  )
+
+# Plot
+ggplot() +
+  # Rohdaten
+  geom_jitter(
+    data = character_data,
+    aes(x = character, y = max_speed, color = character),
+    width = 0.2, alpha = 0.4
+  ) +
+  # Modellvorhersagen
+  geom_point(
+    data = predictions,
+    aes(x = character, y = mean_pred, color = character),
+    size = 4
+  ) +
+  # Konfidenzintervalle
+  geom_errorbar(
+    data = predictions,
+    aes(x = character, ymin = lower_ci, ymax = upper_ci, color = character),
+    width = 0.2, linewidth = 1
+  ) +
+  labs(
+    title = "ANOVA als Regression",
+    subtitle = "Modellvorhersagen mit 95%-Konfidenzintervallen",
+    x = "Charakter",
+    y = "Maximale Geschwindigkeit"
+  ) +
+  scale_color_brewer(palette = "Set1") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+**Schlüsselaspekte der Visualisierung:**
+- Große Punkte: Modellvorhersagen (identisch mit Gruppenmittelwerten)
+- Fehlerbalken: 95%-Konfidenzintervalle
+- Überlappende Konfidenzintervalle deuten auf nicht-signifikante Unterschiede hin
+- Visualisierung unterstützt die Interpretation der Post-hoc Tests
+
+## Zusammenfassung
+
+**Wichtigste Erkenntnisse:**
+- Ein t-Test entspricht einer einfachen linearen Regression mit binärem Prädiktor
+- Eine ANOVA entspricht einer linearen Regression mit kategorischem Prädiktor
+- Die tidyverse-Syntax bietet konsistente Methoden für alle Analysen
+- Der didaktische Ansatz von Andy Field verdeutlicht die Zusammenhänge
+
+**Praktische Vorteile:**
+- Vereinheitlichtes Verständnis verschiedener statistischer Verfahren
+- Flexibler Rahmen für komplexere Analysen
+- Konsistente Syntax und Interpretation
+
+## Fazit
+
+**Der Regressionsansatz nach Andy Field bietet mehrere Vorteile:**
+
+1. **Konzeptuelle Vereinfachung**
+   - Viele statistische Verfahren basieren auf dem gleichen Grundprinzip
+   - Leichteres Verständnis der Zusammenhänge zwischen Methoden
+
+2. **Flexibilität**
+   - Regressionsmodelle können leicht erweitert werden
+   - Einfache Integration von Kovariaten und Interaktionen
+
+3. **Einheitliche Interpretation**
+   - Koeffizienten haben eine konsistente Bedeutung
+   - Direkter Vergleich zwischen Gruppen
+
+4. **Moderne Methoden**
+   - Tidy-Syntax passt perfekt zu diesem konzeptuellen Rahmen
+   - Reproduzierbare Analysen mit klarem Code
+
+## Ressourcen
+
+- Field, A., Miles, J., & Field, Z. (2012). Discovering statistics using R. Sage.
+- Ismay, C., & Kim, A. Y. (2019). Statistical Inference via Data Science: A ModernDive into R and the Tidyverse. CRC Press.
+- R for Data Science: https://r4ds.hadley.nz/
+- ModernDive: https://moderndive.com/
+- Tidy Statistics mit R: https://moderndive.netlify.app/

@@ -1,0 +1,186 @@
+---
+title: "Stochastische Regression"
+subtitle: "Übung mit Daten zur Fußball-Bundesliga"
+format: html
+---
+
+# Datenimport
+
+Daten zur Fussball-Bundesliga der Saison 2022-23. Datenquelle: [www.transfermarkt.de](https://www.transfermarkt.de/), importiert am 09.06.2023 mit dem R-Paket **worldfootballR**.
+
+```{r}
+#| echo: true
+#| message: false
+# Load libraries ----
+library(tidyverse)
+library(glue)
+library(gt)
+options(scipen=999) # Zahlenformat (kein wiss. Format)
+### load data -----
+date <- '2023-09-06' #oder: Sys.Date()
+my_in_file<-glue('buli_raw_{date}.rds')
+buli <- read_rds(file = xfun::from_root("data","raw",my_in_file))
+
+### Data Wrangling ----
+tbl_buli <- buli %>% 
+  mutate(age = lubridate::year("2022-07-31") - 
+           lubridate::year(player_dob),
+         pos_player = factor(player_position),
+         pos_bin = factor(if_else(player_position == "Goalkeeper", 
+                                  "Goalkeeper", 
+                                  "Fieldplayer")),
+         pos_cat = factor(case_when(
+           player_position == "Goalkeeper" ~ "Goalkeeper",
+           player_position %in% c("Centre-Back", "Left-Back", "Right-Back") ~ "Defense",
+           player_position %in% c("Central Midfield", "Defensive Midfield", 
+                                 "Left Midfield", "Right Midfield", 
+                                 "Attacking Midfield") ~ "Midfield",
+           player_position %in% c("Centre-Forward", "Left Winger", 
+                                 "Right Winger", "Second Striker") ~ "Offense",
+           TRUE ~ NA_character_
+         ))) %>%
+  rename(name = player_name,
+         mv = player_market_value_euro) %>% 
+  select(name,age,mv,pos_player,pos_bin,pos_cat,player_height_mtrs,player_foot)
+```
+
+# Blick in die Daten
+
+Anzahl Beobachtungen und Variablen sowie deskriptive Statistiken:
+
+```{r}
+summary(tbl_buli)
+```
+
+Struktur:
+
+```{r}
+head(tbl_buli) %>% 
+  gt()
+```
+
+Streudiagramm der Grundgesamtheit:
+
+```{r}
+#### ggplot ----
+tbl_buli %>% 
+    ggplot(aes(x=age,y=mv)) +
+    geom_point() + 
+    geom_smooth(method = "lm", se = FALSE)
+```
+
+# Aufgaben
+
+## Aufgabe 1
+
+Diskutiere, ob es sich bei den Daten um eine Grundgesamtheit oder um eine Stichprobe handelt.
+
+[Antwort:]{.underline}
+
+## Aufgabe 2
+
+Diskutieren Sie die Skalenniveaus der Variablen `pos_bin`, `pos_cat`, `mv`, `player_foot`, `player_height_mtrs`. Begründen Sie Ihre Einordnung und geben Sie für jede Variable ein Beispiel für eine sinnvolle und eine nicht sinnvolle mathematische Operation an.
+
+[Antwort:]{.underline}
+
+## Aufgabe 3
+
+Ausgehend von der Diskussion zu Grundgesamtheit und Stichprobe: Verwende die passende Notation zur Formulierung einer Regressionsgleichung für die Variablen Marktwert und Alter. Begründe die Wahl von abhängiger und unabhängiger Variable.
+
+[Antwort:]{.underline}
+
+## Aufgabe 4
+
+Gehe im folgenden davon aus, dass die vorliegenden Daten als Grundgesamtheit interpretiert werden können. Ermittle die Parameter der Regressionsgeraden für die Daten der Grundgesamtheit. Interpretiere die Werte.
+
+[Antwort:]{.underline}
+
+## Aufgabe 5
+
+Gehe weiter davon aus, dass es sich bei den Daten um eine Grundgesamtheit handelt. Formuliere ein Modell mit Marktwert als abhängiger und `pos_bin` als unabhängiger Variable. Erstelle ein geeignetes Diagramm, um zu prüfen, ob die Position einen Effekt auf den Marktwert hat. Interpretiere.
+
+[Antwort:]{.underline}
+
+
+
+## Aufgabe 6
+
+Formuliere die Regressionsgleichung für das Modell, das mit folgendem Diagramm dargestellt werden kann. Interpretiere die Koeffizienten.
+
+```{r}
+tbl_buli %>% 
+  ggplot(aes(x = age, y = mv, color = pos_bin)) +
+  geom_point() +
+  labs(x = "Alter", y = "Marktwert", color = "Position") +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+[Antwort:]{.underline}
+
+
+
+## Aufgabe 7
+
+Ermittle die Koeffizienten des Modells aus Aufgabe 6 und gib diese in Tabellenform aus.
+
+[Antwort:]{.underline}
+
+
+
+
+## Aufgabe 8 
+
+Formuliere nun eine Regressionsgleichung für ein Modell mit `age` und `pos_bin` als unabhängigen Variablen ohne Einfüührung eines Interaktionsterms. Erzeuge ein passendes Diagramm und ermittle die Parameter für Daten der Grundgesamtheit.
+
+[Antwort:]{.underline}
+
+
+
+## Aufgabe 9
+
+Betrachte die vorliegenden Daten nun als Stichprobe. Kann aus den Daten geschlossen werden, dass Feldspieler einen signifikant höheren Marktwert haben? Führe einen t-Test im Resampling-Ansatz durch und ermittle das Konfidenzintervall. Vergleiche die Ergebnisse mit dem traditionellen t-Test. 
+
+[Antwort:]{.underline}
+
+
+
+
+
+
+## Aufgabe 10
+
+Führe nun eine Regression für folgende Gleichung durch:
+
+$$\mbox{mv}=b_0+b_1\cdot\mbox{pos}\_\mbox{bin}+e$$
+
+Interpretiere die Regressionstabelle und Vergleiche mit dem Ergebnis aus Aufgabe 9.
+
+[Antwort:]{.underline}
+
+
+
+
+
+## Aufgabe 11
+
+Nutze die Daten zu den 20 Spielern mit dem höchsten Marktwert und erstelle für diese Stichprobe ein Streudiagramm mit Regressionsgerade. Ermittle dann die OLS-Schätzer $b_0$ und $b_1$ als Schätzer für die wahren Parameter $\beta_0$ und $\beta_1$ des Regressionsmodells. Interpretiere die Ergebnisse und diskutiere insbesondere die Frage der Verzerrtheit der konkreten Parameter-Schätzung
+
+[Antwort:]{.underline}
+
+
+
+
+## Aufgabe 12
+
+Ziehe nun mit Hilfe der `slice_sample()`-Funktion eine weitere Stichprobe vom Umfang $n=20$. Stelle die Reproduzierbarkeit durch `set.seed(23)`sicher. Erstelle erneut ein Diagramm, ermittle die Parameter der Regressionsgerade ($b_0'$ und $b_1'$) interpretiere. Beurteile insbesondere die Frage der (Un-)Verzerrtheit des Schätzers $b_1'$.
+
+[Antwort:]{.underline}
+
+
+
+
+## Aufgabe 13
+
+Ziehe eine weitere Stichprobe $(n=20)$, stelle diesmal die Reproduzierbarkeit mit `set.seed(9)` sicher. Erstelle ein letztes Diagramm, ermittle die Parameter ($b_0''$ und $b_1''$) der Regressionsgerade und interpretiere die Ergebnisse. Beurteile auch in diesem Fall die Frage der (Un-)Verzerrtheit des Schätzers $b_1''$.
+
+[Antwort:]{.underline}

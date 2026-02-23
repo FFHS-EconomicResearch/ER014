@@ -1,0 +1,663 @@
+---
+title: "Data Science and Strategy for Business"
+subtitle: "Kurze Einführung in R und RStudio"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS"
+date: today
+bibliography: ../../../lit/my_bib.bib
+format:
+  revealjs:
+    theme: [default, ffhs-theme.scss]
+    slide-number: false          # Eigene Foliennummer in Footer
+    highlight-style: github
+    code-line-numbers: true
+    incremental: false
+    chalkboard: true             # Ersatz für scribble
+    transition: slide
+    self-contained: false
+    lib-dir: ../../../libs
+    include-after-body: ../../../css/ffhs-footer.html
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(fontawesome)
+library(magrittr)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE,
+           bib.style = "authoryear",
+           style = "markdown",
+           dashed = TRUE)
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+```
+
+## {.title-slide-ffhs}
+
+::: {.title-content}
+
+# ER014 — Data Science and Strategy for Business {.title-h1}
+
+## PVA1 {.title-h2}
+
+### Kurze Einführung in R und RStudio {.title-h3}
+
+<br><br><br><br>
+
+### FS 2025 {.title-meta}
+
+### Prof. Dr. Jörg Schoder {.title-meta}
+
+[{{< fa github >}} @FFHS-EconomicResearch &ensp; {{< fa linkedin >}} @jfschoder]{.title-contacts}
+
+:::
+
+---
+
+## Agenda {data-section="Agenda"}
+
+::: {.badge}
+Agenda
+:::
+
+## Einführung R und RStudio
+
+- Motivation und Einordnung
+
+- {{< fa r-project >}} Basics
+
+- RMarkdown/Quarto
+
+- Datenprojekte in {{< fa r-project >}}
+
+---
+
+## Daten: vom Kostenfaktor zum Asset {data-section="Motivation und Einordnung"}
+
+::: {.badge}
+Motivation und Einordnung
+:::
+
+::: {.panel-tabset}
+
+### Perspektiven
+
+```{r}
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','data_in_business_(tableau)_1.PNG'))
+```
+
+### Bewertung
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','data_in_business_(tableau)_2.PNG'))
+```
+
+:::
+
+::: {.quelle}
+Quelle: [cloudflight.io](https://www.cloudflight.io/de/download/uncategorized-download/turn-data-into-products-vom-data-scientist-zum-data-business-owner/)
+:::
+
+::: {.notes}
+- Data is Oil: Quatsch, weil Daten mehr werden, Öl aber verbraucht wird.
+- Aber: Wie beim Öl entsteht der Wert auch bei Daten erst durch die Weiterverarbeitung ("Raffinerie")
+:::
+
+---
+
+## Daten, Experimente und Innovationen {data-section="Motivation und Einordnung"}
+
+::: {.badge}
+Motivation und Einordnung
+:::
+
+:::: {.columns}
+
+::: {.column width="30%"}
+<br>
+
+```{r}
+#| echo: false
+#| out-width: '100%'
+knitr::include_graphics(xfun::from_root('img','PVA1','schrage_(amazon).jpg'))
+```
+
+:::
+
+::: {.column width="70%"}
+
+::: {.blockquote}
+"[..] the ability to run fast, frugal, and scalable experiments based on high-value business hypotheses is becoming a new core competence for innovation success. As companies gather more data about their customers, channels, usage, complaints, social media, etc., we won't just see people analyzing data with optimization in mind; we'll be seeing machines generating 'innovation hypotheses' recommending new configurations, bundles, features, pricing schemes, and business models to test."
+
+::: {.tr}
+`r Citet(bib, "schrage_let_2014")`
+:::
+:::
+
+:::
+
+::::
+
+::: {.quelle}
+Bildquelle: [amazon.de](https://www.amazon.de)
+:::
+
+::: {.notes}
+- Insights from Data: descriptive / predictive / prescriptive/actionable
+- Results vs. Methods
+- Data-Driven vs. Data-Informed
+- Data Mining vs. Data Products
+:::
+
+---
+
+## Warum Programmierung? {data-section="Motivation und Einordnung"}
+
+::: {.badge}
+Motivation und Einordnung
+:::
+
+::: {.panel-tabset}
+
+### Kompetenz
+
+:::: {.columns}
+
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| out-width: '90%'
+knitr::include_graphics(xfun::from_root('img','PVA1','Programming_Thinking_(SteveJobs).PNG'))
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| out-width: '90%'
+knitr::include_graphics(xfun::from_root('img','PVA1','Programming_Quote_(Hawking).PNG'))
+```
+:::
+
+::::
+
+::: {.quelle}
+Bildquellen: [ilovecoding.org](https://twitter.com/ilovecodingorg/status/844202136980389888), [imrananees.blogspot.com](https://imrananees.blogspot.com/2019/10/basic-computer-programming-essential.html)
+:::
+
+### Benchmark
+
+Beispiel: Harvard Business School — **Wahlmodule „Data Science for Managers" (DSM)**
+
+::: {.small}
+**DSM1:** „Although few HBS MBA students will be actively engaged in coding post-graduation, the course faculty believe that having **some exposure to basic, hands-on coding and techniques** will allow our students to **more effectively manage and interact with data scientists**. DSM1 will not delve deeply into technical details, but will require students to engage with some code." *(Hervorhebung nicht im Original)*
+
+**DSM2:** „[..] allows students to build a deeper understanding of **how data and analytics can complement judgment for managerial decision making**. The course builds on concepts learned in DSM1 and is specifically suited for students who want to continue their career at companies such as technology companies, where data collection, aggregation, and analysis permeates the entire organization." *(Hervorhebung nicht im Original)*
+:::
+
+:::
+
+---
+
+## Warum R? {data-section="Motivation und Einordnung"}
+
+::: {.badge}
+Motivation und Einordnung
+:::
+
+```{r}
+#| label: whyR
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','whyR.svg'))
+```
+
+::: {.quelle}
+Eigene Darstellung.
+:::
+
+::: {.notes}
+- März 2024: Platz 6 im PYPL Popularity Ranking
+- Am beliebtesten Python. Für statistische Anwendungen hat R gerade im akademischen Bereich noch die Nase vorn.
+- Am Ende auch egal — Konvergenz durch Quarto (R, Python, Julia kombinierbar).
+:::
+
+---
+
+# {{< fa r-project >}} Basics {.inverse background-color="#D50006" data-section="R Basics"}
+
+---
+
+## {{< fa r-project >}}-chitektur {data-section="R Basics"}
+
+::: {.badge}
+{{< fa r-project >}} Basics
+:::
+
+:::: {.columns}
+
+::: {.column width="50%"}
+```{r}
+#| label: r-chitektur
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','R-chitektur_(Field_2012_S63).PNG'))
+```
+:::
+
+::: {.column width="50%"}
+- **Base {{< fa r-project >}}**
+  - der „Motor" / das „Betriebssystem"
+  - lokale Installation via CRAN (Comprehensive R Archive Network)
+- **Bibliotheken** (auch: Pakete)
+  - die „Apps"
+  - Erweiterung der Funktionalität
+:::
+
+::::
+
+::: {.quelle}
+Bildquelle: `r Citet(bib, "field_discovering_2012")`, S. 63.
+:::
+
+---
+
+## {{< fa r-project >}} als objektorientierte Programmiersprache {data-section="R Basics"}
+
+::: {.badge}
+{{< fa r-project >}} Basics
+:::
+
+- **Alles ist ein Objekt**
+  - Daten (Vektoren, Matrizen, etc.)
+  - Funktionen
+  - Diagramme (bspw. ggplot)
+- **Objekte können unterschiedlichen Objekt-Klassen zugeordnet werden**
+  - bspw. `character`, `numeric`, `factor`, `tibble`, etc.
+  - Zu welcher Klasse ein Objekt gehört: `class()`
+- **Objekte haben eine Länge**
+  - bspw. Zahl der Elemente in einem Vektor
+  - Abfrage: `length()`
+- Jedes Objekt wird intern durch einen **Vektor** repräsentiert.
+
+{{< fa circle-right >}} {{< fa r-project >}} ist eine **Vektor-basierte** Programmiersprache
+
+---
+
+## Einstieg in {{< fa r-project >}} {data-section="R Basics"}
+
+::: {.badge}
+{{< fa r-project >}} Basics
+:::
+
+- Kursmaterialien ER014
+
+- **swirl**-Paket als interaktives {{< fa r-project >}}-Tutorial
+  - `install.packages('Paketname', dep=TRUE)`
+  - `library(Paketname)`
+
+- [RStudio Education](https://education.rstudio.com/learn/beginner/)
+
+- Diverse Tutorials bei [datacamp.com](https://www.datacamp.com/tutorial/category/r-programming)
+
+- Wickham et al. (2023): [R for Data Science (2. Aufl.)](https://r4ds.hadley.nz/)
+
+::: {.notes}
+- FFHS Moodle-Kurs (zu erstellen)
+:::
+
+---
+
+# RStudio und RMarkdown/Quarto {.inverse background-color="#D50006" data-section="RStudio und RMarkdown/Quarto"}
+
+---
+
+## RStudio als „Benutzeroberfläche" {data-section="RStudio und RMarkdown/Quarto"}
+
+::: {.badge}
+RStudio und RMarkdown/Quarto
+:::
+
+::: {.panel-tabset}
+
+### R vs. RStudio
+
+::: {.small}
+- Die Benutzeroberfläche von {{< fa r-project >}} ist auf das Notwendigste beschränkt:
+  - beim Öffnen erscheint nur die sog. **{{< fa r-project >}}-Console** — Ergebnis unmittelbar sichtbar.
+  - In Base-{{< fa r-project >}} ist nur ein rudimentärer Texteditor für .R-Dateien integriert.
+
+- RStudio ist eine **integrierte Entwicklungsumgebung (IDE)**:
+  - kostenlose Desktop-Version verfügbar
+  - Cloud-Version ([posit Cloud](https://posit.cloud/)) mit gewissen Einschränkungen ebenfalls kostenfrei
+  - anwendungsfreundlichere Nutzung von {{< fa r-project >}} (GUI, Kontextmenü, Autocomplete etc.)
+  - Datenprojekte können komplett in RStudio bearbeitet werden ({{< fa r-project >}} läuft im Hintergrund)
+:::
+
+### Quick Tour
+
+::: {.small}
+RStudio hat mehrere Fenster mit Reitern: Skript, Konsole, Environment, Pakete, Plots etc.
+:::
+
+<p align="center">
+<iframe width="650" height="350"
+  src="https://www.youtube.com/embed/SdMPh5uphO0?si=0RqBc7jmHesShdsF"
+  title="RStudio Quick Tour"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowfullscreen>
+</iframe>
+</p>
+
+:::
+
+---
+
+## Warum RMarkdown/Quarto? {data-section="RStudio und RMarkdown/Quarto"}
+
+::: {.badge}
+RStudio und RMarkdown/Quarto
+:::
+
+::: {.panel-tabset}
+
+### Zweck
+
+- Möglichkeit zur **Integration** von {{< fa r-project >}}-Programmcode und Text in einer Datei
+- **Reproduzierbarkeit** von Forschung/Analysen durch Dokumentation
+- Leichterer Austausch von Analyseergebnissen (inkl. Dokumentation)
+- Zahlreiche Ausgabeformate: `.docx`, `.pptx`, `.pdf`, `.html`
+- **Produktivitätssteigerung** bei wiederkehrenden Berichten/Updates (Automatisierung)
+
+### Rmd vs. qmd
+
+```{r}
+#| echo: false
+knitr::include_url('https://quarto.org/docs/faq/rmarkdown.html', height = '400px')
+```
+
+### Praxisbeispiel Airbnb
+
+::: {.blockquote}
+„At Airbnb, all R analyses are documented in rmarkdown, where code and visualizations are combined within a single written report. Posts are carefully reviewed by experts in the content area and techniques used, both in terms of methodologies and code style, before publishing and sharing with the business partners."
+
+::: {.tr}
+`r Citet(bib,"bion_how_2017")`, S. 7.
+:::
+:::
+
+```{r}
+#| label: rbnb
+#| echo: false
+#| out-width: '45%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','Rbnb.PNG'))
+```
+
+:::
+
+---
+
+# Datenprojekte in {{< fa r-project >}} {.inverse background-color="#D50006" data-section="Datenprojekte in R"}
+
+::: {.inverse-bullets}
+**tidyverse** &ensp;|&ensp; **R-Projekte**
+:::
+
+---
+
+## Phasen und Ablauf von Datenprojekten {data-section="Datenprojekte in R"}
+
+::: {.badge}
+tidyverse
+:::
+
+```{r}
+#| echo: false
+#| out-width: '100%'
+knitr::include_graphics(xfun::from_root('img','PVA1','DataScience_Workflow.PNG'))
+```
+
+::: {.quelle}
+Eigene Darstellung.
+:::
+
+---
+
+## Datenprojekte im {{< fa r-project >}}-tidyverse {data-section="Datenprojekte in R"}
+
+::: {.badge}
+tidyverse
+:::
+
+::: {.panel-tabset}
+
+### Workflow
+
+```{r}
+#| echo: false
+#| out-width: '100%'
+knitr::include_graphics(xfun::from_root('img','PVA1','tidyverse_(storybench).png'))
+```
+
+::: {.quelle}
+Bildquelle: [storybench.org](https://www.storybench.org/getting-started-with-tidyverse-in-r/)
+:::
+
+### tidyverse
+
+- [tidyverse](https://www.tidyverse.org/) als Sammlung von {{< fa r-project >}}-Paketen mit einer „gemeinsamen und v.a. **intuitiven** Grundlogik" (Syntax)
+
+- Vorstellung: {{< fa r-project >}} als Sprache, *tidyverse* als Dialekt.
+
+- **Kernphilosophie:** Effizientere, konsistentere und **intuitivere** Gestaltung von Datenanalysen durch…
+  - …Organisation von Daten in **„tidy"**-Form
+  - …klarere und kompaktere **Code-Struktur**
+
+:::
+
+::: {.notes}
+- **tidyverse**-Bibliothek als „Metapaket": Mit `library(tidyverse)` werden automatisch die wichtigsten tidyverse-Pakete geladen.
+- tibble, readr, tidyr, dplyr, stringr, forcats, lubridate, purrr, ggplot2
+- Neben purrr spielt auch das **glue**-Paket eine Rolle (Alternative zu paste())
+:::
+
+---
+
+## Kernelemente des tidyverse {data-section="Datenprojekte in R"}
+
+::: {.badge}
+tidyverse
+:::
+
+::: {.panel-tabset}
+
+### tidy Daten
+
+```{r}
+#| label: img-tidy-format
+#| echo: false
+#| out-width: '70%'
+#| fig-align: center
+knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/6f1ddb544fc5c69a2478e444ab8112fb0eea23f8/91adc/images/tidy-1.png')
+```
+
+::: {.quelle}
+Bildquelle: [Wickham et al.](https://r4ds.had.co.nz/tidy-data.html)
+:::
+
+`r NoCite(bib,"grolemund_tidy_2017")`
+
+### Verben
+
+Anwendungsspezifische Funktionen (sog. „Verben"):
+
+::: {.small}
+1. **Zeilen:**
+   - `filter()` — Auswahl nach Bedingung
+   - `slice()` — Auswahl nach Position
+   - `arrange()` — Sortieren
+2. **Spalten:**
+   - `select()` — Variablen auswählen
+   - `rename()` — Variablen umbenennen
+   - `mutate()` — Werte transformieren / neue Spalten
+3. **Gruppen:**
+   - `summarise()` — Zusammenfassen
+   - `group_by()` — Gruppieren nach Ausprägungen
+:::
+
+Ausführlicher: [Datenprojekte in R (Skript)](https://ffhs-economicresearch.github.io/ER014/Rmd/PVA1/01_DatenprojekteR.html#1) oder [moderndive.com Kap. 3](https://moderndive.com/3-wrangling.html)
+
+`r NoCite(bib,"ismay_statistical_2020-1")`
+
+### Pipes
+
+Pipes erhöhen die Lesbarkeit des Codes:
+
+```{r}
+#| echo: false
+#| out-width: '80%'
+knitr::include_graphics(xfun::from_root('img','PVA1','pipe_(dodona).png'))
+```
+
+::: {.quelle}
+Bildquelle: [Dodona](https://dodona.be/en/activities/2127610019/)
+:::
+
+{{< fa circle-right >}} Output einer Funktion als Input für die nächste Funktion
+
+- **magrittr**-Pipe (`%>%`) vs. **native Pipe** (`|>`, ab R 4.1.0)
+- Konvention für ER014: magrittr-Pipe (Shortcut `Strg/Cmd + Shift + M`)
+
+:::
+
+::: {.notes}
+- „tidy"-Form: jede Variable = Spalte, jeder Fall = Zeile, jeder Wert = Beobachtung.
+- pivot_wider() und pivot_longer() für Formatwechsel.
+- separate() für messy Daten mit mehreren Werten in einer Spalte.
+:::
+
+---
+
+## Beispiel: Lesbarkeit durch Pipes {data-section="Datenprojekte in R"}
+
+::: {.badge}
+tidyverse
+:::
+
+::: {.small}
+**Aufgabe:** Berechne den Logarithmus des Vektors `x=(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907)`, setze dessen erste Differenzen in die Exponentialfunktion ein und runde das Ergebnis (eine Nachkommastelle).
+
+```{r}
+#| echo: false
+#| message: false
+x <- c(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907)
+library(magrittr)
+```
+
+**Schwer lesbarer (verschachtelter) Code in Base-{{< fa r-project >}}:**
+
+```{r}
+#| label: baseR-nested
+#| echo: true
+round(exp(diff(log(x))), 1)
+```
+
+**Intuitive Erfassung mit magrittr-Pipe:**
+
+```{r}
+#| label: pipe-example
+#| echo: true
+#| message: false
+x %>% log() %>%
+      diff() %>%
+      exp() %>%
+      round(1)
+```
+
+:::
+
+---
+
+## Reproduzierbarkeit mit R-Projekten {data-section="R-Projekte"}
+
+::: {.badge}
+R-Projekte
+:::
+
+- Projektordner mit **einheitlicher Struktur**: Ordner für
+  - Daten
+  - R-Skripte
+  - Rmd/qmd
+  - Abbildungen
+  - ...
+
+- Dokumentation mit `README.md` auf jeder Ordnerebene
+
+- Ein Projekt ist erst angelegt, wenn die **`.Rproj`-Datei** im Wurzelverzeichnis erzeugt wurde.
+
+- „Navigation" mittels `xfun::from_root()`
+
+- Vorlage im FFHS-Moodle-Kurs: `R-Projektvorlage.zip`
+
+---
+
+## Anlegen und dokumentieren von R-Projekten {data-section="R-Projekte"}
+
+::: {.badge}
+R-Projekte
+:::
+
+<p align="center">
+<iframe width="900" height="430"
+  src="https://www.youtube.com/embed/UvqtxY9Lgvk?si=xoiTIvh5DDKcCgg8"
+  title="R-Projekte anlegen"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowfullscreen>
+</iframe>
+</p>
+
+---
+
+## Einführung in Quarto und Importieren von Daten {data-section="R-Projekte"}
+
+::: {.badge}
+R-Projekte
+:::
+
+<p align="center">
+<iframe width="900" height="430"
+  src="https://www.youtube.com/embed/S6oCvjEoLFs?si=bbB590PCszdAOONF"
+  title="Quarto Einführung"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowfullscreen>
+</iframe>
+</p>
+
+---
+
+## {background-image="https://media.giphy.com/media/KJ1f5iTl4Oo7u/giphy.gif" background-size="75%" background-color="#ffffff"}
+
+---
+
+## Quellenverzeichnis {data-section="Quellenverzeichnis"}
+
+::: {.ref-slide}
+```{r}
+#| results: asis
+#| echo: false
+#| warning: false
+PrintBibliography(bib)
+```
+:::

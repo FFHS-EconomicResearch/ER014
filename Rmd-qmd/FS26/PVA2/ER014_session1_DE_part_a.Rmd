@@ -1,0 +1,295 @@
+---
+title: "ER014 Session 1"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+date: "2024-02-17"
+author: "Anastasija Tetereva, PhD & Prof. Dr. Jörg Schoder"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(ggplot2)
+my_in_file <- "TISSUE.xlsx"
+tissue_data <- read_xlsx(xfun::from_root('data','raw',my_in_file))
+head(tissue_data)
+```
+## Tagebuch eines Kleenex-Benutzers - Wie viele Taschentücher in einer Schachtel?
+Im Jahr 1924 erfand die Kimberly-Clark Corporation ein Gesichtstuch zum Entfernen von Cold Cream und begann mit der Vermarktung als Kleenex®-Taschentücher. Heute ist Kleenex® die meistverkaufte Tissue-Marke der Welt. Es gibt eine Vielzahl von Kleenex®-Produkten, die von extragroßen Tüchern bis hin zu Tüchern mit Lotion reichen. In den vergangenen 80 Jahren hat die Kimberly-Clark Corporation die Taschentücher in Schachteln unterschiedlicher Größe und Form verpackt und die Anzahl der Taschentücher in jeder Schachtel variiert. So enthält eine Familienbox in der Regel 144 zweilagige Tücher, eine Cold-Care-Box 70 Tücher
+(mit Lotion beschichtet), und eine praktische Taschenpackung enthält 15 Miniaturtaschentücher. Wie entscheidet die Kimberly-Clark Corp., wie viele Taschentücher in jede Packung kommen? Nach Angaben des Wall Street Journal stützen sich die Marketingexperten des Unternehmens auf die Ergebnisse einer Umfrage unter den Kleenex®-Kunden, um zu ermitteln, wie viele Taschentücher in eine Schachtel gepackt werden sollten. Als die Kimberly-Clark Corp. Mitte der 1980er Jahre die Erkältungsbox speziell für Menschen mit Erkältungen entwickelte, führte das Unternehmen zu diesem Zweck eine erste Umfrage unter seinen Kunden durch. Hunderte von Kunden wurden gebeten, ihren Kleenex®-Verbrauch in Tagebüchern zu notieren. Dem Bericht des Wall Street Journal zufolge ließen die Ergebnisse der Umfrage "wenig Zweifel daran, dass das Unternehmen 60 Taschentücher in jede Box legen sollte". Die Zahl 60 war "die durchschnittliche Anzahl der Schnäuzer während einer Erkältung". Derzeit packt das Unternehmen weiterhin 60 Taschentücher in eine Erkältungsbox (jetzt umbenannt in "Anti-Virus"). Aus den zusammenfassenden Informationen des Wall Street Journal-Artikels haben wir einen Datensatz erstellt, der die Ergebnisse einer ähnlichen Umfrage wie der oben beschriebenen darstellt. In der Datendatei mit dem Namen TISSUE haben wir die Anzahl der Taschentücher aufgezeichnet, die jeder der 250 Verbraucher während einer Erkältung verwendet hat. Wir wenden die in diesem Kapitel vorgestellte Methodik zur Hypothesenprüfung auf diesen Datensatz in mehreren Beispielen von Statistics in Action Revisited an.
+
+
+### Deskriptive Statistiken
+```{r tissue1}
+summary(tissue_data)
+boxplot.tissue <- ggplot(tissue_data, aes(x=NUMUSED)) + 
+                  geom_boxplot(outlier.colour="red", outlier.shape=8,  outlier.size=4)
+boxplot.tissue + coord_flip()
+```
+Boxplots oder Box-Whisker-Diagramme sind eine sehr nützliche Methode zur Darstellung Ihrer Daten. In der Mitte des Diagramms befindet sich der Median, der von einer Box umgeben ist, deren obere
+Deren oberer und unterer Rand sind die Grenzen, innerhalb derer die mittleren 50 % der Beobachtungen liegen (der Interquartilsbereich). Aus dem oberen und unteren Rand des Kastens ragen zwei Whisker heraus, die sich bis zum Anderthalbfachen des Interquartilsbereichs erstrecken.
+
+
+```{r tissue2}
+hist.tissue <- ggplot(tissue_data, aes(NUMUSED)) + 
+               geom_histogram(aes(y = ..density..), colour = "black", fill = "white") +
+               labs(x = "Number of tissues used", y = "Density")
+hist.tissue
+```
+Sobald Sie einige Daten gesammelt haben, ist es sehr nützlich, ein Diagramm zu erstellen, in dem die Häufigkeit der einzelnen Werte dargestellt wird. Dabei handelt es sich um eine Häufigkeitsverteilung oder ein Histogramm, bei dem die Werte der Beobachtungen auf der horizontalen Achse aufgetragen werden und ein Balken anzeigt, wie oft jeder Wert im Datensatz vorkommt. Häufigkeitsverteilungen können sehr nützlich sein, wenn es darum geht, die Eigenschaften der Verteilung von Werten zu beurteilen.
+
+
+
+```{r tissue3}
+hist.tissue <- ggplot(tissue_data, aes(NUMUSED)) + 
+               geom_histogram(aes(y = ..density..), colour = "black", fill = "white") +
+               labs(x = "Number of tissues used", y = "Density")+
+               geom_density()
+              
+hist.tissue
+```
+Die Kern-Dichte-Schätzung ist ein häufig verwendetes Mittel zur Darstellung der Dichte von räumlichen Datenpunkten. Das Verfahren erzeugt eine glatte und kontinuierliche Oberfläche, bei der jedes Pixel einen Dichtewert darstellt, der auf der Anzahl der Punkte innerhalb einer bestimmten Abstandsbandbreite basiert. 
+```{r qqplot}
+p <- ggplot(tissue_data, aes(sample = NUMUSED))
+p + stat_qq() + stat_qq_line()
+```
+In der Statistik ist ein Q-Q-Diagramm (Quantil-Quantil-Diagramm) ein Wahrscheinlichkeitsdiagramm, eine grafische Methode zum Vergleich zweier Wahrscheinlichkeitsverteilungen, indem ihre Quantile gegeneinander aufgetragen werden. Ein Punkt auf dem Diagramm entspricht einem der Quantile der zweiten Verteilung, das gegen das gleiche Quantil der ersten Verteilung aufgetragen wird. Auf diese Weise wird eine parametrische Kurve definiert, wobei der Parameter der Index des Quantilintervalls ist. Wenn die beiden zu vergleichenden Verteilungen ähnlich sind, liegen die Punkte im Q-Q-Diagramm ungefähr auf der Identitätslinie. Für unseren Datensatz stellen wir die empirischen Quantile der verwendeten Gewebe den theoretischen Quantilen der Normalverteilung gegenüber. So können wir visuell überprüfen, ob die zugrunde liegende Verteilung normal ist oder nicht. Es können jedoch auch formale Tests durchgeführt werden.
+```{r swtest}
+shapiro.test(tissue_data$NUMUSED)
+```
+Die im vorigen Abschnitt beschriebene visuelle Prüfung ist in der Regel unzuverlässig. Es ist möglich, einen Signifikanztest durchzuführen, bei dem die Stichprobenverteilung mit einer Normalverteilung verglichen wird, um festzustellen, ob die Daten eine ernsthafte Abweichung von der Normalität aufweisen oder nicht. Es gibt mehrere Methoden für Normalitätstests wie den Kolmogorov-Smirnov (K-S)-Normalitätstest und den Shapiro-Wilk-Test. Die Shapiro-Wilk-Methode wird allgemein für Normalitätstests empfohlen und bietet eine bessere Aussagekraft als K-S. Sie basiert auf der Korrelation zwischen den Daten und den entsprechenden Normalwerten.
+
+## Hypothesentest
+Bei einer Umfrage der Kimberly-Clark Corp. unter Erkältungspatienten wurde jeder der 250 Kunden gebeten, seinen Verbrauch an Kleenex-Tüchern in Tagebüchern festzuhalten. Ein Ziel des Unternehmens war es, herauszufinden, wie viele Taschentücher in einer Erkältungsbox von Kleenex® verpackt werden sollten; daher wurde die Gesamtzahl der verwendeten Taschentücher für jede befragte Person erfasst. Da es sich bei der Anzahl der Taschentücher um eine quantitative Variable handelt, ist der interessierende Parameter entweder die durchschnittliche Anzahl der von allen Kunden mit Erkältung verwendeten Taschentücher oder die Varianz der Anzahl der verwendeten Taschentücher. Es sei daran erinnert, dass das Unternehmen 60 Taschentücher in einer "antiviralen" Packung Kleenex-Taschentücher verpackt. Seit der ursprünglichen Umfrage bietet die Kimberly-Clark Corp. eine Vielzahl von
+Tissue-Boxen an, die von ''ultra soft'' (mit 75 Tüchern) bis zu ''soothing lotion'' (ebenfalls mit 75 Tüchern) reichen. Die Entscheidung stützte sich auf die Behauptung von Marketingexperten, dass die durchschnittliche Anzahl der Schnäuzer während einer Erkältung über dem bisherigen Mittelwert von 60 liegt. Das Schlüsselwort "Durchschnitt" impliziert, dass der interessierende Parameter die durchschnittliche Anzahl der Tücher ist, die von allen Kunden mit Erkältung verwendet werden, und die Marketingexperten behaupten, dass diese 60 beträgt. Um diese Behauptung zu überprüfen, führen wir den $t$-Test durch.
+```{r mean}
+mean(tissue_data$NUMUSED)
+```
+WWir können den Mittelwert des verwendeten Gewebes berechnen. Für allgemeine Schlussfolgerungen müssen wir jedoch Hypothesentests durchführen.
+
+```{r twosidedhypothesis}
+t.test(tissue_data$NUMUSED, mu = 60)
+```
+Wir haben einen t-Test mit einer Stichprobe durchgeführt, wobei wir die Syntax verwenden, bei der die erste Variable der Name unserer interessierenden Variable ist und mu gleich dem durch die Nullhypothese festgelegten Mittelwert gesetzt wird. Wir wollten also testen, ob die durchschnittliche Anzahl der verwendeten Gewebe 60 beträgt. 
+```{r confidenceinterval}
+t.test(tissue_data$NUMUSED)$"conf.int"
+```
+Das Testen von Hypothesen ist eigentlich gleichbedeutend mit der Erstellung von Konfidenzintervallen. Wenn das Intervall den interessierenden Wert abdeckt, kann man die Hypothese nicht zurückweisen. Wird dieses Intervall größer oder kleiner sein, wenn wir das Konfidenzniveau auf 0,99 erhöhen? Wird es größer oder kleiner sein, wenn wir die Varianz der Verteilung im Voraus kennen (eine etwas unrealistische Annahme, aber nehmen wir das mal an)? Und wie hängt die Breite des Intervalls von der Stichprobengröße ab?
+
+```{r onesidedhypothesis}
+t.test(tissue_data$NUMUSED, mu = 60, alternative = "greater")
+```
+Aber ist die einseitige Hypothese diejenige, die wir in Betracht ziehen sollten? 60 Taschentücher in der Packung sind definitiv nicht genug. Wie viele sollten wir in das Paket packen?
+Da dieser $p$-Wert kleiner als $\alpha = .05$ ist, haben wir genügend Beweise, um $H_0: \mu = 60$ abzulehnen; (die Alternative war $H_1: \mu > 60$) daher kommen wir zu dem Schluss, dass die durchschnittliche Anzahl der Tücher, die eine erkältete Person verwendet, größer als 60 Tücher ist. Dieses Ergebnis unterstützt die Entscheidung des Unternehmens, mehr als
+mehr als 60 Taschentücher in die Kleenex-Schachteln zu packen (z. B. in die "Ultra Soft"- und "Soothing Lotion"-Schachteln).
+
+
+Beim Testen von Hypothesen haben wir mehrere Möglichkeiten. Wir können z. B.
+
+- den kritischen Wert der Teststatistik berechnen und ihn mit dem beobachteten Wert der Teststatistik vergleichen
+- Betrachtung des $p$-Wertes
+- Betrachtung des Konfidenzintervalls (wenn es den in der Hypothesenprüfung angegebenen Wert abdeckt)
+
+
+Versuchen wir nun, die zugrunde liegende Theorie zu verstehen. Das Wichtigste ist die Stichprobenverteilung des interessierenden Parameters (Mittelwert, Anteil usw.). Dank des Gesetzes der großen Zahlen und des zentralen Grenzwertsatzes wissen wir viel über die Stichprobenverteilung für den Mittelwert. 
+
+## Stichprobenverteilung. LLL. CLT
+
+$N$ steht für die Gesamtzahl der Beobachtungen, oder in diesem Beispiel für die Münzwürfe.
+$o$ steht für die Anzahl der Beobachtungen, die angezeigt werden sollen, um die Ergebnisse zu betrachten, während sie ausgeführt werden.
+$o$ sollte für praktische Zwecke 100 nicht überschreiten.
+``` {r}  
+N <- 10000  
+o <- 10   
+set.seed(1963)
+```
+
+Jetzt werden wir 3 Variablen setzen, um die Münzwürfe zu simulieren.
+
+$x$ - speichert die Probe-Würfe als 0 oder 1. Die Anzahl der Würfe wird durch den zuvor eingestellten Wert von N festgelegt.
+$s$ - speichert eine laufende Summe der Vorkommnisse eines Wertes von "1".
+$r.avg$ - speichert den laufenden Durchschnittswert bei jedem Flip.
+
+``` {r}
+x <- sample(0:1, N, replace = T)
+s <- cumsum(x)    
+r.avg <- s/(1:N)
+
+r.stats <- round(cbind(x,s,r.avg), 3)[1:o,]
+print(r.stats)
+```
+Erstellen Sie ein Diagramm, um zu veranschaulichen, wie der Mittelwert der Stichprobe bei einem großen Stichprobenumfang ungefähr der Grundgesamtheit entspricht. 
+Das Diagramm verwendet Liniendiagramme, um (1) die laufenden Mittelwerte der Münzwürfe und (2) den erwarteten Mittelwert der Grundgesamtheit darzustellen.
+``` {r}
+options(scipen = 10)  
+plot(r.avg, ylim=c(.30, .70), type = "l", xlab = "Observations"
+     ,ylab = "Probability", lwd = 2)
+lines(c(0,N), c(.50,.50),col="red", lwd = 2)
+```
+
+Außerdem werden wir die Exponentialverteilung untersuchen und sie mit dem zentralen Grenzwertsatz vergleichen.
+(Zentraler Grenzwertsatz) Man betrachte eine Zufallsstichprobe von $n$ Beobachtungen, die aus einer Grundgesamtheit (beliebige Wahrscheinlichkeits
+Verteilung) mit Mittelwert $\mu$ und Standardabweichung $\sigma$. Wenn dann $n$ hinreichend groß ist
+groß ist, wird die Stichprobenverteilung des Mittelwerts annähernd eine Normalverteilung sein mit
+Mittelwert $\mu_x = \mu$ und Standardabweichung $\sigma_x = \sigma/n$. Je größer der Stichprobenumfang ist, desto
+desto besser ist die Annäherung der Normalverteilung an die Stichprobenverteilung.
+
+Die Exponentialverteilung kann in R mit rexp(n, lambda) simuliert werden, wobei lambda der Ratenparameter ist. Der Mittelwert der Exponentialverteilung ist 1/lambda und die Standardabweichung ist ebenfalls 1/lambda. Setzen Sie lambda = 0,2 für alle Simulationen. Wir werden die Verteilung der Mittelwerte von 40 Exponentialen untersuchen. Beachten Sie, dass Sie tausend Simulationen durchführen müssen.
+
+Wie oben erwähnt, erstellen wir eine Simulation der Exponentialverteilung 1000 Mal und nehmen jedes Mal den Durchschnitt von 40 Punkten, die aus der Exponentialverteilung generiert wurden. rexp(n, lambda) ist eine Funktion, die wir verwenden, um Daten zu generieren und 1000 Simulationen zu nehmen und sie in der Variablen Durchschnitt zu speichern.
+
+``` {r}
+
+lambda <- 0.2
+n <- 40
+average <- NULL
+for(i in 1:1000)
+    average <- c(average, mean(rexp(n, lambda)))
+qplot(rexp(1000, lambda),geom="density")
+```
+Wir sollten einen Blick auf die Daten werfen, die wir mit der Funktion rexp erzeugen. Für eine bessere grafische Verteilung nehmen wir 1000 Beobachtungen. Der zentrale Grenzwertsatz besagt, dass sich die Stichprobenverteilung der Stichprobenmittelwerte mit zunehmendem Stichprobenumfang einer Normalverteilung annähert - unabhängig von der Form der Grundgesamtheitsverteilung. Diese Tatsache gilt insbesondere für Stichprobengrößen über 30. Das bedeutet, dass die Grafik der Stichprobenmittelwerte mit zunehmender Stichprobengröße, insbesondere bei großen Stichproben, eher einer Normalverteilung ähnelt.
+``` {r}
+theo_mean<-1/lambda
+sample_mean<-mean(average)
+
+thvar<-(lambda * sqrt(n)) ^ -2
+samvar<-var(average)
+```
+
+``` {r}
+dfRowMeans<-data.frame(average) # convert to data.frame for ggplot
+mp<-ggplot(dfRowMeans,aes(x=average))
+mp<-mp+geom_histogram(binwidth = lambda,fill="darkgreen",color="black",aes(y = ..density..))
+mp<-mp + labs(title="Density of 40 Numbers from Exponential Distribution", x="Mean of 40 Selections", y="Density")
+mp<-mp + geom_vline(xintercept=sample_mean,size=1.0, color="black") # add a line for the actual mean
+mp<-mp + stat_function(fun=dnorm,args=list(mean=sample_mean, sd=sqrt(samvar)),color = "blue", size = 1.0)
+mp<-mp + geom_vline(xintercept=theo_mean,size=1.0,color="yellow",linetype = "longdash")
+mp<-mp + stat_function(fun=dnorm,args=list(mean=theo_mean, sd=sqrt(thvar)),color = "red", size = 1.0)
+mp
+```
+
+- Wie wir sehen können, ist die Verteilung der Mittelwerte der Stichprobe gemäß dem zentralen Grenzwertsatz annähernd normal, wie im Satz angegeben, egal wie die Verteilung der Daten ist, da unsere Daten eine Exponentialverteilung haben.
+
+- In der Grafik können wir auch sehen, dass unser Stichprobenmittelwert und der Populationsmittelwert fast gleich sind.
+
+- Wie wir sehen können, überschneiden sich die rote und die blaue Dichtekurve fast, so dass wir sagen können, dass die Varianzen der Mittelwerte der Stichproben und der Populationsvariante ebenfalls vergleichbar sind, wie wir an den Werten zuvor sehen.
+
+## $p$ - Wert
+Bei einem Signifikanztest geht es darum, die in einer Stichprobe enthaltenen Informationen als Beweis für oder gegen eine Hypothese zu verwerten. Im Wesentlichen sind Hypothesen einfache Fragen, die mit "Ja" oder "Nein" beantwortet werden können. Bei einem Hypothesentest haben wir es in der Regel mit zwei verschiedenen Hypothesen zu tun:
+
+- Die Nullhypothese, bezeichnet als $H_0$, ist die Hypothese, die wir testen wollen.
+
+- Es muss eine Alternativhypothese mit der Bezeichnung $H_1$ geben, die Hypothese, die gelten soll, wenn die Nullhypothese abgelehnt wird.
+Nehmen wir an, dass die Nullhypothese wahr ist. Der $p$ -Wert ist die Wahrscheinlichkeit, Daten zu ziehen und eine entsprechende Teststatistik zu beobachten, die mindestens so ungünstig ist wie die unter der Nullhypothese angegebene Teststatistik, die anhand der Stichprobendaten tatsächlich berechnet wurde.
+``` {r}
+# plot the standard normal density on the interval [-4,4]
+curve(dnorm(x),
+      xlim = c(-4, 4),
+      main = "Calculating a p-Value",
+      yaxs = "i",
+      xlab = "z",
+      ylab = "",
+      lwd = 2,
+      axes = "F")
+
+# add x-axis
+axis(1, 
+     at = c(-1.5, 0, 1.5), 
+     padj = 0.75,
+     labels = c(expression(-frac(bar(Y)^"act"~-~bar(mu)[Y,0], sigma[bar(Y)])),
+                0,
+                expression(frac(bar(Y)^"act"~-~bar(mu)[Y,0], sigma[bar(Y)]))))
+
+# shade p-value/2 region in left tail
+polygon(x = c(-6, seq(-6, -1.5, 0.01), -1.5),
+        y = c(0, dnorm(seq(-6, -1.5, 0.01)),0), 
+        col = "steelblue")
+
+# shade p-value/2 region in right tail
+polygon(x = c(1.5, seq(1.5, 6, 0.01), 6),
+        y = c(0, dnorm(seq(1.5, 6, 0.01)), 0), 
+        col = "steelblue")
+```
+Die nächste Grafik zeigt die Verteilung des Standardfehlers des Schätzers. Sie verengt sich um den wahren Wert, der gleich 3 ist, wenn der Stichprobenumfang zunimmt. Die Funktion, die die Standardabweichung eines Schätzers schätzt, wird Standardfehler des Schätzers genannt. 
+```{r}
+# vector of sample sizes
+n <- c(10000, 5000, 2000, 1000, 500)
+
+# sample observations, estimate using 'sd()' and plot the estimated distributions
+sq_y <- replicate(n = 10000, expr = sd(rnorm(n[1], 10, 3)))
+plot(density(sq_y),
+     main = expression("Sampling Distributions o" ~ s[Y]),
+     xlab = expression(s[y]),
+     lwd = 2)
+
+for (i in 2:length(n)) {
+  sq_y <- replicate(n = 10000, expr = sd(rnorm(n[i], 10, 3)))
+  lines(density(sq_y), 
+        col = i, 
+        lwd = 2)
+}
+
+# add a legend
+legend("topleft",
+       legend = c(expression(n == 10000),
+                  expression(n == 5000),
+                  expression(n == 2000),
+                  expression(n == 1000),
+                  expression(n == 500)), 
+       col = 1:5,
+       lwd = 2)
+
+```
+### Bestimmung der Stichprobengröße
+Wir haben die Behauptung der Kimberly-Clark Corporation untersucht, dass das Unternehmen mehr als 60 Taschentücher in eine Schachtel Kleenex®-Taschentücher geben sollte. Dazu haben wir die Behauptung getestet, dass die durchschnittliche Anzahl der Tücher, die eine erkältete Person benutzt, $m$ = 60 ist, indem wir Daten aus einer Umfrage unter 250 Kleenex-Benutzern verwendet haben. Eine andere Herangehensweise an das Problem ist die Betrachtung des Anteils der Kleenex-Benutzer, die bei Erkältung mehr als 60 Taschentücher verwenden. Der interessierende Populationsparameter ist nun $p$, der Anteil aller Kleenex-Benutzer, die bei einer Erkältung mehr als 60 Taschentücher verwenden.
+Die Überzeugung der Kimberly-Clark Corporation, dass das Unternehmen mehr als 60 Taschentücher in eine Packung packen sollte, wird unterstützt, wenn mehr als die Hälfte der befragten Kleenex-Nutzer mehr als 60 Taschentücher verwenden. Gibt es Hinweise darauf, dass der Bevölkerungsanteil über 0,5 liegt? Um diese Frage zu beantworten, stellen wir die folgenden Null- und Alternativhypothesen auf: $H_0: p=0,5$, $H_1: p>0,5$.
+Zusätzlich zu der Anzahl der von jeder Person verwendeten Gewebe enthält die Datei
+Datei eine qualitative Variable - USED60 -, die angibt, ob die Person
+weniger oder mehr als 60 Gewebe verwendet hat. Die Anzahl der 250 Personen mit Erkältung
+die mehr als 60 Tücher benutzt haben, ist 154. Dieser Wert wird verwendet, um die Teststatistik $z = 3,67$ zu berechnen (können Sie dieses Ergebnis replizieren?). Der $p$-Wert des Tests, auch hervorgehoben $p$-Wert = .000. Da dieser Wert kleiner als $\alpha = .05$ ist, gibt es genügend Beweise (bei $\alpha = .05$), um $H_0$ zurückzuweisen; wir schließen daraus, dass der Anteil aller Kleenex-Benutzer, die bei einer Erkältung mehr als 60 Taschentücher verwenden, größer als 0,5 ist. Diese Schlussfolgerung unterstützt wiederum die Entscheidung des Unternehmens, mehr als 60 Taschentücher in eine Kleenex-Schachtel zu packen.
+
+Betrachten wir das Problem der Schätzung der Fehlerquote bei der Schätzung von Anteilen. Wir wollen den wahren Prozentsatz der Erkältungspatienten schätzen
+die mehr als 60 Taschentücher benutzt haben, mit 95%iger Sicherheit auf 0,1 genau schätzen. Wie viele Personen sollten nach dem Zufallsprinzip in die Stichprobe aufgenommen werden, um den gewünschten Wert zu erreichen?
+Schätzung zu erhalten?
+
+$N= \frac{{z_{\alpha/2}}^2p(1-p)}{(SE)^2} = \frac{{z_{\alpha/2}}^2 0.62(0.38)}{(0.1)^2} = 90.51$. Und wenn wir genauer sein wollen und diesen Anteil mit 95%iger Sicherheit auf 0,01 genau bestimmen wollen? $n$ sollte gleich 9051 sein.
+
+### Nichtparametrische Tests
+Bei der Verwendung des $t$-Tests sind wir auf die Annahmen über die Stichprobenverteilung angewiesen. Wenn unser Stichprobenumfang $n>30$ ist, können wir den $t$-Test unabhängig von der zugrundeliegenden Verteilung der Zufallsvariablen verwenden (aufgrund von CLT). Wenn der Stichprobenumfang kleiner als 30 ist, können wir den $t$-Test nur für Zufallsvariablen mit Normalverteilung verwenden. Daher wird eine Alternative für Fälle benötigt, in denen der Stichprobenumfang klein ist und wir nicht sicher sein können, dass die zugrunde liegende Verteilung normalverteilt ist.
+
+Verteilungsfreie Tests sind statistische Tests, die sich nicht auf zugrunde liegende Annahmen über die Wahrscheinlichkeitsverteilung der Stichprobenpopulation stützen. Der Zweig der Inferenzstatistik, der sich mit verteilungsfreien Tests befasst, wird als Nichtparametrik bezeichnet. Nichtparametrische Statistiken (oder Tests), die auf den Rängen von Messungen beruhen, werden als Rangstatistiken (oder Rangtests) bezeichnet.
+Der Wilcoxon-Vorzeichentest ist ein relativ einfaches, nichtparametrisches Verfahren zum Testen von Hypothesen über die zentrale Tendenz einer nicht-normalen Wahrscheinlichkeitsverteilung. Beachten Sie, dass wir den Ausdruck zentrale Tendenz und nicht Populationsmittelwert verwendet haben. Dies liegt daran, dass der Vorzeichentest, wie viele nichtparametrische Verfahren, Rückschlüsse auf den Median der Population und nicht auf den Mittelwert der Population $\mu$ zulässt. Der Wilcoxon-Test kann eine gute Alternative zum $t$-Test sein, wenn die Mittelwerte der Populationen nicht von Interesse sind, z. B. wenn man prüfen möchte, ob der Median einer Population ungleich Null ist.
+```{r}
+wilcox.test(tissue_data$NUMUSED, mu = 60, alternative = c("greater"),conf.level = 0.95)
+```
+
+Nach dem zentralen Grenzwertsatz (Central Limit Theorem, CLT) hat die Stichprobenverteilung für den Stichprobenmittelwert eine Normalverteilung. Wir betrachten nun eine andere Methode zur Schätzung von Konfidenzintervallen (alternativ Hypothesentests). Sie wird "Bootstrap" genannt. Warum wird sie Bootstrap genannt? Nun, man nimmt eine einzige Stichprobe und schätzt die Variabilität in der Grundgesamtheit, indem man sich selbst an den Bootstraps hochzieht". 
+Wir haben nur eine Stichprobe, aber wir wollen sie verwenden, um weitere Stichproben aus der Stichprobenverteilung mit demselben Umfang zu erhalten. Dies geschieht durch eine Ersatzstichprobe. Wir ziehen Dinge aus einem Hut und werfen sie zurück, bevor wir die nächste Zahl ziehen. Ziehen wir neue Stichproben mit der gleichen Verteilung:
+```{r}
+sample(c(1,2,3,4),size=4,replace=TRUE)
+sample(c(1,2,3,4),size=4,replace=TRUE)
+sample(c(1,2,3,4),size=4,replace=TRUE)
+```
+```{r}
+set.seed(4)
+dp1000 <- c(0)
+sample.size <- nrow(tissue_data)
+for (i in 1:1000) {
+  dp1000[i] = mean(sample(tissue_data$NUMUSED, size=sample.size, replace = TRUE))
+}
+head(dp1000)
+
+hist(dp1000, main = "Simulated test statistic", xlab = "mean")
+```
+
+```{r}
+#install.packages("bootstrap")
+library(bootstrap)
+theta <- function(x){mean(x)}
+results <- bootstrap(tissue_data$NUMUSED,1000, theta)
+quantile(results$thetastar, c(0.05, 0.95))
+```
+
+Das Schöne an der Bootstrapping-Methode ist, dass nicht nur Hypothesen über den Mittelwert, sondern auch über den Median, die Quantile usw. getestet werden können.

@@ -1,0 +1,2518 @@
+---
+title: "Data Science and Strategy for Business"
+subtitle: "(Re-)Sampling und Hypothesentests"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS" 
+date: "`r Sys.Date()`"
+bibliography: ../../../lit/my_bib.bib
+reference-section-title: Quellenverzeichnis
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+         - default
+         - ../../../css/ffhs-theme_js.css
+         - xaringan-themer.css
+    includes:
+      after_body: ../../../css/insert-logo.html
+    lib_dir: ../../../libs
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    seal: false
+    
+
+    
+---
+class: title-slide
+
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+style_xaringan(text_color = "#d50006",inverse_text_color = "#FFFFFF",inverse_background_color = "#d50006", title_slide_background_color = "#d50006",header_background_color = "#d50006",header_color = "#FFFFFF",header_h1_font_size = "32px",
+  header_h2_font_size = "26px",link_color="#502479",
+  header_h3_font_size = "20px",text_slide_number_color = "#d50006",text_slide_number_font_size = "0.5em")
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_progress_bar(color = "#d50006", location = "bottom")
+xaringanExtra::use_xaringan_extra(c("tile_view","scribble","panelset","tachyons"))
+xaringanExtra::style_panelset_tabs(font_family = "inherit")
+#xaringanExtra::use_search(show_icon = TRUE)
+#weitere: "share_again","animate_css", "webcam","freezeframe","clipboard","fit_screen","extra-styles" 
+xaringanExtra::use_editable(expires = 1)
+xaringanExtra::use_freezeframe(trigger = "hover")
+``` 
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(latex2exp)
+library(fontawesome)
+#library(emo)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           style = "markdown",
+           dashed = TRUE)
+file.name <- system.file("Bib", 
+                         "my_bib.bib", 
+                         package = "RefManageR")
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+```
+
+# ER014 - Data Science and Strategy for Business
+
+## PVA1
+
+### Data Science als modellbasierte Abstraktion
+
+ 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+### FS 2026
+<br>
+### Prof. Dr. Jörg Schoder
+.mycontacts[
+`r fa('github')` @FFHS-EconomicResearch
+`r fa('linkedin')` @jfschoder
+]
+
+
+---
+layout: true
+
+<div class="my-footer"></div>       
+
+<div style="position: absolute;left:400px;bottom:10px;font-size:9px">`r fa('creative-commons')``r rmarkdown::metadata$author`</div>
+
+
+
+
+
+
+---
+name: agenda
+class: left
+
+.blockquote[Agenda]
+
+## Data Science als modellbasierte Abstraktion
+
+* Kennenlernen und Organisatorisches 
+
+* Big Picture & Data Strategy (Wiki-Aufgabe)
+
+* CRISP-DM (I): Business Understanding
+
+* Datenprojekte in `r fa('r-project')`
+
+* Lab 1: CRISP-DM (II): Data Understanding und EDA
+
+* Lab 2: CRISP-DM (III-A): Prep & Modelling (Einfachregression)
+
+* Pause `r fa('coffee')`
+
+* Demo: CRISP-DM (III-B): Komplexität und Modellierung (Multiple Regression)
+
+* Lab 3: CRISP-DM (IV): Evaluation & Deployment
+
+* Debrief und Ausblick
+
+
+
+???
+<!-- --- -->
+<!-- name: agenda -->
+<!-- class: left -->
+
+<!-- .blockquote[Agenda] -->
+
+<!-- ## Block 1 — Überblick -->
+
+<!-- .pull-left[ -->
+<!-- **Teil 1: The Big Picture** *(25 Min.)* -->
+<!-- * Data-Analytic Thinking -->
+<!-- * Data Strategy: User vs. Creator -->
+<!-- * Big Data nach Taddy -->
+
+<!-- **Teil 2: Szenario & CRISP-DM** *(25 Min.)* -->
+<!-- * Retail-Szenario: Carseats -->
+<!-- * Der CRISP-DM Zyklus -->
+<!-- * Problem Translation -->
+<!-- * R-Tooling & Projekte -->
+<!-- ] -->
+
+<!-- .pull-right[ -->
+<!-- **Teil 3: Labs 1 & 2** *(50 Min.)* -->
+<!-- * Lab 1: Explorative Datenanalyse -->
+<!-- * Lab 2: Baseline-Modell -->
+
+<!-- **— Pause —** -->
+
+<!-- **Teil 4: Demo & Lab 3** *(80 Min.)* -->
+<!-- * Confounder & Ceteris Paribus -->
+<!-- * Live-Demo Multiple Regression -->
+<!-- * Lab 3: Performance Mining -->
+<!-- * Managerial Memo -->
+
+<!-- **Teil 5: Wrap-up & Ausblick** *(10 Min.)* -->
+<!-- ] -->
+
+
+---
+class: left
+
+.blockquote[Kennenlernen und Organisatorisches]
+
+## Kurze Vorstellungsrunde
+
+.panelset[
+.panel[.panel-name[Wer bin ich?]
+
+```{r map}
+#| echo: false
+#| message: false
+#| fig-align: "center"
+#| out-height: "400px"
+library(leaflet)
+m <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=9.326888, lat=48.737254,
+    popup="Geburt") %>%
+  addMarkers(lng=9.01992, lat=48.688465,
+    popup="Abitur") %>%
+  addMarkers(lng=10.676478, lat=47.570924,
+    popup="Bundeswehr") %>%
+  addMarkers(lng=-71.105495, lat=42.3507532,
+    popup="Visiting Scholar")  %>%
+  addMarkers(lng=7.848034412832279, lat=47.995786921757244,
+    popup="Promotion") %>%
+  addMarkers(lng=13.060978531837467, lat=47.789096688734794,
+    popup="Postdoc") %>%
+  addMarkers(lng=7.8437536, lat=47.9901194,
+    popup="Professor") %>%
+  addMarkers(lng=7.846853, lat=47.994721,
+    popup="Studium") 
+m 
+```
+]
+.panel[.panel-name[Wer sind Sie?]
+Stellen Sie sich kurz im Plenum vor indem Sie bspw. auf folgende Fragen kurz eingehen:
+
+* Ich heisse...
+* Ich arbeite im Bereich/beim Unternehmen...
+* Wenn ich heute nicht hier wäre, würde ich...
+* Meine Vorkenntnisse im Bereich der quantitativen Forschung sind...
+* Meine Erwartungen an diese PVA sind...
+]
+]
+
+
+---
+class: left
+
+.blockquote[Kennenlernen und Organisatorisches]
+
+## CHECK
+
+.pull-left[
+<br>
+
+.large[.red[**C**]hecken Sie Ihre Audioeinstellungen!]
+
+.large[.red[**H**] <u>intergrundgeräusche</u> vermeiden!]
+
+.large[.red[**E**] <u>inbringen</u> & Mitmachen!]
+
+.large[.red[**C**] hatten geht schneller als sprechen!]
+
+.large[.red[**K**] <u>amera</u> an!]
+]
+
+.pull-right[
+<svg viewBox="0 0 280 300" width="100%">
+  <defs><style>
+    .ico { fill: #D50006; }
+  </style></defs>
+
+  <!-- Lautsprecher -->
+  <g transform="translate(30,10)">
+    <!-- Gehäuse -->
+    <rect class="ico" x="0" y="18" width="22" height="28" rx="2"/>
+    <!-- Membran-Dreieck -->
+    <polygon class="ico" points="22,8 22,54 46,62 46,0"/>
+    <!-- Plus -->
+    <text style="font-family:sans-serif;font-size:16px;font-weight:bold;fill:#D50006" x="52" y="14">+</text>
+    <!-- Minus -->
+    <text style="font-family:sans-serif;font-size:16px;font-weight:bold;fill:#D50006" x="52" y="56">−</text>
+  </g>
+
+  <!-- Schallwelle -->
+  <g transform="translate(105,18)">
+    <path d="M0,22 C6,5 10,5 14,22 C18,39 22,39 26,22
+             C30,5 34,5 38,22 C42,39 46,39 50,22
+             C54,5 58,5 62,22 C66,39 70,39 74,22
+             C78,5 82,5 86,22 C90,39 94,39 98,22"
+          stroke="#D50006" stroke-width="3"
+          fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Hand / Winken -->
+  <g transform="translate(185,0)">
+    <!-- Unterarm -->
+    <rect class="ico" x="25" y="110" width="30" height="65" rx="8"/>
+    <!-- Handfläche -->
+    <rect class="ico" x="15" y="55" width="50" height="65" rx="12"/>
+    <!-- Daumen -->
+    <rect class="ico" x="0" y="70" width="18" height="32" rx="9"/>
+    <!-- Finger 1 -->
+    <rect class="ico" x="16" y="30" width="14" height="38" rx="7"/>
+    <!-- Finger 2 -->
+    <rect class="ico" x="32" y="22" width="14" height="38" rx="7"/>
+    <!-- Finger 3 -->
+    <rect class="ico" x="48" y="28" width="14" height="36" rx="7"/>
+    <!-- Finger 4 -->
+    <rect class="ico" x="53" y="45" width="13" height="30" rx="6"/>
+  </g>
+
+  <!-- Handy -->
+  <g transform="translate(165,170)">
+    <!-- Rahmen -->
+    <rect class="ico" x="10" y="0" width="55" height="88" rx="8"/>
+    <!-- Display (weiß) -->
+    <rect x="16" y="8" width="43" height="64" rx="3" fill="white"/>
+    <!-- Home-Button -->
+    <circle class="ico" cx="37" cy="80" r="4"/>
+    <!-- Kleines "App-Icon" auf Display -->
+    <rect class="ico" x="24" y="20" width="26" height="16" rx="2"/>
+    <rect class="ico" x="24" y="42" width="12" height="12" rx="2"/>
+    <rect class="ico" x="40" y="42" width="10" height="12" rx="2"/>
+  </g>
+
+  <!-- Kamera -->
+  <g transform="translate(80,220)">
+    <!-- Gehäuse -->
+    <rect class="ico" x="0" y="20" width="120" height="72" rx="8"/>
+    <!-- Sucher-Buckel -->
+    <rect class="ico" x="30" y="8" width="38" height="18" rx="4"/>
+    <!-- Objektiv-Ring -->
+    <circle fill="white"   cx="60" cy="58" r="26"/>
+    <circle class="ico"    cx="60" cy="58" r="20"/>
+    <circle fill="white"   cx="60" cy="58" r="13"/>
+    <!-- Blitz -->
+    <rect class="ico" x="8" y="28" width="14" height="10" rx="2"/>
+    <!-- Auslöser -->
+    <rect class="ico" x="90" y="10" width="16" height="10" rx="3"/>
+  </g>
+
+</svg>
+]
+
+---
+class: left
+
+.blockquote[Kennenlernen und Organisatorisches]
+
+## Kurskonzept und Prüfungsleistungen
+
+* Lernziele gemäss [Modulplan](https://ffhs-my.sharepoint.com/personal/learningcenter_ffhs_ch/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Flearningcenter%5Fffhs%5Fch%2FDocuments%2FModulpl%C3%A4ne%2FModulpl%C3%A4ne%20%2D%20Departemente%2FDWT%2DModulpl%C3%A4ne%2F00%5FModulpl%C3%A4ne%5FPDFs%2FER014%5FData%20Science%20and%20Strategy%20for%20Business%2Epdf&parent=%2Fpersonal%2Flearningcenter%5Fffhs%5Fch%2FDocuments%2FModulpl%C3%A4ne%2FModulpl%C3%A4ne%20%2D%20Departemente%2FDWT%2DModulpl%C3%A4ne%2F00%5FModulpl%C3%A4ne%5FPDFs&ga=1)
+
+    * Strategische Prozess- & Teamkompetenz
+    * Methodisch-Statistische Kompeten
+
+--
+
+* Selbststudium Moodle ist essenziell für produktive Präsenzveranstaltungen
+
+--
+
+* Prüfungsleistungen:
+
+    * Nachbereitungsaufgabe (1 aus 3 in Gruppenarbeit, 35% Gesamtnote)
+    * Abschlussprojekt (individuell, 65%)
+
+
+
+???
+
+* Strategische Prozess- & Teamkompetenz: 
+  * Die Studierenden können datengetriebene Projekte entlang des CRISP-DM-Zyklus strukturieren und Daten als strategisches Asset zur Wertschöpfung einordnen. 
+  * Die Studierenden sind in der Lage, als Schnittstelle zwischen Fachabteilung und Data Science zu agieren, indem sie Aufwände realistisch einschätzen und interdisziplinäre Teams auf Augenhöhe führen.
+* Methodisch-Statistische Kompetenz:
+  * Die Studierenden können im Rahmen der Data-Science-Pipeline in R (tidyverse) Rohdaten effizient aufbereiten und mittels Explorativer Datenanalyse (EDA) relevante Muster für geschäftliche Entscheidungen identifizieren.
+  * Die Studierenden sind in der Lage statistische Modelle (Regression) als modellbasierte Abstraktionen der Realität zu interpretieren und praktische Implikationen abzuleiten. 
+ * Die Studierenden können die Unsicherheit von Schätzungen quantifizieren sowie die Risiken von Fehlentscheidungen (Fehler 1. & 2. Art) im Business-Kontext gegen Kosten abwägen.
+ * Die Studierenden können die Qualität algorithmischer Ergebnisse kritisch verifizieren, indem sie Overfitting erkenne und die Modellleistung konsequent anhand von Out-of-Sample-Daten und Kreuzvalidierung 
+bewerten.
+* Die Studierenden sind in der Lage zwischen bloßer Korrelation und echter Kausalität zu unterscheiden und A/B-Tests als Spezialfall kausaler Inferenz zu interpretieren. Sie können die praktische Relevanz von Ergebnissen mittels Effektstärken (z. B. Cohen’s d) einordnen.
+* Die Studierenden sind in der Lage die Grenzen empirischer Evidenz einzuschätzen und Gefahren wie p-Hacking oder die Überinterpretation von Signifikanz in Big-Data-Szenarien durch Verfahren wie die False Discovery Rate (FDR) zu erkennen.
+
+
+
+
+
+
+---
+class: inverse, center, middle
+
+## Big Picture & Data Strategy
+
+
+???
+
+.blockquote[Einordnung & Motivation]
+
+.blockquote[]
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Die Leitidee des Moduls
+
+.pull-left[
+### Früher
+`r fa('code')` Code schreiben = Kernkompetenz
+
+Wer programmieren kann, hat die Macht.
+
+
+
+### Heute
+Generative KI **demokratisiert das Prototyping**.
+
+GPT schreibt den Code — in Sekunden.
+]
+
+.pull-right[
+<br>
+
+<svg viewBox="0 0 300 240" width="100%" height="220">
+  <defs><style>
+    .arm  { stroke: #686868; stroke-width: 3; fill: none; }
+    .bowl { fill: #b3b2b2; stroke: #686868; stroke-width: 2; }
+    .lbl  { font-family: sans-serif; font-size: 11px; text-anchor: middle; }
+    .heavy { fill: #502479; }
+    .light { fill: #D50006; }
+  </style></defs>
+  <!-- Stange -->
+  <line class="arm" x1="150" y1="40" x2="150" y2="100"/>
+  <!-- Linke Seite - leichter (Coding) -->
+  <line class="arm" x1="150" y1="70" x2="60"  y2="85"/>
+  <line class="arm" x1="60"  y1="85" x2="60"  y2="130"/>
+  <ellipse class="bowl light" cx="60" cy="138" rx="45" ry="12"/>
+  <text class="lbl" x="60" y="168" fill="#D50006" font-weight="bold">Coding</text>
+  <text class="lbl" x="60" y="182" fill="#686868">(wird leichter)</text>
+  <text style="font-family:sans-serif;font-size:9px;text-anchor:middle;fill:#686868" x="60" y="196">KI schreibt den Code</text>
+  <!-- Rechte Seite - schwerer (Strategie) -->
+  <line class="arm" x1="150" y1="70" x2="240" y2="60"/>
+  <line class="arm" x1="240" y1="60" x2="240" y2="105"/>
+  <ellipse class="bowl heavy" cx="240" cy="113" rx="45" ry="12"/>
+  <text class="lbl" x="240" y="143" fill="#502479" font-weight="bold">Validierung</text>
+  <text class="lbl" x="240" y="157" fill="#502479" font-weight="bold">& Strategie</text>
+  <text class="lbl" x="240" y="173" fill="#686868">(wird wichtiger)</text>
+  <!-- Pivot -->
+  <circle cx="150" cy="40" r="6" fill="#D50006"/>
+  <line class="arm" x1="130" y1="20" x2="170" y2="20"/>
+  <line class="arm" x1="150" y1="20" x2="150" y2="40"/>
+</svg>
+]
+
+???
+
+* Konsequenz für Lernziel: Nicht Programmierung als Selbstzweck
+* Sondern: Als "Translator" zwischen Fachbereich und Data-Science-Teams agieren
+* Verifizierung, Validierung und strategische Einordnung sind die neuen Kernkompetenzen
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Future Skills und Rollen von Managern im KI-Zeitalter
+
+<!-- venn-step3 -->
+
+.pull-left[
+* Praxisproblem: Data Science (DS) von Informatikern dominiert  
+  →Entwicklung an Business Need vorbei
+
+* DS for Managers →Coding gehört für HBS zum Skillset
+  * Großunternehmen: „Übersetzungs-"Kompetenz (Management ↔ Datenteams)
+  * KMU: Prototyping-Kompetenz
+]
+
+.pull-right[
+<svg viewBox="-280 -220 560 480" width="100%" height="320">
+  <defs><style>
+    .ring { fill: #D50006; fill-opacity: 0.22; stroke: #D50006; stroke-width: 2; }
+    .lbl  { font-family: sans-serif; font-size: 16px; font-weight: bold; fill: #1a1a1a; text-anchor: middle; }
+    .ds   { font-family: sans-serif; font-size: 22px; font-weight: bold; fill: #D50006; text-anchor: middle; }
+  </style></defs>
+  <circle class="ring" cx="0"   cy="-60" r="110"/>
+  <circle class="ring" cx="-80" cy="70"  r="110"/>
+  <circle class="ring" cx="80"  cy="70"  r="110"/>
+  <text class="lbl" x="0"    y="-115">Informatik/</text>
+  <text class="lbl" x="0"    y="-100">Computerwissenschaft</text>
+  <text class="lbl" x="-145" y="105">Statistik</text>
+  <text class="lbl" x="115"  y="105">Domänenwissen</text>
+  <text class="lbl" x="120"  y="120">(Business)</text>
+  <text class="ds"  x="0"    y="35">DS</text>
+</svg>
+]
+
+**Data Science ist mehr als Programmieren – es erfordert statistisches und fachliches Verständnis**
+
+???
+
+Definition: Data Science ist die modellbasierte Abstraktion der Realität durch:
+
+* Statistische Methoden
+* Informatik-Werkzeuge
+* Domaenen-Expertise
+
+Abgrenzung
+
+* Keine “Black Box” ohne Verstaendnis
+* Keine reine Automatisierung
+* Kritisches Denken erforderlich
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Data-Analytic Thinking: Das Walmart-Szenario
+
+.panelset[
+.panel[.panel-name[Die Frage]
+
+.pull-left[
+### Szenario
+Hurricane Frances nähert sich der US-Küste, 2004.
+
+Walmart-Manager in Bentonville, Arkansas fragen ihre Daten:
+
+> **"Was kaufen Menschen in Küstenregionen typischerweise in den Tagen vor einem Hurrikan?"**
+
+]
+
+.pull-right[
+<br><br>
+<svg viewBox="0 0 220 200" width="100%" height="180">
+  <defs>
+    <radialGradient id="hurr" cx="50%" cy="50%">
+      <stop offset="0%"   stop-color="#502479" stop-opacity="0.8"/>
+      <stop offset="60%"  stop-color="#D50006" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#D50006" stop-opacity="0.1"/>
+    </radialGradient>
+  </defs>
+  <circle cx="110" cy="95" r="85" fill="url(#hurr)"/>
+  <text style="font-family:sans-serif;font-size:28px;text-anchor:middle;fill:white;font-weight:bold" x="110" y="105">🌀</text>
+  <text style="font-family:sans-serif;font-size:11px;text-anchor:middle;fill:white;font-weight:bold" x="110" y="130">Hurricane Frances</text>
+  <text style="font-family:sans-serif;font-size:9px;text-anchor:middle;fill:rgba(255,255,255,0.8)" x="110" y="145">Florida, 2004</text>
+</svg>
+]
+.center[`r fa('circle-right')` Was würden **Sie** erwarten?]
+]
+
+.panel[.panel-name[Die Antwort]
+
+.pull-left[
+
+### Die überraschende Antwort der Daten:
+
+**#1 Verkaufsartikel:** Erdbeer Pop-Tarts `r fa('star')`
+
+**#2:** Bier
+
+.small[
+> *"Walmart's analysts found that sales of Pop-Tarts, particularly strawberry, increased by 7x before a hurricane. The top-selling item before a storm was beer."*
+> .tr[(`r Citet(bib, "provost_data_2013")`, S. 3)]
+]
+]
+
+.pull-right[
+
+**Was lernen wir daraus?**
+
+`r fa('circle-right')` Daten liefern **kontra-intuitive**, aber profitable Erkenntnisse
+
+`r fa('circle-right')` Intuition ≠ Evidenz
+
+`r fa('circle-right')` **Data-Analytic Thinking** als Kompetenz: Welche Fragen kann ich mit Daten beantworten?
+
+`r fa('circle-right')` Ergebnis: Walmart positionierte Pop-Tarts strategisch im Eingangsbereich vor jedem Hurrikan
+
+]
+]
+]
+
+???
+
+* Walmart hatte 2004 bereits ein Data Warehouse mit Milliarden von Transaktionen
+* Das ist ein Beispiel für "Data-Analytic Thinking": Das systematische Hinterfragen von Annahmen mit Daten
+* Provost & Fawcett: "The goal is to extract useful knowledge from data to solve business problems"
+.quelle[`r Citet(bib, "provost_data_2013")`, Kap. 1]
+
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Data Science 
+
+
+.panelset[
+.panel[.panel-name[Drei Säulen]
+<svg viewBox="0 0 760 340" width="100%" height="320">
+  <defs>
+    <style>
+      .pillar-1 { fill: #D50006; }
+      .pillar-2 { fill: #502479; }
+      .pillar-3 { fill: #7d0a52; }
+      .title    { font-family: sans-serif; font-size: 15px; font-weight: bold;
+                  fill: #ffffff; text-anchor: middle; }
+      .item     { font-family: sans-serif; font-size: 11.5px; fill: #1a1a1a;
+                  text-anchor: middle; }
+      .base     { fill: #686868; }
+      .base-lbl { font-family: sans-serif; font-size: 13px; font-weight: bold;
+                  fill: #ffffff; text-anchor: middle; }
+    </style>
+    <linearGradient id="grad-top" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#D50006"/>
+      <stop offset="100%" stop-color="#502479"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dach mit Verlauf -->
+  <rect x="30" y="92" width="700" height="20" rx="3" fill="url(#grad-top)"/>
+  <text style="font-family:sans-serif; font-size:12px; font-weight:bold;
+               fill:#ffffff; text-anchor:middle;"
+        x="380" y="107">Methoden · Technologie · Anwendung</text>
+
+  <!-- ===== Säule 1: Statistik ===== -->
+  <rect class="pillar-1" x="45"  y="112" width="200" height="22" rx="3"/>
+  <rect class="pillar-1" x="55"  y="134" width="180" height="161" rx="3"/>
+  <text class="title" x="145" y="129">Statistik</text>
+  <text class="item"  x="145" y="163">Modellierung</text>
+  <text class="item"  x="145" y="191">Wahrscheinlichkeit</text>
+  <text class="item"  x="145" y="219">Inferenz</text>
+  <text class="item"  x="145" y="247">Unsicherheit</text>
+
+  <!-- ===== Säule 2: Informatik ===== -->
+  <rect class="pillar-2" x="280" y="112" width="200" height="22" rx="3"/>
+  <rect class="pillar-2" x="290" y="134" width="180" height="161" rx="3"/>
+  <text class="title" x="380" y="129">Informatik</text>
+  <text class="item"  x="380" y="163">Datenbanken/-architekturen</text>
+  <text class="item"  x="380" y="191">Cloud/Infrastruktur</text>
+  <text class="item"  x="380" y="219">Datensicherheit</text>
+  <text class="item"  x="380" y="247">Programmierung/Algorithmen</text>
+
+  <!-- ===== Säule 3: Domänenwissen ===== -->
+  <rect class="pillar-3" x="515" y="112" width="200" height="22" rx="3"/>
+  <rect class="pillar-3" x="525" y="134" width="180" height="161" rx="3"/>
+  <text class="title" x="615" y="129">Domänenwissen</text>
+  <text class="item"  x="615" y="163">Problemverständnis</text>
+  <text class="item"  x="615" y="191">Branchenkenntnis</text>
+  <text class="item"  x="615" y="219">Interpretation</text>
+  <text class="item"  x="615" y="247">Kommunikation</text>
+
+  <!-- Basis -->
+  <rect class="base" x="30" y="295" width="700" height="35" rx="4"/>
+  <text class="base-lbl" x="380" y="318">Data Science</text>
+
+</svg>
+
+]
+.panel[.panel-name[Tätigkeiten]
+
+"Was Data Scientist tun"
+
+| Aktivität | Zeitanteil |
+|-----------|------------|
+| Datenbereinigung | 40–60% |
+| Feature Engineering | 10–15% |
+| Exploration & EDA | 15–20% |
+| Modellierung | 10–15% |
+| Kommunikation | 10–15% |
+]
+
+]
+
+???
+
+* feature engineering: 
+  * Es geht darum, Rohdaten so zu transformieren, dass sie die zugrunde liegende Problemstruktur möglichst gut widerspiegeln und von Algorithmen effizient genutzt werden können. 
+  * Gute Features erhöhen Vorhersagegenauigkeit, Robustheit und Interpretierbarkeit von Modellen oft stärker als der Wechsel zum „nächsten“ Algorithmus.
+
+* Bei uns soll der Schwerpunkt auf Exploration und Modellierung liegen
+* ER015 Storytelling: Kommunikation
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Data Science & Strategy...
+
+* ...als Verbindung von **datengetriebenen Analysen** mit **strategischem Denken**, um bessere,
+langfristig wirksame Entscheidungen zu treffen.
+
+* Es geht nicht nur darum, Daten zu analysieren (Data Science), sondern darum, **die richtigen Fragen zu stellen**,
+Erkenntnisse in Handlungsempfehlungen zu übersetzen und diese in den größeren Kontext von Zielen, Wettbewerb
+und Zukunftsausrichtung einzuordnen (Strategy).
+
+`r fa('circle-right')` Data Science ohne Strategie ist Analyse ohne Wirkung.
+Strategie ohne Daten ist Meinung mit Risiko.
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Daten: vom Kostenfaktor zum Asset
+
+.panelset[
+.panel[.panel-name[Perspektiven]
+```{r}
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','data_in_business_(tableau)_1.PNG'))
+```
+]
+.panel[.panel-name[Bewertung]
+```{r}
+#| echo: false
+#| out-width: '80%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','data_in_business_(tableau)_2.PNG'))
+```
+]
+]
+.quelle[Quelle: [cloudflight.io](https://www.cloudflight.io/de/download/uncategorized-download/turn-data-into-products-vom-data-scientist-zum-data-business-owner/)]
+
+
+???
+
+* Data is Oil
+  * Quatsch, weil Daten mehr werden, Öl aber verbraucht wird.
+  * Aber: Wie beim Öl entsteht der Wert auch bei Daten erst durch die Weiterverarbeitung ("Raffinerie")
+
+
+
+---
+class: left
+
+.blockquote[The Big Picture]
+
+## Data Strategy: AI User vs. AI Value Creator
+
+.panelset[
+.panel[.panel-name[Das Konzept]
+
+<svg viewBox="0 0 680 200" width="90%" style="display:block;margin:auto">
+  <defs>
+    <style>
+      .rtxt { font-family:sans-serif; font-size:11px; font-weight:bold;
+              fill:white; text-anchor:middle; }
+      .rarr { stroke:#686868; stroke-width:2; fill:none;
+              marker-end:url(#arr); }
+      .anno { font-family:sans-serif; font-size:10px; fill:#686868;
+              text-anchor:middle; }
+    </style>
+    <marker id="arr" markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#686868"/>
+    </marker>
+  </defs>
+
+  <!-- Stufen der AI Ladder -->
+  <rect x="10"  y="140" width="130" height="40" rx="6" fill="#b3b2b2"/>
+  <text class="rtxt" x="75"  y="165">1. Sammeln</text>
+
+  <rect x="180" y="140" width="130" height="40" rx="6" fill="#686868"/>
+  <text class="rtxt" x="245" y="165">2. Organisieren</text>
+
+  <rect x="350" y="140" width="130" height="40" rx="6" fill="#7d0a52"/>
+  <text class="rtxt" x="415" y="165">3. Analysieren</text>
+
+  <rect x="520" y="140" width="140" height="40" rx="6" fill="#502479"/>
+  <text class="rtxt" x="590" y="165">4. Infundieren</text>
+
+  <!-- Pfeile -->
+  <line class="rarr" x1="145" y1="160" x2="175" y2="160"/>
+  <line class="rarr" x1="315" y1="160" x2="345" y2="160"/>
+  <line class="rarr" x1="485" y1="160" x2="515" y2="160"/>
+
+  <!-- Trennlinie User vs Creator -->
+  <line x1="340" y1="20" x2="340" y2="135"
+        stroke="#D50006" stroke-width="2" stroke-dasharray="5,3"/>
+  <text style="font-family:sans-serif;font-size:10px;fill:#D50006;
+               text-anchor:middle;font-weight:bold" x="340" y="15">
+    AI User | AI Value Creator
+  </text>
+
+  <!-- Annotations -->
+  <text class="anno" x="170" y="125">Standard-Tools</text>
+  <text class="anno" x="170" y="137">Commodity Data</text>
+  <text class="anno" x="510" y="125">Proprietary Data</text>
+  <text class="anno" x="510" y="137">Nachhaltiger Vorteil</text>
+</svg>
+
+]
+
+.panel[.panel-name[AI User]
+
+`r fa('user')` **AI User** *(wo wir heute starten)*
+
+* Nutzt **Standard-Modelle** (ChatGPT, Copilot) und **öffentliche Daten**
+* Ergebnis: Operative Effizienz, schnellere Prozesse
+* **Aber:** Jeder Konkurrent kann dasselbe tun → "Commodity"
+* Kein nachhaltiger Wettbewerbsvorteil
+
+<br>
+.blockquote[
+"If your competitive advantage depends on a tool that anyone can buy, it is not a competitive advantage."
+.tr[`r Citet(bib, "thomasAIValueCreators2025")`]
+]
+]
+
+.panel[.panel-name[AI Value Creator]
+
+`r fa('rocket')` **AI Value Creator** *(das strategische Ziel)*
+
+* Nutzt **Proprietary Data** — eigene, exklusive Datenbestände
+* Trainiert Modelle, die **Konkurrenz nicht kopieren kann**
+* Schafft **Data Moats** (Datengräben)
+
+<br>
+
+**Beispiele:**
+.small[
+* Amazon: Kaufhistorie von 300 Mio. Kunden → Empfehlungsalgorithmus nicht kopierbar
+* Netflix: Viewing-Daten → Content-Entscheidungen (House of Cards)
+* Walmart 2004: Eigene Transaktionsdaten → Pop-Tart-Insight kein Konkurrent hatte
+]
+
+.quelle[`r Citet(bib, "thomasAIValueCreators2025")`]
+]
+]
+
+???
+
+* AI Ladder nach Thomas et al. (2025): methodische Leiter, die wir erklimmen müssen, um Künstliche Intelligenz erfolgreich im Unternehmen zu verankern. Sie besteht aus vier Stufen: 
+  * Wir müssen Daten sammeln, 
+  * sie organisieren, 
+  * sie analysieren und 
+  * die Erkenntnisse schließlich in unsere Geschäftsprozesse infundieren, also integrieren
+
+* linke Seite:
+  * "Schauen wir uns zunächst die linke Seite an. Viele Unternehmen bleiben gedanklich in den ersten Stufen stecken. Sie nutzen generative KI in Form von Standard-Tools – wie ChatGPT oder Copilot – und arbeiten primär mit öffentlichen Daten, also Commodity Data. Wenn Sie das tun, sind Sie laut Thomas et al. ein klassischer AI User
+  * Das ist nicht **per se schlecht; es bringt Ihnen operative Effizienz. Aber** – und das ist der entscheidende Punkt – jeder Ihrer Konkurrenten kann sich genau die gleichen Tools und Daten einfach einkaufen. Als reiner AI User erzielen Sie also **keinen echten Wettbewerbsvorteil**
+
+* rote Linie: Der strategische Wendepunkt] (Auf die rote, gestrichelte Trennlinie verweisen) "Diese rote, gestrichelte Linie markiert den kritischen strategischen Wendepunkt. Jeder kann Code generieren oder Texte zusammenfassen lassen. Die Kernfrage für uns im Management ist: Wie kommen wir über diese Linie auf die rechte Seite?"
+
+* Die rechte Seite: 
+  * Der AI Value Creator] "Hier, in den Stufen der tiefen Analyse und der Infusion in das Geschäftsmodell, betreten wir das Reich des AI Value Creators. Der Schlüsselbegriff steht unten rechts: **Proprietary Data**
+  * Echte, unkopierbare Wertschöpfung entsteht erst, wenn Sie Basis-Modelle mit Ihren eigenen, exklusiven Unternehmensdaten füttern – Daten über Ihre spezifischen Kunden, Ihre Fehlerquoten oder Ihre einzigartigen Maschinenlaufzeiten. Wenn Sie diese proprietären Daten nutzen, um Modelle zu steuern und strategische Entscheidungen zu treffen, schaffen Sie einen nachhaltigen Wettbewerbsvorteil, den die Konkurrenz nicht einfach nachbauen kann
+  
+* "Das ist unsere Leitidee für dieses Modul: Wir wollen keine reinen AI Users ausbilden, die fremde Tools bedienen. Wir wollen, dass Sie lernen, wie Sie Ihre eigenen Daten als strategisches Asset behandeln, um als AI Value Creator dauerhafte Werte für Ihr Unternehmen zu schaffen
+
+* Heute sind wir AI User — wir nutzen den Carseats-Datensatz (öffentlich)
+* Strategisches Ziel: Verstehen, wann sich der Aufbau eigener Dateninfrastruktur lohnt
+
+
+---
+class: left
+
+.blockquote[The Big Picture]
+
+## Was ist „Big Data" wirklich? — Die Taddy-Perspektive
+
+.pull-left[
+### IT-Sicht: Volumen
+```{r, echo=FALSE, out.width='80%'}
+# Placeholder: Rechenzentrum-Icon
+```
+
+<svg viewBox="0 0 200 160" width="75%">
+  <rect x="20" y="20" width="160" height="120" rx="8" fill="#b3b2b2"/>
+  <rect x="35" y="35" width="130" height="20" rx="3" fill="#686868"/>
+  <rect x="35" y="62" width="130" height="20" rx="3" fill="#686868"/>
+  <rect x="35" y="89" width="130" height="20" rx="3" fill="#686868"/>
+  <rect x="35" y="116" width="130" height="20" rx="3" fill="#686868"/>
+  <circle cx="155" cy="45" r="4" fill="#D50006"/>
+  <circle cx="155" cy="72" r="4" fill="#502479"/>
+  <circle cx="155" cy="99" r="4" fill="#D50006"/>
+  <circle cx="155" cy="126" r="4" fill="#b3b2b2"/>
+  <text style="font-family:sans-serif;font-size:10px;text-anchor:middle;fill:#333" x="100" y="155">Riesige Datenmengen (TB, PB)</text>
+</svg>
+
+.small[Terabytes, Petabytes, Zettabytes — das klassische Verständnis]
+]
+
+.pull-right[
+
+### Data-Science-Sicht: Dimension
+.blockquote[
+"Big Data means that the number of variables **p** is large relative to sample size **n**. This breaks classical statistics."
+.tr[`r Citet(bib, "taddy_business_2019")`, S. 2]
+]
+
+**Das eigentliche Problem: p ≈ n**
+
+* Klassische Regression: funktioniert bei p << n
+* p ≈ n: Modell **overfittet** — findet Muster im Rauschen
+* p > n: Keine eindeutige Lösung mehr möglich
+
+]
+
+.center[`r fa('circle-right')` Deshalb brauchen wir **Regularisierung**, **Selektion** und **Validierung** — nicht nur mehr Rechnerleistung! (`r fa('circle-right')` PVA3)]
+
+???
+
+* Taddy unterscheidet: IT-Definition (Volumen) vs. statistische Definition (Dimension)
+* Für Management relevant: Viele Variablen = Gefahr von False Discoveries
+* "Discovery without overfit" als zentrales Ziel (Folie 15)
+* Heute in Block 1: wir haben p << n (Carseats: 11 Variablen, 400 Beobachtungen)
+
+
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Daten, Experimente und Innovationen
+
+.right-column[
+.blockquote[
+"[..] the ability to run fast, frugal, and scalable experiments based on high-value business hypotheses is becoming a new core competence for innovation success. As companies gather more data about their customers, channels, usage, complaints, social media, etc., we won’t just see people analyzing data with optimization in mind; we’ll be seeing machines generating “innovation hypotheses” recommending new configurations, bundles, features, pricing schemes, and business models to test."
+
+.tr[
+`r Citet(bib, "schrage_let_2014")`
+]
+]
+
+]
+.left-column[
+<br>
+```{r}
+#| echo: false
+#| out-width: '100%'
+knitr::include_graphics(xfun::from_root('img','PVA1','schrage_(amazon).jpg'))
+```
+
+]
+.quelle[Bildquelle: [amazon.de](www.amazon.de).]
+
+???
+
+
+* Insights from Data
+
+  * descriptive
+  * predictive
+  * prescriptive/actionable
+  
+* Results vs. Methods
+
+* Data-Driven vs. Data-Informed
+
+* Data Mining vs. Data Products
+
+
+
+---
+class: inverse, center, middle
+
+## CRISP-DM (Business Understanding) und `r fa('r-project')`-Tooling
+
+
+???
+
+.blockquote[Retail · Carseats · Problem Translation · R-Tooling]
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Unser Retail-Szenario: Die Carseats-Fallstudie
+
+.pull-left[
+### Der Auftrag
+Sie sind das **Data-Science-Team** einer Handelskette:
+
+* `r fa('store')` **400 Filialen** deutschlandweit
+* Hauptprodukt: **Kindersitze** (Carseats)
+* Problem: Extreme Umsatzunterschiede zwischen Filialen
+
+### Die Management-Frage
+> *"Finde die Underperformer-Filialen und bewerte unser Werbebudget."*
+
+]
+
+.pull-right[
+<svg viewBox="0 0 240 220" width="95%">
+  <defs><style>
+    .pin-good { fill: #502479; }
+    .pin-bad  { fill: #D50006; }
+    .pin-med  { fill: #7d0a52; }
+  </style></defs>
+  <!-- Stilisierte Karte -->
+  <rect x="10" y="10" width="220" height="180" rx="10"
+        fill="#f0f0f0" stroke="#b3b2b2" stroke-width="2"/>
+  <!-- Dummy-Umriss Deutschland -->
+  <path d="M80,30 Q110,20 140,35 L155,60 Q165,80 158,110
+           L145,140 Q130,165 110,170 Q85,175 70,155
+           L55,125 Q45,95 55,70 Z"
+        fill="#e8e8e8" stroke="#686868" stroke-width="1.5"/>
+  <!-- Filial-Pins -->
+  <circle class="pin-good" cx="100" cy="65"  r="6"/>
+  <circle class="pin-good" cx="130" cy="80"  r="6"/>
+  <circle class="pin-med"  cx="115" cy="100" r="6"/>
+  <circle class="pin-bad"  cx="90"  cy="120" r="8"/>
+  <circle class="pin-good" cx="140" cy="115" r="6"/>
+  <circle class="pin-bad"  cx="105" cy="145" r="8"/>
+  <circle class="pin-good" cx="125" cy="55"  r="6"/>
+  <!-- Legende -->
+  <circle class="pin-good" cx="25" cy="168" r="5"/>
+  <text style="font-family:sans-serif;font-size:9px;fill:#333" x="34" y="172">Gute Filiale</text>
+  <circle class="pin-bad" cx="25" cy="183" r="5"/>
+  <text style="font-family:sans-serif;font-size:9px;fill:#333" x="34" y="187">Underperformer</text>
+</svg>
+
+
+`r fa('circle-right')` Wir starten heute als **AI User** — öffentliche Daten aus `{ISLR2}`
+
+]
+
+???
+* Datensatz: ISLR2::Carseats — 400 Filialen, 11 Variablen
+* Sales (Tausend Einheiten), Price, Advertising, ShelveLoc, Age, Income, ...
+* Keine Import-Probleme: install.packages("ISLR2"), dann data(Carseats)
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Der CRISP-DM Zyklus
+
+.pull-left[
+<svg viewBox="0 0 260 260" width="95%">
+  <defs>
+    <marker id="arrowC" markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#686868"/>
+    </marker>
+  </defs>
+  <!-- Kreisbogen -->
+  <circle cx="130" cy="130" r="110" fill="none"
+          stroke="#b3b2b2" stroke-width="2" stroke-dasharray="8,4"/>
+  <!-- Phasen-Ellipsen -->
+  <ellipse cx="130" cy="25"  rx="55" ry="18" fill="#D50006"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="130" y="29">Business Understanding</text>
+
+  <ellipse cx="228" cy="80"  rx="48" ry="18" fill="#7d0a52"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="228" y="84">Data Understanding</text>
+
+  <ellipse cx="228" cy="175" rx="48" ry="18" fill="#502479"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="228" y="179">Data Preparation</text>
+
+  <ellipse cx="130" cy="235" rx="48" ry="18" fill="#502479"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="130" y="239">Modeling</text>
+
+  <ellipse cx="32"  cy="175" rx="48" ry="18" fill="#7d0a52"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="32" y="179">Evaluation</text>
+
+  <ellipse cx="32"  cy="80"  rx="48" ry="18" fill="#686868"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="32" y="84">Deployment</text>
+
+  <!-- Daten-Ellipse Mitte -->
+  <ellipse cx="130" cy="130" rx="38" ry="28" fill="#b3b2b2"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:#333;text-anchor:middle" x="130" y="127">Daten</text>
+  <text style="font-family:sans-serif;font-size:8px;fill:#333;text-anchor:middle" x="130" y="139">(Zentrum)</text>
+</svg>
+]
+
+.pull-right[
+<br>
+**Kein linearer Prozess — ein iterativer Zyklus!**
+
+.small[
+| Phase | Heute |
+|-------|-------|
+| **Business Understanding** | ✅ Underperformer finden |
+| **Data Understanding** | ✅ Lab 1: EDA |
+| **Data Preparation** | ✅ Lab 2: Feature Engineering |
+| **Modeling** | ✅ Lab 2 & Demo |
+| **Evaluation** | ✅ Lab 3 |
+| **Deployment** | ➡ Managerial Memo |
+]
+
+<br>
+.blockquote[
+"CRISP-DM stresses that the sequence is not rigid – moving back and forth between phases is the norm, not the exception."
+.tr[`r Citet(bib, "provost_data_2013")`, S. 27]
+]
+]
+
+???
+* CRISP-DM = Cross-Industry Standard Process for Data Mining
+* Provost & Fawcett nutzen es als Rahmen für alle Kapitel
+* Wichtig: In der Praxis verbringt man 70-80% der Zeit in Data Understanding & Preparation
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Problem Translation: Vom Business Speak zum Data Speak
+
+.panelset[
+.panel[.panel-name[Die Übersetzung]
+
+.pull-left[
+### Business Speak
+> *"Finde Underperformer-Filialen!"*
+
+Ist das ein **Klassifikationsproblem**?
+* Underperformer: Ja/Nein?
+
+`r fa('times-circle')` **Nein!** Warum nicht?
+
+* Binäre Klassifikation braucht eine definierte Schwelle
+* Wer zieht die Grenze? Willkürlich!
+* Wir verlieren die Information über den **Grad** des Underperformings
+]
+
+.pull-right[
+### Data Speak
+`r fa('check-circle')` **Scoring / Ranking** via Regression
+
+Wir schätzen den **bedingten Erwartungswert**:
+
+$$E[\text{Sales} \mid \mathbf{x}] = \hat{y}$$
+
+Ein **Underperformer** ist eine Filiale mit stark **negativem Residuum**:
+
+$$e_i = y_i - \hat{y}_i \ll 0$$
+
+→ *"Die Filiale verkauft viel weniger, als sie laut Markt-Benchmark sollte."*
+]
+
+]
+
+.panel[.panel-name[Visualisierung]
+
+```{r}
+#| label: problem-translation
+#| echo: false
+#| warning: false
+#| message: false
+#| fig-width: 8
+#| fig-height: 4
+#| out-width: "90%"
+library(tidyverse)
+set.seed(42)
+n <- 60
+x <- runif(n, 50, 200)
+y <- 8 - 0.025 * x + rnorm(n, 0, 1.2)
+
+df <- tibble(
+  Price    = x,
+  Sales    = y,
+  Residual = lm(Sales ~ Price)$residuals
+) |>
+  mutate(
+    Typ = case_when(
+      Residual < -1.8 ~ "Underperformer",
+      Residual >  1.8 ~ "Outperformer",
+      TRUE            ~ "Normal"
+    )
+  )
+
+df %>% 
+ggplot(aes(x = Price, y = Sales)) +
+  geom_point(aes(color = Typ, size = Typ), alpha = 0.8) +
+  geom_smooth(method = "lm", color = "#502479",
+              se = FALSE, linewidth = 1.2) +
+  geom_segment(
+    data = filter(df, Typ == "Underperformer"),
+    aes(xend = Price, yend = Sales - Residual),
+    color = "#D50006", linewidth = 0.8, linetype = "dashed"
+  ) +
+  annotate("text", x = 170, y = 3.8,
+           label = "Negatives Residuum\n= Underperformer",
+           color = "#D50006", size = 3, fontface = "bold") +
+  scale_color_manual(values = c("Underperformer" = "#D50006",
+                                "Outperformer"   = "#502479",
+                                "Normal"         = "#b3b2b2")) +
+  scale_size_manual(values  = c("Underperformer" = 4,
+                                "Outperformer"   = 3,
+                                "Normal"         = 2)) +
+  labs(x = "Preis", y = "Umsatz (Tsd. Einheiten)",
+       color = NULL, size = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+]
+]
+
+???
+* Der statistische Kern: Regression als Benchmark-Modell
+* Residuum = Abweichung vom "was der Markt erwarten würde"
+* Das ist keine Klassifikation! Es ist ein kontinuierliches Scoring
+
+
+
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Warum Programmierung?
+
+
+.panelset[
+.panel[.panel-name[Kompetenz]
+
+.fig.upper-right[
+```{r}
+#| echo: false
+#| out-width: '50%'
+knitr::include_graphics(xfun::from_root('img','PVA1','Programming_Thinking_(SteveJobs).PNG'))
+```
+]
+
+.fig.lower-left[
+```{r}
+#| echo: false
+#| out-width: '50%'
+knitr::include_graphics(xfun::from_root('img','PVA1','Programming_Quote_(Hawking).PNG'))
+```
+]
+
+.quellePanURL2[Bildquellen: [ilovecoding.org](https://twitter.com/ilovecodingorg/status/844202136980389888),  [imrananees.blogspot.com](https://imrananees.blogspot.com/2019/10/basic-computer-programming-essential.html).]
+
+]
+.panel[.panel-name[Benchmark]
+Beispiel: Harvard Business School
+
+* **Wahlmodule „Data Science for Managers“ (DSM)**
+.small[
+* DSM1: „Although few HBS MBA students will be actively engaged in
+coding post-graduation, the course faculty believe that having **some
+exposure to basic, hands-on coding and techniques** will allow our
+students to **more effectively manage and interact with data
+scientists**. DSM1 will not delve deeply into technical details, but will
+require students to engage with some code.“ (Hervorhebung nicht im
+Original)
+
+* DSM2: „[..] allows students to build a deeper understanding of **how
+data and analytics can complement judgment for managerial
+decision making**. The course builds on concepts learned in DSM1
+and is specifically suited for students who want to continue their
+career at companies such as technology companies, where data
+collection, aggregation, and analysis permeates the entire
+organization.“ (Hervorhebung nicht im Original)
+]
+]
+]
+
+
+
+
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Warum R?
+
+```{r}
+#| label: whyR
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','whyR.svg'))
+```
+
+.quelle[Eigene Darstellung.]
+
+???
+
+* März 2024: Platz 6 im [PYPL Popularity Ranking](https://pypl.github.io/PYPL.html)
+* Programmiersprachen. Am beliebtesten Python. Aber für statistische Anwendungen hat R, gerade im akademischen Bereich noch die Nase vorn.
+* Am Ende auch egal. Es konvergiert, bspw. in RMarkdown/Quarto kann nicht nur R-Code sondern auch Python und die aufstrebende Sprache Julia eingebettet werden.
+* somit sollte R als Einstieg gesehen werden. Je nach Anwendungsgebiet können die Sprachen dann auch kombiniert werden.
+
+
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## `r fa('r-project')`-chitektur
+.pull-left[
+```{r}
+#| label: r-chitektur
+#| echo: false
+#| out-width: '100%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','R-chitektur_(Field_2012_S63).PNG'))
+```
+]
+.pull-right[
+* Base `r fa('r-project')`
+  * der "Motor" bzw. das "Betriebssystem"
+  * lokale Installation via CRAN (Comprehensive R Archive Network) oder diverse Mirrors
+* Bibliotheken (auch als Pakete bezeichnet)
+  * die "Apps"
+  * Erweiterung der Funktionalität
+]
+
+
+.quelle[Bildquelle: `r Citet(bib, "field_discovering_2012")`, S. 63.]
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## `r fa('r-project')` als objektorientierte Programmiersprache
+
+* Alles ist ein Objekt
+  * Daten (Vektoren, Matrizen, etc.)
+  * Funktionen
+  * Diagramme (bspw. ggplot)
+* Objekte können unterschiedlichen Objekt-Klassen zugeordnet werden
+  * bspw. `character`, `numeric`, `factor`, `tibble`, etc. 
+  * Zu welcher Klasse ein Objekt gehört kann mit dem Befehl `class()` abgefragt werden.
+* Objekte haben eine Länge 
+  * bspw. Zahl der Elemente in einem Vektor
+  * Die Objektlänge kann mit dem Befehl length() abgefragt werden.
+* Jedes Objekt wird intern durch einen Vektor repräsentiert.
+
+`r fa('circle-right')` `r fa('r-project')` ist eine Vektor-basierte Programmiersprache
+
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Einstieg in `r fa('r-project')` 
+
+* Kursmaterialien ER014
+
+* **swirl**-Paket als interaktives `r fa('r-project')`-Tutorial.
+
+  * `install.packages(’Paketname’,dep=TRUE)`
+  * `library(Paketname)`
+
+* [RStudio Education](https://education.rstudio.com/learn/beginner/)
+
+* Diverse Tutorials bei [datacamp.com](https://www.datacamp.com/tutorial/category/r-programming)
+
+* Wickham et al. (2023): [R for Data Science (2. Aufl.)](https://r4ds.hadley.nz/)
+
+
+???
+
+* FFHS Moodle-Kurs (zu erstellen)
+
+
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## RStudio als "Benutzeroberfläche"
+
+.panelset[
+.panel[.panel-name[R vs. RStudio]
+.small[
+* Die Benutzeroberfläche von `r fa('r-project')` ist auf das notwendigste beschränkt:
+  * beim Öffnen erscheint nur die sog. **`r fa('r-project')`-Console**. Dort können Befehle
+eingegeben werden, deren Ergebnis dann unmittelbar angezeigt wird.
+  * Statt der Eingabe in der `r fa('r-project')`-Console können Eingaben auch `r fa('r-project')`-Skript-Dateien (.R) erfolgen. In Base-`r fa('r-project')` ist nur ein sehr rudimentärer "Texteditor" zur Bearbeitung von .R-Dateien integriert.
+  
+* RStudio ist eine sog. integrierte Entwicklungsumgebung (IDE)...
+  * ...die als kostenlose Desktop-Version verfügbar ist.
+  * ...als Cloud-Version ([posit Cloud](https://posit.cloud/)) mit gewissen Einschränkungen ebenfalls kostenfrei verfügbar ist.
+  * ...und ermöglicht eine anwendungsfreundliche(re) Nutzung von `r fa('r-project')` (z.B. durch GUI, Kontextmenü, autocompletion etc.)
+  * Datenprojekte können komplett in RStudio bearbeitet werden (`r fa('r-project')` läuft nur im Hintergrund, muss aber nicht extra geöffnet werden).
+]
+]
+.panel[.panel-name[Quick Tour]
+.small[
+* RStudio hat mehrere Fenster mit zusätzlichen Reitern: Skript (zur Dokumentation), Konsole (zur direkten Befehleingabe), Environment (Daten), Pakete, Plots etc. 
+]
+<p align="center"><iframe width="650" height="350" src="https://www.youtube.com/embed/SdMPh5uphO0?si=0RqBc7jmHesShdsF" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></p>
+
+]
+]
+
+  
+
+
+
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Warum RMarkdown/Quarto?
+
+
+.panelset[
+.panel[.panel-name[Zweck]
+* Möglichkeit zur Integration von `r fa('r-project')`-Programmcode (statistische
+Analysen) und Text (verbale Beschreibungen/Erläuterungen) in einer
+Datei
+
+* Reproduzierbarkeit von Forschung/Analysen durch Dokumentation
+
+* Leichterer Austausch von Analyseergebnissen (inkl. Dokumentation)
+
+* Zahlreiche gängige Ausgabeformate (.docx, .pptx, .pdf, .html)
+
+* Produktivitätssteigerung bei wiederkehrenden Berichten/Updates (Automatisierung)
+]
+.panel[.panel-name[Rmd vs. qmd]
+```{r}
+#| echo: false
+knitr::include_url('https://quarto.org/docs/faq/rmarkdown.html',height = '400px')
+```
+]
+.panel[.panel-name[Praxisbeispiel Airbnb]
+.blockquote[
+"At Airbnb, all R analyses are documented in rmarkdown, where code and
+visualizations are combined within a single written report. Posts are
+carefully reviewed by experts in the content area and techniques used,
+both in terms of methodologies and code style, before publishing and
+sharing with the business partners."
+.tr[
+`r Citet(bib,"bion_how_2017")`, S. 7.
+]
+]
+```{r}
+#| label: rbnb
+#| echo: false
+#| out-width: '50%'
+#| fig-align: 'center'
+knitr::include_graphics(xfun::from_root('img','PVA1','Rbnb.PNG'))
+```
+]
+]
+
+
+
+---
+class: left
+
+
+.blockquote[CRISP-DM & R-Tooling]
+
+
+## Phasen und Ablauf von Datenprojekten
+
+```{r, echo=FALSE}
+knitr::include_graphics(xfun::from_root('img','PVA1','DataScience_Workflow.PNG'))
+```
+
+.quelle[Eigene Darstellung.]
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Datenprojekte im `r fa('r-project')`-tidyverse
+
+.panelset[
+.panel[.panel-name[Workflow]
+```{r,echo=FALSE}
+knitr::include_graphics(xfun::from_root('img','PVA1','tidyverse_(storybench).png'))
+```
+.quellePanURL[Bildquelle: [storybench.org](https://www.storybench.org/getting-started-with-tidyverse-in-r/).]
+]
+.panel[.panel-name[tidyverse]
+*  [tidyverse](https://www.tidyverse.org/) als Sammlung von `r fa('r-project')`-Paketen mit einer "gemeinsamen und v.a. **intuitiven** Grundlogik" (Syntax) 
+
+* Vorstellung: `r fa('r-project')` als Sprache, *tidyverse* als Dialekt.
+
+* **Kernphilosophie:** Effizientiere, konsistentere und **intuitivere** Gestaltung von Datenanalysen durch...
+
+  * ...Organisation von Daten in **"tidy"**-Form
+
+  * ...klarere und kompaktere **Code-Struktur**
+  
+]
+]
+
+???
+
+* **tidyverse**-Bibliothek als "Metapaket": Mit `library(tidyverse)` werden automatisch die wichtigsten tidyverse-Pakete geladen:
+
+* Das **tibble**-Paket - stellt  via `tibble()`-Funktion eine Datenstruktur bereit
+* Das **readr**-Paket - stellt diverse Funktionen wie bspw. `read_csv()` zum Einlesen rechteckiger Daten aus durch Trennzeichen getrennten Dateien (.csv,.tsv, etc.) zur Verfügung.
+* Das **tidyr**- und das **dplyr**-Paket zur Datentransformation und -modifikation
+* Das **stringr**-, das **forcats**- und das **lubridate**-Paket für die Arbeit mit speziellen Objekttypen:
+  * **stringr** für die Arbeit mit Textobjekten
+  * **forcats** für die Arbeit mit Faktoren
+  * **lubridate** für die Arbeit mit Zeitdaten
+* das **purrr**-Pakete für funktionelles Programmieren
+* das **ggplot**-Paket für die Datenvisualierung
+
+Neben dem **purrr**-Paket spielt für die Praxis in Sachen Programmierung noch das **glue**-Paket eine Rolle, das (als Alternative zur paste()-Funktion) die Möglichkeit bietet Daten/Zahlen und strings zu verbinden.
+
+  
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Kernelemente des tidyverse
+
+.panelset[
+.panel[.panel-name[tidy Daten]
+```{r}
+#| label: img-tidy-format
+#| echo: false
+#| fig.align: center
+#| out.width: '70%'
+knitr::include_graphics('https://d33wubrfki0l68.cloudfront.net/6f1ddb544fc5c69a2478e444ab8112fb0eea23f8/91adc/images/tidy-1.png')
+```
+.quellePanURL[Bildquelle: [Wickham et al.](https://r4ds.had.co.nz/tidy-data.html)]
+`r NoCite(bib,"grolemund_tidy_2017")`
+]
+.panel[.panel-name[Verben]
+Anwendungsspezifische Funktionen (sog. "Verben"):
+.small[
+1. Zeilen: 
+  * `filter()` 
+  * `slice()` 
+  * `arrange()` 
+2. Spalten:
+  * `select()` 
+  * `rename()` 
+  * `mutate()` 
+3. Gruppen von Zeilen:
+  * `summarise()` 
+  * `group_by()`
+]
+
+Ausführlicher im Skript [Datenprojekte in R](https://ffhs-economicresearch.github.io/ER014/Rmd/PVA1/01_DatenprojekteR.html#1) oder in [Kapitel 3 von moderndive.com](https://moderndive.com/3-wrangling.html)
+`r NoCite(bib,"ismay_statistical_2020-1")`
+
+]
+.panel[.panel-name[Pipes]
+
+* Pipes erhöhen die Lesbarkeit des Codes:
+```{r, echo=FALSE}
+knitr::include_graphics(xfun::from_root('img','PVA1','pipe_(dodona).png'))
+```
+.quellePanURL[Bildquelle: [Dodona](https://dodona.be/en/activities/2127610019/)]
+
+`r fa('circle-right')` Output einer Funktion als Input für die nächste Funktion
+
+* **magrittr**-Pipe (`%>%`) vs. native Pipe **native Pipe** (`|>`, ab R 4.1.0)
+
+* Konvention für ER014: magrittr-Pipe (Shortcut Strg/Cmd + Shift + M)
+
+]
+]
+
+???
+
+* Die “tidy”-Form von Daten ist dadurch gekennzeichnet, dass
+  * jede Variable eine Spalte darstellt,
+  * jeder Fall eine Zeile und
+  * jeder Wert einer Beobachtung entspricht.
+  
+* ...Einsatz funktionaler Programmierung und anwendungsspezifischer Funktionen (sog. "Verben" wie `filter()`, `mutate()`, `select()` usw.) anstelle komplexer Schleifen.
+* Spezielle Funktionen zur Erzeugung und Transformation von "tidy"-Daten stellt die **tidyr**-Bibliothek bereit.
+  * Besonders häufig werden wir die Funktionen `pivot_wider()` und `pivot_longer()` einsetzen, um Daten zwischen dem wide-Format und dem long-Format (bspw. von Tabelle 2 zu 3 bzw. von Tabelle 3 zu 2) zu transformieren.
+  * Wenn messy-Daten in der Form vorliegen, dass mehrere Werte in einer Spalte gespeichert wurden (so wie in der Urliste von Hagen), erweist sich die `separate()`-Funktion als hilfreich.
+
+* ...Pipes (`%>%`), um den Output einer Funktion direkt als Input für die nächste Funktion zu verwenden.
+   
+**Kurz:** Klare und intuitive Syntax mit intuitiven Funktionsnamen ("Verben")
+
+* In Base-`r fa('r-project')` wurde mit Version 4.1.0 eine **native Pipe** (`|>`) implementiert
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Beispiel: Lesbarkeit durch Pipes
+.small[
+* **Aufgabe:** Berechne den Logarithmus des Vektors `x=(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907)`, setze dessen erste Differenzen in die Exponentialfunktion ein und runde das Ergebnis (eine Nachkommastelle).
+
+```{r}
+#| echo: false
+#| message: false
+# Initialisierung Vektor x
+x <- c(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907)
+#Laden der magrittr-Bibliothek
+library(magrittr) 
+```
+
+* Schwer lesbarer (verschachtelter) Code in Base-`r fa('r-project')`
+
+```{r}
+#| label: baseR nested
+round(exp(diff(log(x))), 1) 
+```
+* Intuitive Erfassung von workflows mittels magrittr-Pipe (wird mit tidyverse-Paket geladen)
+```{r}
+#| label: pipe
+#| message: false
+x %>% log() %>%
+      diff() %>%
+      exp() %>%
+      round(1)
+```
+]
+]
+
+
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Reproduzierbarkeit mit R-Projekten
+
+* Projektordner mit einheitlicher Struktur: Ordner für 
+    * Daten
+    * R-Skripte
+    * Rmd/qmd
+    * Abbildungen
+    * ...
+
+* Dokumentation mit README.md auf jeder Ordnerebene
+
+* Ein Projekt ist erst angelegt, wenn die .Rproj-Datei im Wurzelverzeichnis erzeugt wurde.
+
+* "Navigation" mittels `xfun::from_root()`
+
+* Vorlage im FFHS-Moodle-Kurs: `R-Projektvorlage.zip`
+
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Anlegen und dokumentieren von R-Projekten
+
+<iframe width="900" height="420" src="https://www.youtube.com/embed/UvqtxY9Lgvk?si=xoiTIvh5DDKcCgg8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Einführung in Quarto und Importieren von Daten
+
+<iframe width="900" height="420" src="https://www.youtube.com/embed/S6oCvjEoLFs?si=bbB590PCszdAOONF" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+
+
+---
+class: left
+
+.blockquote[Szenario & CRISP-DM]
+
+## Tooling: R-Projekte & Reproduzierbarkeit
+
+.panelset[
+.panel[.panel-name[Warum R-Projekte?]
+
+**Problem ohne R-Projekte:**
+
+```r
+# Absoluter Pfad — funktioniert NUR auf Ihrem Rechner!
+data <- read_csv("C:/Users/jschoder/Desktop/ER014/data/carseats.csv")
+```
+
+`r fa('times-circle')` Auf jedem anderen Rechner: **Fehler!**
+
+<br>
+
+**Lösung: R-Projekt + `xfun::from_root()`**
+
+```r
+# Relativer Pfad — funktioniert auf JEDEM Rechner mit dem Projekt
+library(ISLR2)
+data(Carseats)   # kein Import nötig — läuft immer!
+```
+
+`r fa('check-circle')` **Carseats** ist direkt im Paket — **Zero Import Risk!**
+]
+
+.panel[.panel-name[Check-in]
+
+### Start-Checkliste für heute
+
+.small[
+```r
+# Schritt 1: Projekt geöffnet? (oben rechts in RStudio)
+# → ER014.Rproj aktiv?
+
+# Schritt 2: Pakete installieren (einmalig)
+install.packages(c("tidyverse", "ISLR2", "moderndive", "skimr"))
+
+# Schritt 3: Laden & prüfen
+library(tidyverse)
+library(ISLR2)
+library(moderndive)
+library(skimr)
+
+data(Carseats)
+glimpse(Carseats)
+```
+]
+
+**Wenn `glimpse(Carseats)` 400 Zeilen und 11 Spalten zeigt: `r fa('check')` Ready!**
+]
+]
+
+???
+* R-Projekte erzeugen eine .Rproj-Datei im Wurzelverzeichnis
+* Alle relativen Pfade gehen von dort aus
+* Carseats aus ISLR2 ist ideal: kein Import, Business-Kontext, bekannt aus Statistik-Lehrbüchern
+
+
+---
+class: inverse, center, middle
+
+## Teil 3: Labs 1 & 2
+
+.blockquote[Explorative Datenanalyse · Baseline-Modell]
+
+
+---
+class: left
+
+.blockquote[Lab 1 — Explorative Datenanalyse]
+
+## Lab 1: Data Understanding `r fa('laptop-code')`
+
+.pull-left[
+### Arbeitsauftrag *(20 Min.)*
+
+**Schritt 1: Datensatz kennenlernen**
+```r
+library(ISLR2); data(Carseats)
+glimpse(Carseats)
+skim(Carseats)
+```
+
+**Schritt 2: Verteilung des Umsatzes**
+```r
+ggplot(Carseats, aes(x = Sales)) +
+  geom_histogram(bins = 30)
+```
+
+**Schritt 3: Preis vs. Umsatz**
+```r
+ggplot(Carseats,
+       aes(x = Price, y = Sales)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm")
+```
+]
+
+.pull-right[
+<br><br>
+
+<svg viewBox="0 0 200 200" width="80%" style="display:block;margin:auto">
+  <!-- Uhr-Icon -->
+  <circle cx="100" cy="100" r="90" fill="#f8f8f8" stroke="#D50006" stroke-width="4"/>
+  <circle cx="100" cy="100" r="6"  fill="#D50006"/>
+  <!-- Zeiger -->
+  <line x1="100" y1="100" x2="100" y2="25"
+        stroke="#502479" stroke-width="4" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="155" y2="100"
+        stroke="#D50006" stroke-width="3" stroke-linecap="round"/>
+  <text style="font-family:sans-serif;font-size:28px;font-weight:bold;
+               fill:#D50006;text-anchor:middle" x="100" y="155">20'</text>
+  <text style="font-family:sans-serif;font-size:13px;fill:#686868;
+               text-anchor:middle" x="100" y="175">Lab Time</text>
+</svg>
+
+.small[
+**Leitfragen:**
+* Wie viele Variablen, welche Typen?
+* Ist Sales normalverteilt?
+* Wie stark ist der Preis-Effekt?
+]
+]
+
+???
+* Skript: lab1_eda.R im Kurs-Ordner
+* Ziel: Studenten sollen die Rechtsschiefe erkennen
+* Und den schwachen Preis-Effekt bei einfachem Scatter
+
+
+---
+class: left
+
+.blockquote[Lab 1 — Debrief]
+
+## Debrief Lab 1: Die Taddy-Logik
+
+.panelset[
+.panel[.panel-name[Was haben wir gesehen?]
+
+```{r lab1-debrief, echo=FALSE, fig.width=9, fig.height=3.8, out.width='100%', message=FALSE, warning=FALSE}
+library(ISLR2); library(patchwork)
+data(Carseats)
+
+p1 <- ggplot(Carseats, aes(x = Sales)) +
+  geom_histogram(bins = 30, fill = "#D50006", color = "white", alpha = 0.85) +
+  geom_vline(xintercept = mean(Carseats$Sales), color = "#502479",
+             linewidth = 1.2, linetype = "dashed") +
+  labs(title = "Sales — Rohdaten",
+       subtitle = paste0("Ø = ", round(mean(Carseats$Sales),1),
+                         " | Median = ", round(median(Carseats$Sales),1)),
+       x = "Sales (Tsd.)", y = "Anzahl") +
+  theme_minimal(base_size = 10) +
+  theme(plot.title = element_text(color = "#D50006", face = "bold"))
+
+p2 <- ggplot(Carseats, aes(x = log(Sales))) +
+  geom_histogram(bins = 30, fill = "#502479", color = "white", alpha = 0.85) +
+  geom_vline(xintercept = mean(log(Carseats$Sales)), color = "#D50006",
+             linewidth = 1.2, linetype = "dashed") +
+  labs(title = "log(Sales) — transformiert",
+       subtitle = "Annähernd symmetrisch nach Log-Transformation",
+       x = "log(Sales)", y = "Anzahl") +
+  theme_minimal(base_size = 10) +
+  theme(plot.title = element_text(color = "#502479", face = "bold"))
+
+p3 <- ggplot(Carseats, aes(x = Price, y = Sales)) +
+  geom_point(alpha = 0.3, color = "#7d0a52", size = 1.5) +
+  geom_smooth(method = "lm", color = "#D50006", se = TRUE) +
+  labs(title = "Price vs. Sales",
+       subtitle = "Negativer Trend — aber extrem hohe Streuung",
+       x = "Preis (USD)", y = "Sales (Tsd.)") +
+  theme_minimal(base_size = 10) +
+  theme(plot.title = element_text(color = "#7d0a52", face = "bold"))
+
+p1 + p2 + p3
+```
+
+]
+
+.panel[.panel-name[Die Theorie dahinter]
+
+.pull-left[
+**Warum sehen Umsatzdaten so aus?**
+
+Umsatz folgt einem **multiplikativen Prozess**:
+
+$$\text{Sales}_i = \alpha \cdot \text{Price}_i^{\beta_1} \cdot \text{Adv}_i^{\beta_2} \cdot \varepsilon_i$$
+
+* Ein Euro mehr Werbung bei kleiner Filiale → großer relativer Effekt
+* Ein Euro mehr bei großer Filiale → kleiner relativer Effekt
+
+`r fa('circle-right')` OLS auf Rohdaten: **Heteroskedastizität**!
+]
+
+.pull-right[
+**Die Lösung: Logarithmieren**
+
+$$\ln(\text{Sales}_i) = \alpha' + \beta_1 \ln(\text{Price}_i) + \varepsilon_i'$$
+
+.blockquote[
+"Sales and revenue data exhibit multiplicative noise. Taking logs converts this to additive noise — making OLS appropriate."
+.tr[`r Citet(bib, "taddy_business_2019")`, S. 11]
+]
+
+`r fa('circle-right')` Koeffizienten werden zu **Elastizitäten**:
+$\beta_1 = -1.2$ → 1% Preiserhöhung → 1.2% Umsatzrückgang
+]
+]
+]
+
+
+---
+class: left
+
+.blockquote[Lab 2 — Baseline-Modell]
+
+## Lab 2: Das naive Baseline-Modell `r fa('laptop-code')`
+
+.pull-left[
+### Arbeitsauftrag *(15 Min.)*
+
+**Schritt 1: Einfachregression fitten**
+```r
+modell_einfach <- lm(Sales ~ Price,
+                     data = Carseats)
+```
+
+**Schritt 2: Ergebnisse auswerten**
+```r
+library(moderndive)
+get_regression_table(modell_einfach)
+get_regression_summaries(modell_einfach)
+```
+
+**Schritt 3: Residualplot**
+```r
+get_regression_points(modell_einfach) |>
+  ggplot(aes(x = Sales_hat,
+             y = residual)) +
+  geom_point(alpha = 0.4) +
+  geom_hline(yintercept = 0,
+             color = "red",
+             linetype = "dashed")
+```
+]
+
+.pull-right[
+<br><br>
+
+<svg viewBox="0 0 200 200" width="80%" style="display:block;margin:auto">
+  <circle cx="100" cy="100" r="90" fill="#f8f8f8" stroke="#D50006" stroke-width="4"/>
+  <circle cx="100" cy="100" r="6" fill="#D50006"/>
+  <line x1="100" y1="100" x2="100" y2="25"
+        stroke="#502479" stroke-width="4" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="140" y2="130"
+        stroke="#D50006" stroke-width="3" stroke-linecap="round"/>
+  <text style="font-family:sans-serif;font-size:28px;font-weight:bold;
+               fill:#D50006;text-anchor:middle" x="100" y="155">15'</text>
+  <text style="font-family:sans-serif;font-size:13px;fill:#686868;
+               text-anchor:middle" x="100" y="175">Lab Time</text>
+</svg>
+
+.small[
+**Leitfragen:**
+* Was sagt der Koeffizient für `Price`?
+* Wie hoch ist R²? Genug?
+* Sehen Sie Muster im Residualplot?
+]
+]
+
+???
+* Skript: lab2_regression.R
+* Ziel: R² wird niedrig sein (~0.15) — das ist der didaktische Punkt
+* Residuen zeigen systematische Muster → Omitted Variable Bias sichtbar machen
+
+
+---
+class: left
+
+.blockquote[Lab 2 — Debrief]
+
+## Debrief Lab 2: Underfitting & Omitted Variable Bias
+
+```{r lab2-debrief, echo=FALSE, fig.width=9, fig.height=3.8, out.width='100%', message=FALSE, warning=FALSE}
+mod_simple <- lm(Sales ~ Price, data = Carseats)
+r2_simple  <- round(summary(mod_simple)$r.squared, 3)
+
+pts <- broom::augment(mod_simple)
+
+p_scatter <- ggplot(Carseats, aes(x = Price, y = Sales)) +
+  geom_point(alpha = 0.3, color = "#7d0a52", size = 1.5) +
+  geom_smooth(method = "lm", color = "#D50006", se = TRUE, linewidth = 1.2) +
+  annotate("text", x = 70, y = 15,
+           label = paste0("R² = ", r2_simple,
+                          "\nPreis erklärt nur ",
+                          round(r2_simple*100), "% der Varianz!"),
+           color = "#D50006", size = 3, hjust = 0, fontface = "bold") +
+  labs(title = "Einfachregression: Sales ~ Price",
+       x = "Preis (USD)", y = "Sales (Tsd.)") +
+  theme_minimal(base_size = 10) +
+  theme(plot.title = element_text(color = "#D50006", face = "bold"))
+
+p_resid <- ggplot(pts, aes(x = .fitted, y = .resid,
+                           color = Carseats$ShelveLoc)) +
+  geom_point(alpha = 0.5, size = 1.5) +
+  geom_hline(yintercept = 0, color = "#686868",
+             linewidth = 1, linetype = "dashed") +
+  scale_color_manual(values = c("Bad"    = "#D50006",
+                                "Medium" = "#b3b2b2",
+                                "Good"   = "#502479")) +
+  labs(title = "Residualplot — gefärbt nach Regalplatz",
+       subtitle = "Systematisches Muster = fehlende Variable (ShelveLoc)!",
+       x = "Vorhergesagter Wert", y = "Residuum",
+       color = "ShelveLoc") +
+  theme_minimal(base_size = 10) +
+  theme(plot.title = element_text(color = "#502479", face = "bold"))
+
+p_scatter + p_resid
+```
+
+.small[
+`r fa('circle-right')` R² = `r round(summary(lm(Sales ~ Price, Carseats))$r.squared, 2)` — der Preis allein erklärt nur einen Bruchteil der Umsatzunterschiede. &nbsp; `r fa('circle-right')` Residuen sind nach **ShelveLoc** gefärbt — klares systematisches Muster → **Omitted Variable Bias** (Taddy, 2019)
+]
+
+
+---
+class: inverse, center, middle
+
+## Pause ☕
+
+### 10 Minuten
+
+
+---
+class: inverse, center, middle
+
+## Teil 4: Komplexität, Demo & Lab 3
+
+.blockquote[Confounder · Ceteris Paribus · Performance Mining]
+
+
+---
+class: left
+
+.blockquote[Input: Komplexität]
+
+## Komplexität & „Bad Data Mining"
+
+.pull-left[
+### Das Overfitting-Problem
+
+.blockquote[
+"**Discovery without overfit.**  
+The challenge of data science is to find real patterns — not to memorize the noise in your sample."
+.tr[`r Citet(bib, "taddy_business_2019")`, S. 8]
+]
+
+<br>
+
+**Was passiert beim blindem "Alle Variablen rein"?**
+
+Wir haben 11 Variablen in Carseats.  
+Durch Zufall werden einige signifikant aussehen — obwohl kein echter Zusammenhang besteht.
+
+`r fa('circle-right')` **False Discoveries** in High-Dimensional Settings
+]
+
+.pull-right[
+
+<svg viewBox="0 0 220 180" width="95%">
+  <text style="font-family:sans-serif;font-size:9px;fill:#686868;
+               text-anchor:middle" x="110" y="12">Overfitting: Modell "verbindet alle Punkte"</text>
+  <!-- Punkte -->
+  <circle cx="30"  cy="140" r="5" fill="#D50006"/>
+  <circle cx="55"  cy="80"  r="5" fill="#D50006"/>
+  <circle cx="80"  cy="120" r="5" fill="#D50006"/>
+  <circle cx="105" cy="50"  r="5" fill="#D50006"/>
+  <circle cx="130" cy="100" r="5" fill="#D50006"/>
+  <circle cx="155" cy="60"  r="5" fill="#D50006"/>
+  <circle cx="180" cy="130" r="5" fill="#D50006"/>
+  <!-- Overfit-Kurve (wackelig) -->
+  <path d="M30,140 C42,40 55,80 80,120 C95,150 105,50 130,100
+           C145,130 155,60 180,130"
+        stroke="#D50006" stroke-width="2" fill="none"/>
+  <!-- Gute Gerade -->
+  <line x1="25" y1="125" x2="185" y2="95"
+        stroke="#502479" stroke-width="2" stroke-dasharray="6,3"/>
+  <!-- Legende -->
+  <line x1="25" y1="165" x2="55" y2="165"
+        stroke="#D50006" stroke-width="2"/>
+  <text style="font-family:sans-serif;font-size:9px;fill:#D50006" x="60" y="169">Overfit (Rauschen lernen)</text>
+  <line x1="25" y1="178" x2="55" y2="178"
+        stroke="#502479" stroke-width="2" stroke-dasharray="4,2"/>
+  <text style="font-family:sans-serif;font-size:9px;fill:#502479" x="60" y="182">Gutes Modell (Signal)</text>
+</svg>
+
+]
+
+???
+* Taddys "High-Dimensional" Problem: p ≈ n führt zu False Discoveries
+* Lösung: Modell-Selektion, Cross-Validation, Regularisierung (Block 2+)
+* Heute: Manuelle, durchdachte Variablenselektion
+
+
+---
+class: left
+
+.blockquote[Input: Confounder]
+
+## Confounder & Ceteris-Paribus-Logik
+
+.panelset[
+.panel[.panel-name[Das Problem]
+
+.pull-left[
+**Sollen wir "Bad ShelveLoc"-Filialen aus dem Datensatz filtern?**
+
+Intuition: *"Die sind ja anders — die stören das Modell."*
+
+<br>
+
+`r fa('times-circle')` **Nein!** Das wäre **Information Loss**.
+
+.blockquote[
+"Throwing away data is almost always a mistake. Add the variable as a control instead."
+.tr[`r Citet(bib, "taddy_business_2019")`, S. 42]
+]
+]
+
+.pull-right[
+**Lösung: Kategoriale Kontrollvariable**
+
+ShelveLoc hat 3 Ausprägungen: `Bad`, `Medium`, `Good`
+
+R erstellt automatisch **Dummy-Variablen**:
+
+| ShelveLoc | ShelveLocGood | ShelveLocMedium |
+|-----------|:---:|:---:|
+| Bad       |  0  |  0  |
+| Medium    |  0  |  1  |
+| Good      |  1  |  0  |
+
+Referenzlevel = **Bad** (im Intercept enthalten)
+]
+
+]
+
+.panel[.panel-name[Ceteris Paribus]
+
+**Was misst der Koeffizient von `Price` im multiplen Modell?**
+
+$$\hat{\text{Sales}} = \beta_0 + \beta_1 \cdot \text{Price} + \beta_2 \cdot \text{Advertising} + \beta_3 \cdot \text{ShelveLocGood} + \ldots$$
+
+`r fa('circle-right')` $\beta_1$ misst den Effekt von `Price` **unter Konstanthaltung aller anderen Variablen** (*ceteris paribus*)
+
+<br>
+
+.blockquote[
+"Multiple regression does not tell us what happens if we change Price. It tells us what the data shows about Price AFTER removing the influence of all other variables."
+.tr[`r Citet(bib, "provost_data_2013")`, S. 147]
+]
+
+**Im Kontext:** Was bringt 1 USD mehr Werbung — bereinigt um Preis und Regalplatz?
+]
+]
+
+???
+* Dummy-Codierung: R macht das automatisch bei factor-Variablen
+* Referenzlevel: immer erster Faktorlevel (alphabetisch) → "Bad"
+* Ceteris Paribus = "alles andere gleich" — das ist die Kernidee der multiplen Regression
+
+
+---
+class: left
+
+.blockquote[Live-Demo]
+
+## Live-Demo: Multiples Modell in RStudio
+
+.pull-left[
+### Das Modell
+
+```r
+# Multiples Modell — Dozenten-Demo
+modell_multipel <- lm(
+  Sales ~ Price + Advertising + ShelveLoc,
+  data = Carseats
+)
+
+# Ergebnistabelle
+get_regression_table(modell_multipel)
+
+# Modellgüte
+get_regression_summaries(modell_multipel)
+```
+
+### Interpretations-Schema
+* `Price`: β × 1 = Veränderung Sales bei +1 USD Preis, *ceteris paribus*
+* `Advertising`: β × 1 = Effekt pro 1.000 USD Werbebudget, *ceteris paribus*
+* `ShelveLocGood`: Differenz zu Referenz "Bad", *ceteris paribus*
+]
+
+.pull-right[
+<br>
+
+**Warnhinweis: Multikollinearität**
+
+Was passiert, wenn wir **Income** und **Price** gleichzeitig aufnehmen?
+
+```r
+cor(Carseats$Income, Carseats$Price)
+```
+
+Wenn Korrelation hoch → Koeffizienten werden instabil, Standardfehler explodieren.
+
+.blockquote[
+**Faustregel:** Prüfen Sie Korrelationen vor der Modellierung. Variablen mit |r| > 0.8 nicht gemeinsam ins Modell.
+]
+
+<br>
+`r fa('circle-right')` Mehr zu VIF und Regularisierung in Block 2+
+]
+
+???
+* Screen-Sharing: Direkt in RStudio demonstrieren
+* R² sollte deutlich höher sein als Einfachmodell (~0.50+)
+* ShelveLocGood Koeffizient interpretieren: Was bedeutet "Good" vs. "Bad" in USD?
+
+
+---
+class: left
+
+.blockquote[Lab 3 — Performance Mining]
+
+## Lab 3: Performance Mining `r fa('laptop-code')`
+
+.pull-left[
+### Arbeitsauftrag Teil 1 *(15 Min.)*
+
+**Schritt 1: Residuen berechnen**
+```r
+filial_scored <- get_regression_points(
+  modell_multipel
+) |>
+  mutate(
+    performance_gap = residual
+  )
+```
+
+**Schritt 2: Top 3 Underperformer**
+```r
+filial_scored |>
+  arrange(performance_gap) |>
+  select(ID, Sales, Sales_hat,
+         performance_gap) |>
+  head(3)
+```
+
+**Schritt 3: Visualisierung**
+```r
+ggplot(filial_scored,
+       aes(x = Sales_hat,
+           y = performance_gap)) +
+  geom_point() +
+  geom_hline(yintercept = 0,
+             color = "red",
+             linetype = "dashed")
+```
+]
+
+.pull-right[
+<br>
+
+<svg viewBox="0 0 200 200" width="80%" style="display:block;margin:auto">
+  <circle cx="100" cy="100" r="90" fill="#f8f8f8" stroke="#D50006" stroke-width="4"/>
+  <circle cx="100" cy="100" r="6" fill="#D50006"/>
+  <line x1="100" y1="100" x2="100" y2="25"
+        stroke="#502479" stroke-width="4" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="155" y2="115"
+        stroke="#D50006" stroke-width="3" stroke-linecap="round"/>
+  <text style="font-family:sans-serif;font-size:28px;font-weight:bold;
+               fill:#D50006;text-anchor:middle" x="100" y="155">15'</text>
+  <text style="font-family:sans-serif;font-size:13px;fill:#686868;
+               text-anchor:middle" x="100" y="175">Lab Time</text>
+</svg>
+
+.small[
+**Leitfragen:**
+* Welche Filialen haben das stärkste negative Residuum?
+* Was haben diese Filialen gemeinsam?
+* Was fehlt im Modell zur Erklärung?
+]
+]
+
+???
+* Skript: lab3_evaluation.R
+* Ziel: Studenten sollen selbst die "Wanted List" erstellen
+* Dann Übergang zum Managerial Memo
+
+
+---
+class: left
+
+.blockquote[Lab 3 — Managerial Memo]
+
+## Das Managerial Memo: Die Translator-Rolle `r fa('file-alt')`
+
+.panelset[
+.panel[.panel-name[Gruppenauftrag]
+
+### Gruppenarbeit *(15 Min., 3–4 Personen)*
+
+Schreiben Sie ein kurzes **Memo an den Geschäftsführer**:
+
+<br>
+
+**Frage 1 — Evaluation:**
+> Unser Modell hat R² = X%. Würden Sie dem Management empfehlen, auf Basis dieses Modells Filialen zu schließen? Begründen Sie.
+
+**Frage 2 — Omitted Variable Bias:**
+> Welche Faktoren fehlen in unseren Daten, die erklären könnten, warum eine Filiale "underperformt"? *(Demografie, Wettbewerb, Lage, Management-Qualität, ...)*
+
+**Frage 3 — Data Strategy (Make or Buy):**
+> Sollen wir Geodaten und Demografie-Daten von einem Datenhändler einkaufen (Commodity) oder eine eigene Kundenbefragung aufbauen (Proprietary)? Argumentieren Sie mit Thomas et al. (2025).
+]
+
+.panel[.panel-name[Bewertungsrahmen]
+
+**Was macht ein gutes Memo aus?**
+
+.small[
+| Kriterium | Schwach | Stark |
+|-----------|---------|-------|
+| **Evaluation** | "R² ist 0.52" | "R² = 0.52 erklärt 52% der Varianz — für eine Schließungsentscheidung zu unsicher; Konfidenzintervalle zeigen breite Bänder" |
+| **OVB** | "Es fehlen Daten" | "Bevölkerungsdichte, Kaufkraftindex und Anzahl Konkurrenten im 5km-Radius sind klassische Confounder" |
+| **Make or Buy** | "Wir sollten kaufen" | "Opta-Daten: schnell verfügbar (Commodity), aber jeder Konkurrent kann sie auch kaufen. Eigene Loyalty-Card-Daten wären Proprietary Data mit langfristigem Vorteil" |
+]
+
+<br>
+`r fa('circle-right')` **Das ist die Translator-Rolle:** Statistische Befunde in Entscheidungslogik übersetzen.
+]
+]
+
+???
+* Das Memo ist die zentrale Kompetenzdemonstration
+* Provost & Fawcett: "The value of data science lies in the decisions it enables"
+* Thomas et al.: AI Value Creator braucht Proprietary Data
+
+
+---
+class: left
+
+.blockquote[Lab 3 — Debrief]
+
+## Debrief Lab 3: Make or Buy?
+
+.pull-left[
+### Die Entscheidungslogik
+
+**Dateneinkauf lohnt sich, wenn:**
+
+$$\underbrace{E[\Delta \text{Gewinn}]}_{\text{bessere Entscheidungen}} > \underbrace{C_{\text{Daten}}}_{\text{Kosten}}$$
+
+**Beispiel:**
+* Demografiedaten: 50.000 EUR/Jahr
+* Fehlentscheidung (falsche Filialschließung): 500.000 EUR
+* P(Fehlentscheidung ohne Daten) = 30%
+* P(Fehlentscheidung mit Daten) = 10%
+
+$E[\Delta] = (0.30 - 0.10) \times 500.000 = 100.000 > 50.000$ ✅
+
+.small[`r Citet(bib, "provost_data_2013")`, Kap. 11: "Expected Value Framework"]
+]
+
+.pull-right[
+
+<svg viewBox="0 0 240 180" width="95%">
+  <defs><style>
+    .wscale { stroke: #686868; stroke-width: 2.5; fill: none; }
+  </style></defs>
+  <!-- Waage -->
+  <line class="wscale" x1="120" y1="30" x2="120" y2="80"/>
+  <line class="wscale" x1="100" y1="20" x2="140" y2="20"/>
+  <line class="wscale" x1="120" y1="20" x2="120" y2="30"/>
+  <!-- Linke Schale (Dateneinkauf) - leichter -->
+  <line class="wscale" x1="120" y1="60" x2="50" y2="75"/>
+  <line class="wscale" x1="50"  y1="75" x2="50" y2="105"/>
+  <ellipse cx="50" cy="112" rx="42" ry="12" fill="#502479"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;
+               fill:white;text-anchor:middle" x="50" y="116">Kosten Daten</text>
+  <text style="font-family:sans-serif;font-size:8px;fill:#502479;
+               text-anchor:middle" x="50" y="132">50.000 EUR</text>
+  <!-- Rechte Schale (Fehlentscheidung) - schwerer -->
+  <line class="wscale" x1="120" y1="60" x2="190" y2="50"/>
+  <line class="wscale" x1="190" y1="50" x2="190" y2="80"/>
+  <ellipse cx="190" cy="87" rx="45" ry="12" fill="#D50006"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;
+               fill:white;text-anchor:middle" x="190" y="91">Kosten Fehlkauf</text>
+  <text style="font-family:sans-serif;font-size:8px;fill:#D50006;
+               text-anchor:middle" x="190" y="107">100.000 EUR E[Δ]</text>
+  <!-- Fazit -->
+  <text style="font-family:sans-serif;font-size:11px;font-weight:bold;
+               fill:#D50006;text-anchor:middle" x="120" y="155">→ Datenkauf lohnt sich!</text>
+</svg>
+
+]
+
+???
+* Expected Value Framework ist ein zentrales Konzept aus Provost & Fawcett
+* Wichtig: Das ist eine Vereinfachung — in der Praxis auch Implementierungskosten etc.
+* Thomas et al.: Wenn Daten für alle verfügbar → kein Wettbewerbsvorteil (Commodity)
+
+
+---
+class: inverse, center, middle
+
+## Teil 5: Wrap-up & Ausblick
+
+
+---
+class: left
+
+.blockquote[Synthese]
+
+## Synthese Block 1
+
+.pull-left[
+### Was haben wir gelernt?
+
+`r fa('check-circle')` **Data Science ≠ Code schreiben**  
+Es ist **Problem Translation** — vom Business Speak zum Data Speak
+
+`r fa('check-circle')` **Regression = bedingter Mittelwert**  
+$\hat{y} = E[y \mid \mathbf{x}]$ als Markt-Benchmark. Residuen zeigen Abweichungen.
+
+`r fa('check-circle')` **Omitted Variable Bias**  
+Fehlende Variablen verzerren alle Koeffizienten — nicht nur den der fehlenden Variable
+
+`r fa('check-circle')` **Data Droughts**  
+Algorithmen sind nutzlos ohne die **richtigen** Daten  
+(Thomas et al., 2025: "Data Drought")
+
+`r fa('check-circle')` **AI User vs. AI Value Creator**  
+Commodity Data → operative Effizienz.  
+Proprietary Data → nachhaltiger Wettbewerbsvorteil.
+]
+
+.pull-right[
+<br>
+
+### Der CRISP-DM Zyklus heute
+
+.small[
+| Phase | Ergebnis |
+|-------|----------|
+| Business Understanding | Underperformer = negatives Residuum |
+| Data Understanding | Sales rechtsschief, ShelveLoc Confounder |
+| Data Preparation | log(Sales), Dummy-Kodierung |
+| Modeling | Einfach- → Multiple Regression |
+| Evaluation | R² = ~0.50, OVB identifiziert |
+| Deployment | Managerial Memo mit Make-or-Buy |
+]
+
+<br>
+.blockquote[
+"Regression does not give us truth. It gives us conditional averages — benchmarks against which to judge individual cases."
+.tr[`r Citet(bib, "taddy_business_2019")`, S. 32]
+]
+]
+
+
+---
+class: left
+
+.blockquote[Ausblick]
+
+## Ausblick: Block 2 — Signal vs. Noise
+
+.pull-left[
+### Die offene Frage
+
+Wir haben heute Muster gefunden:
+
+> *"Advertising hat einen positiven Effekt auf Sales"*  
+> *"Good ShelveLoc erhöht den Umsatz um X Einheiten"*
+
+<br>
+
+**Aber:**
+
+> *Woher wissen wir, dass diese Muster nicht purer **Zufall** unserer Stichprobe von 400 Filialen sind?*
+
+Wenn wir morgen einen anderen Datensatz ziehen — hätten wir dieselben Koeffizienten?
+]
+
+.pull-right[
+<br>
+
+### Nächste Woche: Inferenz & Unsicherheit
+
+`r fa('dice')` **Bootstrapping** — Unsicherheit ohne Normalverteilungsannahmen schätzen
+
+`r fa('chart-bar')` **Konfidenzintervalle** — Was ist der "wahre" Effekt?
+
+`r fa('exclamation-triangle')` **p-Hacking & "Only one test"** — Warum Taddy warnt vor blinder Signifikanzjagd
+
+`r fa('brain')` **Entscheidungslogik unter Unsicherheit** — Wann ist ein Befund gut genug für eine Millionen-Entscheidung?
+
+<br>
+.blockquote[Signal vs. Noise — der Titel des nächsten Blocks]
+]
+
+???
+* Überleitung zu Block 2: Inferenz ist der Kern der "Kritischen Prüfung"
+* Taddy: "Only one test" — das A/B-Test-Prinzip
+* Praktischer Bezug: Soll ich wirklich das Werbebudget erhöhen?
+
+
+---
+name: EndHanks
+class: center
+
+background-size: 75%
+background-image: url(https://media.giphy.com/media/KJ1f5iTl4Oo7u/giphy.gif)
+
+
+
+
+
+
+
+---
+class: left
+
+## Quellenverzeichnis
+
+.ref-slide[
+```{r, results='asis', echo=FALSE, warning=FALSE}
+PrintBibliography(bib)
+```
+]

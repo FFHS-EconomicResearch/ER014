@@ -1,0 +1,353 @@
+/*-- scss:defaults --*/
+
+// FFHS Corporate Theme — Quarto Reveal.js
+// Farben: Rot #D50006 | Violett #502479 | Verlauf 0deg
+
+$ffhs-red:    #D50006;
+$ffhs-violet: #502479;
+$ffhs-purple: #7d0a52;
+$ffhs-lgray:  #b3b2b2;
+$ffhs-gray:   #686868;
+
+/*-- scss:rules --*/
+
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');
+
+/* ---- CSS Custom Properties ---- */
+:root {
+  --ffhs-red:       #D50006;
+  --ffhs-violet:    #502479;
+  --ffhs-purple:    #7d0a52;
+  --ffhs-lgray:     #b3b2b2;
+  --ffhs-gray:      #686868;
+  --ffhs-white:     #FFFFFF;
+  --ffhs-black:     #000000;
+  --ffhs-grad:      linear-gradient(90deg, #D50006 0%, #502479 100%);
+  --footer-h:       44px;
+  --slide-pad-h:    2.2em;
+  --slide-pad-v:    1.4em;
+}
+
+/* =====================================================
+   BASE
+===================================================== */
+.reveal {
+  font-family: 'Source Sans Pro', Arial, sans-serif;
+  font-size: 26px;
+  color: #1a1a1a;
+  background-color: #ffffff;
+}
+
+.reveal .slides {
+  text-align: left;
+}
+
+/* =====================================================
+   TYPOGRAPHY
+===================================================== */
+.reveal h1 {
+  font-size: 1.85em;
+  font-weight: 700;
+  color: var(--ffhs-red);
+  line-height: 1.2;
+  margin-bottom: 0.25em;
+}
+
+.reveal h2 {
+  font-size: 1.45em;
+  font-weight: 700;
+  color: var(--ffhs-red);
+  line-height: 1.25;
+  margin-bottom: 0.35em;
+}
+
+.reveal h3 {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.25em;
+}
+
+.reveal p,
+.reveal li {
+  font-size: 0.9em;
+  line-height: 1.55;
+}
+
+.reveal li {
+  margin-bottom: 0.2em;
+}
+
+.reveal strong {
+  color: var(--ffhs-red);
+}
+
+.reveal a {
+  color: var(--ffhs-violet);
+  text-decoration: underline;
+}
+
+.reveal a:hover {
+  color: var(--ffhs-purple);
+}
+
+.reveal code {
+  color: var(--ffhs-violet);
+  background: #f2eef8;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-size: 0.86em;
+}
+
+.reveal pre {
+  font-size: 0.72em;
+  border-radius: 5px;
+  border-left: 4px solid var(--ffhs-red);
+  background: #fafafa;
+}
+
+.reveal pre code {
+  color: inherit;
+  background: none;
+  padding: 0;
+}
+
+/* =====================================================
+   TITLE SLIDE
+   Weißer oberer Bereich (65%), Rot→Violett unten (35%)
+   Titel linksbündig in Rot
+===================================================== */
+.reveal .title-slide-ffhs,
+.reveal section.title-slide-ffhs {
+  background:
+    linear-gradient(90deg, #D50006 0%, #502479 100%) left bottom / 100% 35% no-repeat,
+    #ffffff !important;
+  padding: 0 !important;
+}
+
+.title-content {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  right: 5%;
+}
+
+.title-h1 {
+  color: var(--ffhs-red) !important;
+  font-size: 1.7em !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.1em !important;
+  border: none !important;
+}
+
+.title-h2 {
+  color: #333 !important;
+  font-size: 1.05em !important;
+  font-weight: 600 !important;
+  border: none !important;
+  margin-bottom: 0.05em !important;
+}
+
+.title-h3 {
+  color: #444 !important;
+  font-size: 0.9em !important;
+  font-weight: 400 !important;
+  margin-bottom: 0.05em !important;
+}
+
+.title-meta {
+  color: #333 !important;
+  font-size: 0.8em !important;
+  font-weight: 400 !important;
+  margin: 0.1em 0 !important;
+}
+
+.title-contacts {
+  font-size: 0.72em;
+  color: var(--ffhs-gray);
+  display: block;
+  margin-top: 0.4em;
+}
+
+/* =====================================================
+   INVERSE / SECTION SLIDES
+===================================================== */
+.reveal .inverse,
+.reveal section.inverse {
+  background: linear-gradient(90deg, #D50006 0%, #502479 100%) !important;
+  color: #ffffff;
+}
+
+.reveal .inverse h1,
+.reveal .inverse h2,
+.reveal .inverse h3,
+.reveal .inverse p,
+.reveal .inverse li,
+.reveal section.inverse h1,
+.reveal section.inverse h2,
+.reveal section.inverse h3 {
+  color: #ffffff !important;
+}
+
+.inverse-bullets {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.85em;
+  margin-top: 0.5em;
+}
+
+/* =====================================================
+   SECTION BADGE  (ersetzt .blockquote[Label] aus xaringan)
+===================================================== */
+.badge {
+  display: inline-block;
+  border-left: 3px solid var(--ffhs-red);
+  padding-left: 0.5em;
+  color: var(--ffhs-red);
+  font-size: 0.62em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.3em;
+  line-height: 1.4;
+}
+
+/* =====================================================
+   BLOCKQUOTE  (Zitate / Textzitate)
+===================================================== */
+.reveal blockquote,
+.reveal .blockquote {
+  border-left: 4px solid var(--ffhs-red);
+  padding: 0.5em 0.9em;
+  margin: 0.5em 0;
+  font-style: italic;
+  color: #333;
+  background: #fdf8f8;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+.reveal .blockquote .tr {
+  text-align: right;
+  font-style: normal;
+  font-size: 0.85em;
+  color: var(--ffhs-gray);
+  margin-top: 0.4em;
+}
+
+/* =====================================================
+   PANEL TABSET  (ersetzt panelset aus xaringanExtra)
+===================================================== */
+.reveal .panel-tabset {
+  margin-top: 0.2em;
+}
+
+.reveal .panel-tabset [role="tablist"] {
+  border-bottom: 2px solid #e0e0e0;
+  display: flex;
+  gap: 0;
+  margin-bottom: 0.6em;
+  flex-wrap: wrap;
+}
+
+.reveal .panel-tabset [role="tab"] {
+  font-size: 0.76em;
+  font-weight: 600;
+  font-family: 'Source Sans Pro', sans-serif;
+  padding: 0.35em 0.9em;
+  color: var(--ffhs-gray);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.reveal .panel-tabset [role="tab"][aria-selected="true"] {
+  color: var(--ffhs-red);
+  border-bottom: 3px solid var(--ffhs-red);
+}
+
+.reveal .panel-tabset [role="tab"]:hover {
+  color: var(--ffhs-red);
+}
+
+/* =====================================================
+   COLUMNS  (ersetzt .pull-left / .pull-right)
+===================================================== */
+.reveal .columns {
+  display: flex !important;
+  gap: 1.8em;
+  align-items: flex-start;
+}
+
+/* =====================================================
+   UTILITIES
+===================================================== */
+.small    { font-size: 0.78em !important; line-height: 1.5; }
+.smaller  { font-size: 0.66em !important; }
+.large    { font-size: 1.18em !important; }
+
+.red      { color: var(--ffhs-red); }
+.violet   { color: var(--ffhs-violet); }
+.gray     { color: var(--ffhs-gray); }
+.bold     { font-weight: 700; }
+
+.tr {
+  text-align: right;
+  font-size: 0.82em;
+  color: var(--ffhs-gray);
+}
+
+/* Quellenangabe unterhalb Abbildungen */
+.quelle {
+  font-size: 0.5em;
+  color: var(--ffhs-gray);
+  margin-top: 0.3em;
+}
+
+.quellePanURL {
+  font-size: 0.5em;
+  color: var(--ffhs-gray);
+  text-align: right;
+  margin-top: 0.2em;
+}
+
+/* Quellenverzeichnis-Folie */
+.ref-slide {
+  font-size: 0.58em;
+  line-height: 1.55;
+  overflow-y: auto;
+  max-height: 78vh;
+  padding-right: 0.5em;
+}
+
+/* =====================================================
+   PROGRESS BAR
+===================================================== */
+.reveal .progress {
+  background: rgba(213, 0, 6, 0.18);
+  color: var(--ffhs-red);
+  height: 3px;
+}
+
+/* =====================================================
+   SLIDE PADDING — Platz für Footer freilassen
+===================================================== */
+.reveal .slides section {
+  padding-bottom: calc(var(--footer-h) + 12px);
+  box-sizing: border-box;
+}
+
+/* =====================================================
+   HIDE DEFAULT SLIDE NUMBER (eigene im Footer)
+===================================================== */
+.reveal .slide-number {
+  display: none !important;
+}
+
+.reveal .footer {
+  display: none !important;
+}
