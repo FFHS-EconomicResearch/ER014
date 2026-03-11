@@ -881,11 +881,11 @@ class: left
 ]
 
 **Das eigentliche Problem: p ≈ n**
-
+.small[
 * Klassische Regression: funktioniert bei p << n
 * p ≈ n: Modell **overfittet** — findet Muster im Rauschen
 * p > n: Keine eindeutige Lösung mehr möglich
-
+]
 ]
 
 .center[`r fa('circle-right')` Deshalb brauchen wir **Regularisierung**, **Selektion** und **Validierung** — nicht nur mehr Rechnerleistung! (`r fa('circle-right')` PVA3)]
@@ -1025,7 +1025,7 @@ class: left
 ## Der CRISP-DM Zyklus
 
 .pull-left[
-<svg viewBox="0 0 260 260" width="95%">
+<svg viewBox="0 0 260 260" width="100%">
   <defs>
     <marker id="arrowC" markerWidth="8" markerHeight="8"
             refX="6" refY="3" orient="auto">
@@ -1103,6 +1103,7 @@ class: left
 ### Business Speak
 > *"Finde Underperformer-Filialen!"*
 
+.small[
 Ist das ein **Klassifikationsproblem**?
 * Underperformer: Ja/Nein?
 
@@ -1112,12 +1113,14 @@ Ist das ein **Klassifikationsproblem**?
 * Wer zieht die Grenze? Willkürlich!
 * Wir verlieren die Information über den **Grad** des Underperformings
 ]
+]
 
 .pull-right[
 ### Data Speak
 `r fa('check-circle')` **Scoring / Ranking** via Regression
 
-Wir schätzen den **bedingten Erwartungswert**:
+.small[
+Wir schätzen den **bedingten Mittelwert**:
 
 $$E[\text{Sales} \mid \mathbf{x}] = \hat{y}$$
 
@@ -1126,6 +1129,7 @@ Ein **Underperformer** ist eine Filiale mit stark **negativem Residuum**:
 $$e_i = y_i - \hat{y}_i \ll 0$$
 
 → *"Die Filiale verkauft viel weniger, als sie laut Markt-Benchmark sollte."*
+]
 ]
 
 ]
@@ -1678,31 +1682,28 @@ class: left
 .panelset[
 .panel[.panel-name[Warum R-Projekte?]
 
-**Problem ohne R-Projekte:**
+* **Problem ohne R-Projekte:**
 
 ```r
 # Absoluter Pfad — funktioniert NUR auf Ihrem Rechner!
-data <- read_csv("C:/Users/jschoder/Desktop/ER014/data/carseats.csv")
+tbl_buli <- read_rds("C:/Users/jschoder/ER014/data/raw/buli_raw_2023-09-06.rds")
 ```
 
 `r fa('times-circle')` Auf jedem anderen Rechner: **Fehler!**
 
-<br>
-
-**Lösung: R-Projekt + `xfun::from_root()`**
+* **Lösung: R-Projekt + `xfun::from_root()`**
 
 ```r
 # Relativer Pfad — funktioniert auf JEDEM Rechner mit dem Projekt
-library(ISLR2)
-data(Carseats)   # kein Import nötig — läuft immer!
+library(tidyverse)
+my_in_file <- "buli_raw_2023-09-06.rds"
+tbl_buli <- read_rds(xfun::from_root("data","raw",my_in_file))
 ```
-
-`r fa('check-circle')` **Carseats** ist direkt im Paket — **Zero Import Risk!**
 ]
 
-.panel[.panel-name[Check-in]
+.panel[.panel-name[Check-in Carseats]
 
-### Start-Checkliste für heute
+`r fa('check-circle')` **Carseats** ist direkt im **ISLR**-Paket enthalten `r fa('r-project')` Unkomplizierter "Import"!
 
 .small[
 ```r
@@ -1710,16 +1711,15 @@ data(Carseats)   # kein Import nötig — läuft immer!
 # → ER014.Rproj aktiv?
 
 # Schritt 2: Pakete installieren (einmalig)
-install.packages(c("tidyverse", "ISLR2", "moderndive", "skimr"))
+install.packages(c("tidyverse", "ISLR", "moderndive", "skimr"))
 
 # Schritt 3: Laden & prüfen
 library(tidyverse)
-library(ISLR2)
-library(moderndive)
-library(skimr)
+library(ISLR) # für Daten
+library(skimr) # für glimpse-Funktion
 
-data(Carseats)
-glimpse(Carseats)
+tbl_carseats <- tibble(Carseats)
+glimpse(tbl_carseats)
 ```
 ]
 
@@ -1753,28 +1753,27 @@ class: left
 
 **Schritt 1: Datensatz kennenlernen**
 ```r
-library(ISLR2); data(Carseats)
-glimpse(Carseats)
-skim(Carseats)
+glimpse(tbl_carseats)
+skim(tbl_carseats)
 ```
 
 **Schritt 2: Verteilung des Umsatzes**
 ```r
-ggplot(Carseats, aes(x = Sales)) +
-  geom_histogram(bins = 30)
+tbl_carseats %>% 
+  ggplot(, aes(x = Sales)) +
+    geom_histogram(bins = 30)
 ```
 
 **Schritt 3: Preis vs. Umsatz**
 ```r
-ggplot(Carseats,
-       aes(x = Price, y = Sales)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(method = "lm")
+tbl_carseats %>% 
+  ggplot(aes(x = Price, y = Sales)) +
+    geom_point(alpha = 0.5) +
+    geom_smooth(method = "lm")
 ```
 ]
 
 .pull-right[
-<br><br>
 
 <svg viewBox="0 0 200 200" width="80%" style="display:block;margin:auto">
   <!-- Uhr-Icon -->
@@ -1800,6 +1799,7 @@ ggplot(Carseats,
 ]
 
 ???
+
 * Skript: lab1_eda.R im Kurs-Ordner
 * Ziel: Studenten sollen die Rechtsschiefe erkennen
 * Und den schwachen Preis-Effekt bei einfachem Scatter
@@ -1815,39 +1815,50 @@ class: left
 .panelset[
 .panel[.panel-name[Was haben wir gesehen?]
 
-```{r lab1-debrief, echo=FALSE, fig.width=9, fig.height=3.8, out.width='100%', message=FALSE, warning=FALSE}
-library(ISLR2); library(patchwork)
-data(Carseats)
+```{r}
+#| label: lab1-debrief
+#| echo: false
+#| fig-width: 9
+#| fig-height: 3.8
+#| out-width: '100%'
+#| message: false
+#| warning: false
+library(ISLR)
+library(patchwork)
+tbl_carseats <- tibble(Carseats)
 
-p1 <- ggplot(Carseats, aes(x = Sales)) +
-  geom_histogram(bins = 30, fill = "#D50006", color = "white", alpha = 0.85) +
-  geom_vline(xintercept = mean(Carseats$Sales), color = "#502479",
-             linewidth = 1.2, linetype = "dashed") +
-  labs(title = "Sales — Rohdaten",
-       subtitle = paste0("Ø = ", round(mean(Carseats$Sales),1),
-                         " | Median = ", round(median(Carseats$Sales),1)),
-       x = "Sales (Tsd.)", y = "Anzahl") +
-  theme_minimal(base_size = 10) +
-  theme(plot.title = element_text(color = "#D50006", face = "bold"))
+p1 <- tbl_carseats %>% 
+  ggplot(aes(x = Sales)) +
+    geom_histogram(bins = 30, fill = "#D50006", color = "white", alpha = 0.85) +
+    geom_vline(xintercept = mean(tbl_carseats$Sales), color = "#502479",
+               linewidth = 1.2, linetype = "dashed") +
+    labs(title = "Sales — Rohdaten",
+         subtitle = paste0("Ø = ", round(mean(tbl_carseats$Sales),1),
+                           " | Median = ", round(median(tbl_carseats$Sales),1)),
+         x = "Sales (Tsd.)", y = "Anzahl") +
+    theme_minimal(base_size = 10) +
+    theme(plot.title = element_text(color = "#D50006", face = "bold"))
 
-p2 <- ggplot(Carseats, aes(x = log(Sales))) +
-  geom_histogram(bins = 30, fill = "#502479", color = "white", alpha = 0.85) +
-  geom_vline(xintercept = mean(log(Carseats$Sales)), color = "#D50006",
-             linewidth = 1.2, linetype = "dashed") +
-  labs(title = "log(Sales) — transformiert",
-       subtitle = "Annähernd symmetrisch nach Log-Transformation",
-       x = "log(Sales)", y = "Anzahl") +
-  theme_minimal(base_size = 10) +
-  theme(plot.title = element_text(color = "#502479", face = "bold"))
+p2 <- tbl_carseats %>% 
+  ggplot(aes(x = log(Sales))) +
+    geom_histogram(bins = 30, fill = "#502479", color = "white", alpha = 0.85) +
+    geom_vline(xintercept = mean(log(tbl_carseats$Sales)), color = "#D50006",
+               linewidth = 1.2, linetype = "dashed") +
+    labs(title = "log(Sales) — transformiert",
+         subtitle = "Annähernd symmetrisch nach Log-Transformation",
+         x = "log(Sales)", y = "Anzahl") +
+    theme_minimal(base_size = 10) +
+    theme(plot.title = element_text(color = "#502479", face = "bold"))
 
-p3 <- ggplot(Carseats, aes(x = Price, y = Sales)) +
-  geom_point(alpha = 0.3, color = "#7d0a52", size = 1.5) +
-  geom_smooth(method = "lm", color = "#D50006", se = TRUE) +
-  labs(title = "Price vs. Sales",
-       subtitle = "Negativer Trend — aber extrem hohe Streuung",
-       x = "Preis (USD)", y = "Sales (Tsd.)") +
-  theme_minimal(base_size = 10) +
-  theme(plot.title = element_text(color = "#7d0a52", face = "bold"))
+p3 <- tbl_carseats %>% 
+  ggplot(aes(x = Price, y = Sales)) +
+    geom_point(alpha = 0.3, color = "#7d0a52", size = 1.5) +
+    geom_smooth(method = "lm", color = "#D50006", se = FALSE) +
+    labs(title = "Price vs. Sales",
+         subtitle = "Negativer Trend — aber extrem hohe Streuung",
+         x = "Preis (USD)", y = "Sales (Tsd.)") +
+    theme_minimal(base_size = 10) +
+    theme(plot.title = element_text(color = "#7d0a52", face = "bold"))
 
 p1 + p2 + p3
 ```
@@ -1966,7 +1977,7 @@ pts <- broom::augment(mod_simple)
 
 p_scatter <- ggplot(Carseats, aes(x = Price, y = Sales)) +
   geom_point(alpha = 0.3, color = "#7d0a52", size = 1.5) +
-  geom_smooth(method = "lm", color = "#D50006", se = TRUE, linewidth = 1.2) +
+  geom_smooth(method = "lm", color = "#D50006", se = FALSE, linewidth = 1.2) +
   annotate("text", x = 70, y = 15,
            label = paste0("R² = ", r2_simple,
                           "\nPreis erklärt nur ",
