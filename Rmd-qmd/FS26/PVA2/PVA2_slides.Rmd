@@ -1574,7 +1574,8 @@ class: left
 
 ## Debrief: Inferenz als Filter — Galaks Darts-Analogie
 
-.pull-left[
+.panelset[
+.panel[.panel-name[Darts-Analogie]
 ### Die Darts-Analogie (Galak)
 
 `r fa('bullseye')` **Ein Wurf** = eine Stichprobe — trifft er die Mitte per Zufall?
@@ -1585,7 +1586,8 @@ class: left
 
 `r fa('circle-right')` Konfidenzintervall = Bereich, der bei 95% aller Dartspiele die wahre Mitte enthält
 
-<br>
+]
+.panel[.panel-name[Transfer Lab 1]
 
 ### Übertragung auf Lab 1
 
@@ -1596,7 +1598,7 @@ class: left
 `r fa('circle-right')` Permutationstest: Null-Welt simulieren — wie extrem ist unser beobachteter Koeffizient?
 ]
 
-.pull-right[
+.panel[.panel-name[Critical Validator]
 ### Critical Validator — Bausteine A+B
 
 **Baustein A: Inferenz als Filter**
@@ -1613,6 +1615,9 @@ class: left
 
 `r fa('circle-right')` **Welcher Fehler ist teurer?** → Das hängt von den Kosten ab — nicht vom p-Wert!
 ]
+
+]
+
 
 ???
 * Critical Validator Posting diskutieren: Was haben die Teams zu Bausteinen A+B gefunden?
