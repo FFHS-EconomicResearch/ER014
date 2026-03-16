@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>PVA2 · Lab 2: p-Hacking &amp; False Discovery Rate</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Dr. Jörg Schoder" />
+    <meta name="date" content="2026-03-16" />
+    <script src="PVA2_Lab2_pHacking_FDR_files/header-attrs/header-attrs.js"></script>
+    <link rel="stylesheet" href="../../../css/ffhs-theme_js.css" type="text/css" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# PVA2 · Lab 2: p-Hacking &amp; False Discovery Rate
+]
+.subtitle[
+## Das Multiplizitätsproblem verstehen und kontrollieren
+]
+.author[
+### Prof. Dr. Jörg Schoder
+]
+.date[
+### 2026-03-16
+]
+
+---
+
+
+
+
+---
+class: left
+
+## Lab 2 · Überblick
+
+.pull-left[
+### Lernziel
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> p-Hacking durch Simulation **direkt erfahren**
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Verstehen warum α = 0.05 bei vielen Tests versagt
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Benjamini-Hochberg-Prozedur anwenden
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> FDR auf das Bundesliga-Modell anwenden
+
+### Das Szenario
+
+Sie erhalten Zugang zu hunderten von Variablen über Bundesliga-Spieler. Welche davon "erklären" den Marktwert — und welche sind zufällige Treffer?
+]
+
+.pull-right[
+### Die zentrale Frage
+
+&gt; "Wenn ich 100 zufällige Variablen auf Zusammenhang mit dem Marktwert teste — wie viele sind bei α = 0.05 signifikant?"
+
+&lt;br&gt;
+
+**Erwartete Antwort:** `\(100 \times 0.05 = 5\)` falsche Treffer
+
+**Das ist kein Fehler — das ist Mathematik.**
+
+&lt;br&gt;
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg> **Dauer: ca. 25 Minuten**
+
+<svg aria-hidden="true" role="img" viewBox="0 0 640 512" style="height:1em;width:1.25em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160A80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192h42.7c15.9 0 31 3.5 44.6 9.7c-1.3 7.2-1.9 14.7-1.9 22.3c0 38.2 16.8 72.5 43.3 96c-.2 0-.4 0-.7 0H21.3C9.6 320 0 310.4 0 298.7zM405.3 320c-.2 0-.4 0-.7 0c26.6-23.5 43.3-57.8 43.3-96c0-7.6-.7-15-1.9-22.3c13.6-6.3 28.7-9.7 44.6-9.7h42.7C592.2 192 640 239.8 640 298.7c0 11.8-9.6 21.3-21.3 21.3H405.3zM224 224a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zM128 485.3C128 411.7 187.7 352 261.3 352H378.7C452.3 352 512 411.7 512 485.3c0 14.7-11.9 26.7-26.7 26.7H154.7c-14.7 0-26.7-11.9-26.7-26.7z"/></svg> **Einzelarbeit oder Zweierteams**
+]
+
+---
+class: left
+
+## Teil 1: p-Hacking simulieren
+
+
+``` r
+set.seed(42)
+n_tests &lt;- 100
+n_obs   &lt;- nrow(tbl_buli)
+
+# 100 zufällige (bedeutungslose) Variablen testen
+p_values_random &lt;- map_dbl(1:n_tests, function(i) {
+  # Zufällige Variable ohne echten Zusammenhang
+  tbl_sim &lt;- tbl_buli %&gt;%
+               mutate(rand_var = rnorm(n_obs))
+  # Regression und p-Wert extrahieren
+  lm(log_value ~ rand_var, data = tbl_sim) %&gt;%
+    get_regression_table() %&gt;%
+    filter(term == "rand_var") %&gt;%
+    pull(p_value)
+})
+
+# Wie viele sind signifikant?
+sum(p_values_random &lt; 0.05)
+```
+
+```
+## [1] 4
+```
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> **4 — war das zu erwarten?**
+
+???
+* Die genaue Zahl variiert je nach seed — wichtig ist die Größenordnung ~5
+* Pointe: diese Treffer sind REIN zufällig — es gibt keinen echten Zusammenhang
+
+---
+class: left
+
+## Teil 1: Visualisierung der p-Wert-Verteilung
+
+
+``` r
+tibble(test_nr = 1:n_tests,
+       p_value = p_values_random,
+       signifikant = p_values_random &lt; 0.05) %&gt;%
+  ggplot(aes(x = p_value, fill = signifikant)) +
+  geom_histogram(bins = 20, color = "white", boundary = 0) +
+  geom_vline(xintercept = 0.05, color = "#D50006",
+             linetype = "dashed", linewidth = 1.2) +
+  scale_fill_manual(
+    values = c("TRUE" = "#D50006", "FALSE" = "#b3b2b2"),
+    labels = c("TRUE" = "p &lt; 0.05 (zufällig signifikant!)",
+               "FALSE" = "p ≥ 0.05 (korrekt nicht signifikant)")
+  ) +
+  labs(x = "p-Wert", y = "Anzahl Tests", fill = NULL,
+       title = "100 Tests mit zufälligen Variablen",
+       subtitle = glue::glue("{sum(p_values_random &lt; 0.05)} von {n_tests} Tests sind p &lt; 0.05")) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+&lt;img src="PVA2_Lab2_pHacking_FDR_files/figure-html/phacking-viz-1.png" width="65%" style="display: block; margin: auto;" /&gt;
+
+---
+class: left
+
+## Teil 2: Das reale Problem — viele Variablen im Datensatz
+
+
+``` r
+# Welche numerischen Variablen hat der Bundesliga-Datensatz?
+tbl_buli_raw %&gt;%
+  select(where(is.numeric)) %&gt;%
+  names()
+```
+
+```
+## [1] "season_start_year"        "player_age"              
+## [3] "player_market_value_euro"
+```
+
+
+``` r
+# Alle numerischen Variablen gegen log_value testen
+tbl_test &lt;- tbl_buli_raw %&gt;%
+              mutate(
+                log_value = log(player_market_value_euro),
+                age = lubridate::year(Sys.Date()) -
+                      lubridate::year(player_dob)
+              ) %&gt;%
+              select(log_value, where(is.numeric),
+                     -player_market_value_euro) %&gt;%
+              select(log_value, everything())
+
+p_values_real &lt;- tbl_test %&gt;%
+  select(-log_value) %&gt;%
+  names() %&gt;%
+  map_dfr(function(var) {
+    tryCatch({
+      p &lt;- lm(as.formula(glue::glue("log_value ~ `{var}`")),
+              data = tbl_test) %&gt;%
+            broom::tidy() %&gt;%
+            filter(term != "(Intercept)") %&gt;%
+            pull(p.value)
+      tibble(variable = var, p_value = p[1])
+    }, error = function(e) tibble(variable = var, p_value = NA_real_))
+  }) %&gt;%
+  filter(!is.na(p_value)) %&gt;%
+  arrange(p_value)
+
+p_values_real %&gt;% head(10) %&gt;% gt() %&gt;%
+  fmt_number(columns = p_value, decimals = 4) %&gt;%
+  tab_options(table.font.size = "13px")
+```
+
+<div id="jqvrznvldt" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#jqvrznvldt table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#jqvrznvldt thead, #jqvrznvldt tbody, #jqvrznvldt tfoot, #jqvrznvldt tr, #jqvrznvldt td, #jqvrznvldt th {
+  border-style: none;
+}
+
+#jqvrznvldt p {
+  margin: 0;
+  padding: 0;
+}
+
+#jqvrznvldt .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 13px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#jqvrznvldt .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#jqvrznvldt .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#jqvrznvldt .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#jqvrznvldt .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#jqvrznvldt .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#jqvrznvldt .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#jqvrznvldt .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#jqvrznvldt .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#jqvrznvldt .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#jqvrznvldt .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#jqvrznvldt .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#jqvrznvldt .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#jqvrznvldt .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#jqvrznvldt .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jqvrznvldt .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#jqvrznvldt .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#jqvrznvldt .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#jqvrznvldt .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jqvrznvldt .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#jqvrznvldt .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jqvrznvldt .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#jqvrznvldt .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jqvrznvldt .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#jqvrznvldt .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jqvrznvldt .gt_left {
+  text-align: left;
+}
+
+#jqvrznvldt .gt_center {
+  text-align: center;
+}
+
+#jqvrznvldt .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#jqvrznvldt .gt_font_normal {
+  font-weight: normal;
+}
+
+#jqvrznvldt .gt_font_bold {
+  font-weight: bold;
+}
+
+#jqvrznvldt .gt_font_italic {
+  font-style: italic;
+}
+
+#jqvrznvldt .gt_super {
+  font-size: 65%;
+}
+
+#jqvrznvldt .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#jqvrznvldt .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#jqvrznvldt .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#jqvrznvldt .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#jqvrznvldt .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#jqvrznvldt .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#jqvrznvldt .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#jqvrznvldt .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#jqvrznvldt div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="variable">variable</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="p_value">p_value</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="variable" class="gt_row gt_left">age</td>
+<td headers="p_value" class="gt_row gt_right">0.0454</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+
+---
+class: left
+
+## Teil 3: Benjamini-Hochberg — FDR kontrollieren
+
+
+``` r
+# FDR-Korrektur mit Benjamini-Hochberg
+p_values_adjusted &lt;- p_values_real %&gt;%
+  mutate(
+    p_adjusted_BH = p.adjust(p_value, method = "BH"),
+    signifikant_roh     = p_value      &lt; 0.05,
+    signifikant_adjusted = p_adjusted_BH &lt; 0.05
+  )
+
+# Vergleich: wie viele bleiben signifikant?
+p_values_adjusted %&gt;%
+  summarise(
+    `Signifikant (roh, α=0.05)`    = sum(signifikant_roh,      na.rm = TRUE),
+    `Signifikant (BH-korrigiert)`   = sum(signifikant_adjusted, na.rm = TRUE),
+    `Reduktion`                     = sum(signifikant_roh, na.rm=TRUE) -
+                                      sum(signifikant_adjusted, na.rm=TRUE)
+  ) %&gt;%
+  gt() %&gt;% tab_options(table.font.size = "14px")
+```
+
+<div id="greuondxvv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#greuondxvv table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#greuondxvv thead, #greuondxvv tbody, #greuondxvv tfoot, #greuondxvv tr, #greuondxvv td, #greuondxvv th {
+  border-style: none;
+}
+
+#greuondxvv p {
+  margin: 0;
+  padding: 0;
+}
+
+#greuondxvv .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#greuondxvv .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#greuondxvv .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#greuondxvv .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#greuondxvv .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#greuondxvv .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#greuondxvv .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#greuondxvv .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#greuondxvv .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#greuondxvv .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#greuondxvv .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#greuondxvv .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#greuondxvv .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#greuondxvv .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#greuondxvv .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#greuondxvv .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#greuondxvv .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#greuondxvv .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#greuondxvv .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#greuondxvv .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#greuondxvv .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#greuondxvv .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#greuondxvv .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#greuondxvv .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#greuondxvv .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#greuondxvv .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#greuondxvv .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#greuondxvv .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#greuondxvv .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#greuondxvv .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#greuondxvv .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#greuondxvv .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#greuondxvv .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#greuondxvv .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#greuondxvv .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#greuondxvv .gt_left {
+  text-align: left;
+}
+
+#greuondxvv .gt_center {
+  text-align: center;
+}
+
+#greuondxvv .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#greuondxvv .gt_font_normal {
+  font-weight: normal;
+}
+
+#greuondxvv .gt_font_bold {
+  font-weight: bold;
+}
+
+#greuondxvv .gt_font_italic {
+  font-style: italic;
+}
+
+#greuondxvv .gt_super {
+  font-size: 65%;
+}
+
+#greuondxvv .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#greuondxvv .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#greuondxvv .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#greuondxvv .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#greuondxvv .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#greuondxvv .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#greuondxvv .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#greuondxvv .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#greuondxvv div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Signifikant-(roh,-α=0.05)">Signifikant (roh, α=0.05)</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Signifikant-(BH-korrigiert)">Signifikant (BH-korrigiert)</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Reduktion">Reduktion</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="Signifikant (roh, α=0.05)" class="gt_row gt_right">1</td>
+<td headers="Signifikant (BH-korrigiert)" class="gt_row gt_right">1</td>
+<td headers="Reduktion" class="gt_row gt_right">0</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+
+---
+class: left
+
+## Teil 3: Visualisierung der Korrektur
+
+
+``` r
+p_values_adjusted %&gt;%
+  mutate(variable = fct_reorder(variable, p_value)) %&gt;%
+  ggplot(aes(y = variable)) +
+  geom_point(aes(x = p_value, color = "Roh"),
+             size = 2.5, alpha = 0.8) +
+  geom_point(aes(x = p_adjusted_BH, color = "BH-korrigiert"),
+             size = 2.5, alpha = 0.8, shape = 17) +
+  geom_vline(xintercept = 0.05, linetype = "dashed",
+             color = "#686868", linewidth = 0.8) +
+  scale_color_manual(values = c("Roh" = "#D50006",
+                                "BH-korrigiert" = "#502479")) +
+  labs(x = "p-Wert", y = "Variable", color = NULL,
+       title = "Rohes vs. BH-korrigiertes Signifikanzniveau",
+       subtitle = "Gestrichelte Linie: α = 0.05") +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+&lt;img src="PVA2_Lab2_pHacking_FDR_files/figure-html/bh-viz-1.png" width="70%" style="display: block; margin: auto;" /&gt;
+
+---
+class: left
+
+## Aufgaben
+
+.pull-left[
+### Pflichtaufgaben
+
+**A1:** Führen Sie die p-Hacking-Simulation mit `n_tests = 1000` durch. Wie viele zufällige Variablen sind signifikant? Entspricht das Ihrer Erwartung?
+
+**A2:** Wenden Sie zusätzlich zur BH-Korrektur auch die **Bonferroni-Korrektur** an (`method = "bonferroni"`). Vergleichen Sie die Ergebnisse. Welche Methode ist konservativer?
+
+```r
+p.adjust(p_values, method = "bonferroni")
+```
+
+**A3:** Welche der Bundesliga-Variablen bleibt nach BH-Korrektur signifikant? Macht das inhaltlich Sinn?
+]
+
+.pull-right[
+### Bonusaufgaben
+
+**B1:** Simulieren Sie das **p-Hacking-Szenario** eines Forschers: Testen Sie 20 Variablen mit `set.seed(1)` bis `set.seed(20)` und berichten Sie nur die signifikanten Ergebnisse. Wie viele "Entdeckungen" haben Sie?
+
+**B2:** Was ist der Unterschied zwischen FDR und FWER (Family-Wise Error Rate, kontrolliert von Bonferroni)? In welchem Kontext würden Sie welche Methode wählen?
+
+**B3:** Lesen Sie: [xkcd: Significant](https://xkcd.com/882/) — erklären Sie den Witz statistisch präzise.
+]
+
+---
+class: left
+
+## Lab 2 · Zusammenfassung
+
+&lt;div style="display:grid; grid-template-columns:1fr 1fr; gap:1em; margin-top:0.5em;"&gt;
+
+&lt;div style="background:#f5f0fa; border:1px solid #d0b8e8; border-radius:5px; padding:12px; font-size:0.82em;"&gt;
+&lt;strong style="color:#502479;"&gt;Was wir gelernt haben&lt;/strong&gt;&lt;br&gt;&lt;br&gt;
+✅ Bei 100 Tests mit α=0.05 sind ~5 Ergebnisse zufällig signifikant&lt;br&gt;&lt;br&gt;
+✅ p-Hacking: selektives Berichten erzeugt scheinbare Entdeckungen&lt;br&gt;&lt;br&gt;
+✅ FDR (Benjamini-Hochberg) kontrolliert den &lt;em&gt;Anteil&lt;/em&gt; falscher Entdeckungen&lt;br&gt;&lt;br&gt;
+✅ &lt;code&gt;p.adjust(p, method = "BH")&lt;/code&gt; — eine Zeile Code schützt vor massenhaften falschen Treffern
+&lt;/div&gt;
+
+&lt;div style="background:#fff8e1; border:1px solid #f0d080; border-radius:5px; padding:12px; font-size:0.82em;"&gt;
+&lt;strong style="color:#8a6200;"&gt;Praktische Faustregeln&lt;/strong&gt;&lt;br&gt;&lt;br&gt;
+🔵 &lt;strong&gt;1 Test, klare Hypothese:&lt;/strong&gt; α = 0.05 klassisch&lt;br&gt;&lt;br&gt;
+🟣 &lt;strong&gt;Wenige Tests (5–20):&lt;/strong&gt; Bonferroni-Korrektur&lt;br&gt;&lt;br&gt;
+🔴 &lt;strong&gt;Viele Tests (&gt;50):&lt;/strong&gt; FDR (Benjamini-Hochberg)&lt;br&gt;&lt;br&gt;
+⚠️ &lt;strong&gt;Data Mining ohne Hypothesen:&lt;/strong&gt; immer FDR + inhaltliche Plausibilitätsprüfung!4
+&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;br&gt;
+
+.center[
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> **Überleitung:** Selbst echte Signifikanz sagt nichts über die **praktische Relevanz** — das kommt im nächsten Block.
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+  "slideNumberFormat": "Lab 2 · %current%/%total%",
+  "ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

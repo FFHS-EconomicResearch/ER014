@@ -97,7 +97,7 @@ p_values_random <- map_dbl(1:n_tests, function(i) {
 sum(p_values_random < 0.05)
 ```
 
-`r fa('circle-right')` **`r sum(purrr::map_dbl(1:100, function(i) {set.seed(i+42); lm(log(player_market_value_euro) ~ rnorm(nrow(tbl_buli)), data=tbl_buli) %>% broom::tidy() %>% filter(term!="(Intercept)") %>% pull(p.value)})) ` — war das zu erwarten?**
+`r fa('circle-right')` **`r sum(p_values_random < 0.05)` — war das zu erwarten?**
 
 ???
 * Die genaue Zahl variiert je nach seed — wichtig ist die Größenordnung ~5
@@ -143,11 +143,13 @@ tbl_buli_raw %>%
 ```{r many-tests, echo=TRUE, message=FALSE, warning=FALSE}
 # Alle numerischen Variablen gegen log_value testen
 tbl_test <- tbl_buli_raw %>%
-              mutate(log_value = log(mv),
-                     age = lubridate::year(Sys.Date()) -
-                           lubridate::year(player_dob)) %>%
-              select(log_value, where(is.numeric), -mv) %>%
-              select(-any_of(c("log_value"))) %>%
+              mutate(
+                log_value = log(player_market_value_euro),
+                age = lubridate::year(Sys.Date()) -
+                      lubridate::year(player_dob)
+              ) %>%
+              select(log_value, where(is.numeric),
+                     -player_market_value_euro) %>%
               select(log_value, everything())
 
 p_values_real <- tbl_test %>%
@@ -269,7 +271,7 @@ class: left
 🔵 <strong>1 Test, klare Hypothese:</strong> α = 0.05 klassisch<br><br>
 🟣 <strong>Wenige Tests (5–20):</strong> Bonferroni-Korrektur<br><br>
 🔴 <strong>Viele Tests (>50):</strong> FDR (Benjamini-Hochberg)<br><br>
-⚠️ <strong>Data Mining ohne Hypothesen:</strong> immer FDR + inhaltliche Plausibilitätsprüfung!
+⚠️ <strong>Data Mining ohne Hypothesen:</strong> immer FDR + inhaltliche Plausibilitätsprüfung!`r sum(p_values_random < 0.05)`
 </div>
 
 </div>
