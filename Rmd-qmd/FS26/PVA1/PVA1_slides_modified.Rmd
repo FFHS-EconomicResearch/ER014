@@ -1,0 +1,986 @@
+---
+title: "Data Science and Strategy for Business"
+subtitle: "(Re-)Sampling und Hypothesentests"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS" 
+date: "`r Sys.Date()`"
+bibliography: ../../../lit/my_bib.bib
+lang: de-CH
+reference-section-title: Quellenverzeichnis
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+         - default
+         - ../../../css/ffhs-theme_js.css
+         - xaringan-themer.css
+    includes:
+      after_body: ../../../css/insert-logo.html
+    lib_dir: ../../../libs
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    seal: false
+    
+
+    
+---
+class: title-slide
+
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+style_xaringan(text_color = "#d50006",inverse_text_color = "#FFFFFF",inverse_background_color = "#d50006", title_slide_background_color = "#d50006",header_background_color = "#d50006",header_color = "#FFFFFF",header_h1_font_size = "32px",
+  header_h2_font_size = "26px",link_color="#502479",
+  header_h3_font_size = "20px",text_slide_number_color = "#d50006",text_slide_number_font_size = "0.5em")
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_progress_bar(color = "#d50006", location = "bottom")
+xaringanExtra::use_xaringan_extra(c("tile_view","scribble","panelset","tachyons"))
+xaringanExtra::style_panelset_tabs(font_family = "inherit")
+#xaringanExtra::use_search(show_icon = TRUE)
+#weitere: "share_again","animate_css", "webcam","freezeframe","clipboard","fit_screen","extra-styles" 
+xaringanExtra::use_editable(expires = 1)
+xaringanExtra::use_freezeframe(trigger = "hover")
+``` 
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(latex2exp)
+library(fontawesome)
+#library(emo)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           style = "markdown",
+           dashed = TRUE)
+file.name <- system.file("Bib", 
+                         "my_bib.bib", 
+                         package = "RefManageR")
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+```
+
+# ER014 - Data Science and Strategy for Business
+
+## PVA1
+
+### Data Science als modellbasierte Abstraktion
+
+ 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+### FS 2026
+<br>
+### Prof. Dr. Jörg Schoder
+.mycontacts[
+`r fa('github')` @FFHS-EconomicResearch
+`r fa('linkedin')` @jfschoder
+]
+
+
+---
+layout: true
+
+<div class="my-footer"></div>       
+
+<div style="position: absolute;left:400px;bottom:10px;font-size:9px">`r fa('creative-commons')``r rmarkdown::metadata$author`</div>
+
+
+
+
+
+
+---
+name: agenda
+class: left
+
+.blockquote[Agenda]
+
+## Data Science als modellbasierte Abstraktion
+
+* Kennenlernen und Organisatorisches 
+
+* Big Picture & Data Strategy (Wiki-Aufgabe)
+
+* CRISP-DM (I): Business Understanding
+
+* Datenprojekte in `r fa('r-project')`
+
+* Lab 1: CRISP-DM (II): Data Understanding und EDA
+
+* Lab 2: CRISP-DM (III-A): Prep & Modelling (Einfachregression)
+
+* Pause `r fa('coffee')`
+
+* Demo: CRISP-DM (III-B): Komplexität und Modellierung (Multiple Regression)
+
+* Lab 3: CRISP-DM (IV): Evaluation & Deployment
+
+* Debrief und Ausblick
+
+
+
+???
+<!-- --- -->
+<!-- name: agenda -->
+<!-- class: left -->
+
+<!-- .blockquote[Agenda] -->
+
+<!-- ## Block 1 — Überblick -->
+
+<!-- .pull-left[ -->
+<!-- **Teil 1: The Big Picture** *(25 Min.)* -->
+<!-- * Data-Analytic Thinking -->
+<!-- * Data Strategy: User vs. Creator -->
+<!-- * Big Data nach Taddy -->
+
+<!-- **Teil 2: Szenario & CRISP-DM** *(25 Min.)* -->
+<!-- * Retail-Szenario: Carseats -->
+<!-- * Der CRISP-DM Zyklus -->
+<!-- * Problem Translation -->
+<!-- * R-Tooling & Projekte -->
+<!-- ] -->
+
+<!-- .pull-right[ -->
+<!-- **Teil 3: Labs 1 & 2** *(50 Min.)* -->
+<!-- * Lab 1: Explorative Datenanalyse -->
+<!-- * Lab 2: Baseline-Modell -->
+
+<!-- **— Pause —** -->
+
+<!-- **Teil 4: Demo & Lab 3** *(80 Min.)* -->
+<!-- * Confounder & Ceteris Paribus -->
+<!-- * Live-Demo Multiple Regression -->
+<!-- * Lab 3: Performance Mining -->
+<!-- * Managerial Memo -->
+
+<!-- **Teil 5: Wrap-up & Ausblick** *(10 Min.)* -->
+<!-- ] -->
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Die Leitidee des Moduls
+
+.pull-left[
+### Früher
+`r fa('code')` Code schreiben = Kernkompetenz
+
+Wer programmieren kann, hat die Macht.
+
+### Heute
+Generative KI **demokratisiert das Prototyping**.
+
+GPT schreibt den Code — in Sekunden.
+
+### Konsequenz für dieses Modul
+`r fa('circle-right')` Nicht Programmierung als Selbstzweck
+
+`r fa('circle-right')` Als **Translator** zwischen Fachbereich und Data-Science-Teams agieren
+
+`r fa('circle-right')` **Validierung, Interpretation und strategische Einordnung** sind die neuen Kernkompetenzen
+]
+
+.pull-right[
+<svg viewBox="0 0 300 240" width="100%" height="220">
+  <defs><style>
+    .arm  { stroke: #686868; stroke-width: 3; fill: none; }
+    .bowl { fill: #b3b2b2; stroke: #686868; stroke-width: 2; }
+    .lbl  { font-family: sans-serif; font-size: 11px; text-anchor: middle; }
+    .heavy { fill: #502479; }
+    .light { fill: #D50006; }
+  </style></defs>
+  <!-- Stange -->
+  <line class="arm" x1="150" y1="40" x2="150" y2="100"/>
+  <!-- Linke Seite - leichter (Coding) -->
+  <line class="arm" x1="150" y1="70" x2="60"  y2="85"/>
+  <line class="arm" x1="60"  y1="85" x2="60"  y2="130"/>
+  <ellipse class="bowl light" cx="60" cy="138" rx="45" ry="12"/>
+  <text class="lbl" x="60" y="168" fill="#D50006" font-weight="bold">Coding</text>
+  <text class="lbl" x="60" y="182" fill="#686868">(wird leichter)</text>
+  <text style="font-family:sans-serif;font-size:9px;text-anchor:middle;fill:#686868" x="60" y="196">KI schreibt den Code</text>
+  <!-- Rechte Seite - schwerer (Strategie) -->
+  <line class="arm" x1="150" y1="70" x2="240" y2="60"/>
+  <line class="arm" x1="240" y1="60" x2="240" y2="105"/>
+  <ellipse class="bowl heavy" cx="240" cy="113" rx="45" ry="12"/>
+  <text class="lbl" x="240" y="143" fill="#502479" font-weight="bold">Validierung</text>
+  <text class="lbl" x="240" y="157" fill="#502479" font-weight="bold">& Strategie</text>
+  <text class="lbl" x="240" y="173" fill="#686868">(wird wichtiger)</text>
+  <!-- Pivot -->
+  <circle cx="150" cy="40" r="6" fill="#D50006"/>
+  <line class="arm" x1="130" y1="20" x2="170" y2="20"/>
+  <line class="arm" x1="150" y1="20" x2="150" y2="40"/>
+</svg>
+]
+
+???
+
+* Konsequenz für Lernziel: Nicht Programmierung als Selbstzweck
+* Sondern: Als "Translator" zwischen Fachbereich und Data-Science-Teams agieren
+* Verifizierung, Validierung und strategische Einordnung sind die neuen Kernkompetenzen
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Future Skills und Rollen von Managern im KI-Zeitalter
+
+<!-- ======================================================= -->
+<!-- ÜBERGANG WAAGE → VENN:                                  -->
+<!-- Gekürzt: nur ein knapper Einleitungssatz links,         -->
+<!-- Venn dominiert die Folie visuell.                       -->
+<!-- ======================================================= -->
+
+.pull-left[
+<br><br>
+Data Science entsteht im **Schnittfeld** von drei Disziplinen —  
+keine davon alleine reicht.
+
+<br>
+
+`r fa('circle-right')` Für Manager zählt besonders der Überschnitt von **Statistik** und **Domänenwissen**: Ergebnisse einordnen, hinterfragen, kommunizieren.
+
+<br>
+
+.small[
+* Großunternehmen: „Übersetzungs-"Kompetenz (Management ↔ Datenteams)
+* KMU: Prototyping-Kompetenz
+]
+]
+
+.pull-right[
+<svg viewBox="-280 -220 560 480" width="100%" height="340">
+  <defs><style>
+    .ring { fill: #D50006; fill-opacity: 0.22; stroke: #D50006; stroke-width: 2; }
+    .lbl  { font-family: sans-serif; font-size: 16px; font-weight: bold; fill: #1a1a1a; text-anchor: middle; }
+    .ds   { font-family: sans-serif; font-size: 22px; font-weight: bold; fill: #D50006; text-anchor: middle; }
+  </style></defs>
+  <circle class="ring" cx="0"   cy="-60" r="110"/>
+  <circle class="ring" cx="-80" cy="70"  r="110"/>
+  <circle class="ring" cx="80"  cy="70"  r="110"/>
+  <text class="lbl" x="0"    y="-115">Informatik/</text>
+  <text class="lbl" x="0"    y="-100">Computerwissenschaft</text>
+  <text class="lbl" x="-145" y="105">Statistik</text>
+  <text class="lbl" x="115"  y="105">Domänenwissen</text>
+  <text class="lbl" x="120"  y="120">(Business)</text>
+  <text class="ds"  x="0"    y="35">DS</text>
+</svg>
+]
+
+???
+
+Definition: Data Science ist die modellbasierte Abstraktion der Realität durch:
+
+* Statistische Methoden
+* Informatik-Werkzeuge
+* Domaenen-Expertise
+
+Abgrenzung
+
+* Keine "Black Box" ohne Verstaendnis
+* Keine reine Automatisierung
+* Kritisches Denken erforderlich
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Data-Analytic Thinking: Das Walmart-Szenario
+
+.panelset[
+.panel[.panel-name[Die Frage]
+
+.pull-left[
+### Szenario
+Hurricane Frances nähert sich der US-Küste, 2004.
+
+Walmart-Manager in Bentonville, Arkansas fragen ihre Daten:
+
+> **"Was kaufen Menschen in Küstenregionen typischerweise in den Tagen vor einem Hurrikan?"**
+
+]
+
+.pull-right[
+<br><br>
+<svg viewBox="0 0 220 200" width="100%" height="180">
+  <defs>
+    <radialGradient id="hurr" cx="50%" cy="50%">
+      <stop offset="0%"   stop-color="#502479" stop-opacity="0.8"/>
+      <stop offset="60%"  stop-color="#D50006" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#D50006" stop-opacity="0.1"/>
+    </radialGradient>
+  </defs>
+  <circle cx="110" cy="95" r="85" fill="url(#hurr)"/>
+  <text style="font-family:sans-serif;font-size:28px;text-anchor:middle;fill:white;font-weight:bold" x="110" y="105">🌀</text>
+  <text style="font-family:sans-serif;font-size:11px;text-anchor:middle;fill:white;font-weight:bold" x="110" y="130">Hurricane Frances</text>
+  <text style="font-family:sans-serif;font-size:9px;text-anchor:middle;fill:rgba(255,255,255,0.8)" x="110" y="145">Florida, 2004</text>
+</svg>
+]
+.center[`r fa('circle-right')` Was würden **Sie** erwarten?]
+]
+
+.panel[.panel-name[Die Antwort]
+
+.pull-left[
+
+### Die überraschende Antwort der Daten:
+
+**Top-Verkaufsartikel**`r fa('star')`:
+
+**#1:** Erdbeer Pop-Tarts 
+
+**#2:** Bier
+
+.small[
+> *"Walmart's analysts found that sales of Pop-Tarts, particularly strawberry, increased by 7x before a hurricane. The top-selling item before a storm was beer."*
+> .tr[(`r Citet(bib, "provost_data_2013")`, S. 3)]
+]
+]
+
+.pull-right[
+
+**Was lernen wir daraus?**
+
+`r fa('circle-right')` Daten liefern **kontra-intuitive**, aber profitable Erkenntnisse
+
+`r fa('circle-right')` Intuition ≠ Evidenz
+
+`r fa('circle-right')` **Data-Analytic Thinking** als Kompetenz: Welche Fragen kann ich mit Daten beantworten?
+
+`r fa('circle-right')` Ergebnis: Walmart positionierte Pop-Tarts strategisch im Eingangsbereich vor jedem Hurrikan
+
+]
+]
+]
+
+???
+
+* Walmart hatte 2004 bereits ein Data Warehouse mit Milliarden von Transaktionen
+* Das ist ein Beispiel für "Data-Analytic Thinking": Das systematische Hinterfragen von Annahmen mit Daten
+* Provost & Fawcett: "The goal is to extract useful knowledge from data to solve business problems"
+.quelle[`r Citet(bib, "provost_data_2013")`, Kap. 1]
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Data Science 
+
+
+.panelset[
+.panel[.panel-name[Drei Säulen]
+
+.center[.small[`r fa('circle-right')` *Walmart brauchte für den Pop-Tart-Insight genau das:*
+**Transaktionsdaten organisieren** (Informatik) · **Muster statistisch validieren** (Statistik) · **Bedeutung für das Business verstehen** (Domänenwissen)]]
+
+<svg viewBox="0 0 760 300" width="100%" height="280">
+  <defs>
+    <style>
+      .pillar-1 { fill: #D50006; }
+      .pillar-2 { fill: #502479; }
+      .pillar-3 { fill: #7d0a52; }
+      .title    { font-family: sans-serif; font-size: 15px; font-weight: bold;
+                  fill: #ffffff; text-anchor: middle; }
+      .item     { font-family: sans-serif; font-size: 11.5px; fill: #1a1a1a;
+                  text-anchor: middle; }
+      .base     { fill: #686868; }
+      .base-lbl { font-family: sans-serif; font-size: 13px; font-weight: bold;
+                  fill: #ffffff; text-anchor: middle; }
+    </style>
+    <linearGradient id="grad-top" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#D50006"/>
+      <stop offset="100%" stop-color="#502479"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dach mit Verlauf -->
+  <rect x="30" y="52" width="700" height="20" rx="3" fill="url(#grad-top)"/>
+  <text style="font-family:sans-serif; font-size:12px; font-weight:bold;
+               fill:#ffffff; text-anchor:middle;"
+        x="380" y="67">Methoden · Technologie · Anwendung</text>
+
+  <!-- ===== Säule 1: Statistik ===== -->
+  <rect class="pillar-1" x="45"  y="72" width="200" height="22" rx="3"/>
+  <rect class="pillar-1" x="55"  y="94" width="180" height="161" rx="3"/>
+  <text class="title" x="145" y="89">Statistik</text>
+  <text class="item"  x="145" y="123">Modellierung</text>
+  <text class="item"  x="145" y="151">Wahrscheinlichkeit</text>
+  <text class="item"  x="145" y="179">Inferenz</text>
+  <text class="item"  x="145" y="207">Unsicherheit</text>
+
+  <!-- ===== Säule 2: Informatik ===== -->
+  <rect class="pillar-2" x="280" y="72" width="200" height="22" rx="3"/>
+  <rect class="pillar-2" x="290" y="94" width="180" height="161" rx="3"/>
+  <text class="title" x="380" y="89">Informatik</text>
+  <text class="item"  x="380" y="123">Datenbanken/-architekturen</text>
+  <text class="item"  x="380" y="151">Cloud/Infrastruktur</text>
+  <text class="item"  x="380" y="179">Datensicherheit</text>
+  <text class="item"  x="380" y="207">Programmierung/Algorithmen</text>
+
+  <!-- ===== Säule 3: Domänenwissen ===== -->
+  <rect class="pillar-3" x="515" y="72" width="200" height="22" rx="3"/>
+  <rect class="pillar-3" x="525" y="94" width="180" height="161" rx="3"/>
+  <text class="title" x="615" y="89">Domänenwissen</text>
+  <text class="item"  x="615" y="123">Problemverständnis</text>
+  <text class="item"  x="615" y="151">Branchenkenntnis</text>
+  <text class="item"  x="615" y="179">Interpretation</text>
+  <text class="item"  x="615" y="207">Kommunikation</text>
+
+  <!-- Basis -->
+  <rect class="base" x="30" y="255" width="700" height="35" rx="4"/>
+  <text class="base-lbl" x="380" y="278">Data Science</text>
+
+</svg>
+
+]
+.panel[.panel-name[Tätigkeiten]
+
+"Was Data Scientist tun"
+
+| Aktivität | Zeitanteil |
+|-----------|------------|
+| Datenbereinigung | 40–60% |
+| Feature Engineering | 10–15% |
+| Exploration & EDA | 15–20% |
+| Modellierung | 10–15% |
+| Kommunikation | 10–15% |
+]
+
+]
+
+???
+<!-- ======================================================= -->
+<!-- ÜBERGANG WALMART → DREI SÄULEN:                         -->
+<!-- Brückenfolie: Was brauchten Walmart-Analysten dafür?    -->
+<!-- Beantwortet implizit die Frage aus dem Walmart-Case     -->
+<!-- und motiviert die drei Säulen aus dem konkreten         -->
+<!-- Praxisbeispiel heraus.                                  -->
+<!-- ======================================================= -->
+* Brückenfolie: Was brauchten Walmart-Analysten dafür?
+* feature engineering: 
+  * Es geht darum, Rohdaten so zu transformieren, dass sie die zugrunde liegende Problemstruktur möglichst gut widerspiegeln und von Algorithmen effizient genutzt werden können. 
+  * Gute Features erhöhen Vorhersagegenauigkeit, Robustheit und Interpretierbarkeit von Modellen oft stärker als der Wechsel zum „nächsten" Algorithmus.
+
+* Bei uns soll der Schwerpunkt auf Exploration und Modellierung liegen
+* ER015 Storytelling: Kommunikation
+
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Data Science & Strategy...
+
+<!-- ======================================================= -->
+<!-- ÜBERGANG DREI SÄULEN → STRATEGIE:                       -->
+<!-- Textfolie stark gekürzt. Das Fazit-Zitat trägt die      -->
+<!-- Aussage alleine — keine langen Bulletpoints mehr.       -->
+<!-- ======================================================= -->
+
+.pull-left[
+<br><br><br>
+Daten zu analysieren ist eine Fähigkeit.
+
+Zu wissen, **welche Frage man stellen soll** — das ist Strategie.
+
+<br>
+
+`r fa('circle-right')` Dieses Modul verbindet beides.
+]
+
+.pull-right[
+<br><br>
+.blockquote[
+"Data Science without strategy is analysis without impact. Strategy without data is opinion with risk."
+.tr[in Anlehnung an `r Citet(bib, "provost_data_2013")`]
+]
+]
+
+???
+
+* Nicht beide Bullets vorlesen — die Folie spricht für sich
+* Überleitung: "Schauen wir uns an, was das konkret für Ihre Rolle bedeutet"
+
+
+---
+class: left
+
+.blockquote[The Big Picture]
+
+## Data Strategy: AI User vs. AI Value Creator
+
+.panelset[
+.panel[.panel-name[Das Konzept]
+
+<svg viewBox="0 0 680 200" width="90%" style="display:block;margin:auto">
+  <defs>
+    <style>
+      .rtxt { font-family:sans-serif; font-size:11px; font-weight:bold;
+              fill:white; text-anchor:middle; }
+      .rarr { stroke:#686868; stroke-width:2; fill:none;
+              marker-end:url(#arr); }
+      .anno { font-family:sans-serif; font-size:10px; fill:#686868;
+              text-anchor:middle; }
+    </style>
+    <marker id="arr" markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#686868"/>
+    </marker>
+  </defs>
+
+  <!-- Stufen der AI Ladder -->
+  <rect x="10"  y="140" width="130" height="40" rx="6" fill="#b3b2b2"/>
+  <text class="rtxt" x="75"  y="165">1. Sammeln</text>
+
+  <rect x="180" y="140" width="130" height="40" rx="6" fill="#686868"/>
+  <text class="rtxt" x="245" y="165">2. Organisieren</text>
+
+  <rect x="350" y="140" width="130" height="40" rx="6" fill="#7d0a52"/>
+  <text class="rtxt" x="415" y="165">3. Analysieren</text>
+
+  <rect x="520" y="140" width="140" height="40" rx="6" fill="#502479"/>
+  <text class="rtxt" x="590" y="165">4. Infundieren</text>
+
+  <!-- Pfeile -->
+  <line class="rarr" x1="145" y1="160" x2="175" y2="160"/>
+  <line class="rarr" x1="315" y1="160" x2="345" y2="160"/>
+  <line class="rarr" x1="485" y1="160" x2="515" y2="160"/>
+
+  <!-- Trennlinie User vs Creator -->
+  <line x1="340" y1="20" x2="340" y2="135"
+        stroke="#D50006" stroke-width="2" stroke-dasharray="5,3"/>
+  <text style="font-family:sans-serif;font-size:10px;fill:#D50006;
+               text-anchor:middle;font-weight:bold" x="340" y="15">
+    AI User | AI Value Creator
+  </text>
+
+  <!-- Annotations -->
+  <text class="anno" x="170" y="125">Standard-Tools</text>
+  <text class="anno" x="170" y="137">Commodity Data</text>
+  <text class="anno" x="510" y="125">Proprietary Data</text>
+  <text class="anno" x="510" y="137">Nachhaltiger Vorteil</text>
+</svg>
+
+]
+
+.panel[.panel-name[AI User]
+
+`r fa('user')` **AI User** *(wo wir heute starten)*
+
+* Nutzt **Standard-Modelle** (ChatGPT, Copilot) und **öffentliche Daten**
+* Ergebnis: Operative Effizienz, schnellere Prozesse
+* **Aber:** Jeder Konkurrent kann dasselbe tun → "Commodity"
+* Kein nachhaltiger Wettbewerbsvorteil
+
+<br>
+.blockquote[
+"If your competitive advantage depends on a tool that anyone can buy, it is not a competitive advantage."
+.tr[`r Citet(bib, "thomasAIValueCreators2025")`]
+]
+]
+
+.panel[.panel-name[AI Value Creator]
+
+`r fa('rocket')` **AI Value Creator** *(das strategische Ziel)*
+
+* Nutzt **Proprietary Data** — eigene, exklusive Datenbestände
+* Trainiert Modelle, die **Konkurrenz nicht kopieren kann**
+* Schafft **Data Moats** (Datengräben)
+
+<br>
+
+**Beispiele:**
+.small[
+* Amazon: Kaufhistorie von 300 Mio. Kunden → Empfehlungsalgorithmus nicht kopierbar
+* Netflix: Viewing-Daten → Content-Entscheidungen (House of Cards)
+* Walmart 2004: Eigene Transaktionsdaten → Pop-Tart-Insight kein Konkurrent hatte
+]
+
+.quellePanURL[`r Citet(bib, "thomasAIValueCreators2025")`]
+]
+]
+
+???
+
+* AI Ladder nach Thomas et al. (2025)
+* Heute sind wir AI User — wir nutzen den Carseats-Datensatz (öffentlich)
+* Strategisches Ziel: Verstehen, wann sich der Aufbau eigener Dateninfrastruktur lohnt
+
+
+---
+class: left
+
+.blockquote[The Big Picture]
+
+## Was ist „Big Data" wirklich? — Die Taddy-Perspektive
+
+<!-- ======================================================= -->
+<!-- HINWEIS: Diese Folie ist inhaltlich wertvoll, wirkt     -->
+<!-- aber an dieser Stelle isoliert. Zwei Optionen:          -->
+<!-- A) Hier belassen mit expliziter Verknüpfung zum         -->
+<!--    AI-Value-Creator-Konzept (proprietäre Daten =        -->
+<!--    oft hochdimensional → p-Problem)                     -->
+<!-- B) In PVA3 verschieben, wo Regularisierung behandelt    -->
+<!--    wird. Dann hier einfach löschen.                     -->
+<!-- Aktuell: Option A implementiert.                        -->
+<!-- ======================================================= -->
+
+.pull-left[
+### IT-Sicht: Volumen
+
+<svg viewBox="0 0 200 160" width="75%">
+  <rect x="20" y="20" width="160" height="120" rx="8" fill="#b3b2b2"/>
+  <rect x="35" y="35" width="130" height="20" rx="3" fill="#686868"/>
+  <rect x="35" y="62" width="130" height="20" rx="3" fill="#686868"/>
+  <rect x="35" y="89" width="130" height="20" rx="3" fill="#686868"/>
+  <rect x="35" y="116" width="130" height="20" rx="3" fill="#686868"/>
+  <circle cx="155" cy="45" r="4" fill="#D50006"/>
+  <circle cx="155" cy="72" r="4" fill="#502479"/>
+  <circle cx="155" cy="99" r="4" fill="#D50006"/>
+  <circle cx="155" cy="126" r="4" fill="#b3b2b2"/>
+  <text style="font-family:sans-serif;font-size:10px;text-anchor:middle;fill:#333" x="100" y="155">Riesige Datenmengen (TB, PB)</text>
+</svg>
+
+.small[Terabytes, Petabytes, Zettabytes — das klassische Verständnis]
+]
+
+.pull-right[
+
+### Data-Science-Sicht: Dimension
+
+`r fa('circle-right')` *Proprietäre Daten sind oft hochdimensional — genau hier liegt das statistische Problem:*
+
+.blockquote[
+"Big Data means that the number of variables **p** is large relative to sample size **n**. This breaks classical statistics."
+.tr[`r Citet(bib, "taddy_business_2019")`, S. 2]
+]
+
+**Das eigentliche Problem: p ≈ n**
+.small[
+* Klassische Regression: funktioniert bei p << n
+* p ≈ n: Modell **overfittet** — findet Muster im Rauschen
+* p > n: Keine eindeutige Lösung mehr möglich
+]
+]
+
+.center[`r fa('circle-right')` Deshalb brauchen wir **Regularisierung**, **Selektion** und **Validierung** — nicht nur mehr Rechnerleistung! (`r fa('circle-right')` PVA3)]
+
+???
+
+* Taddy unterscheidet: IT-Definition (Volumen) vs. statistische Definition (Dimension)
+* Für Management relevant: Viele Variablen = Gefahr von False Discoveries
+* Heute in Block 1: wir haben p << n (Carseats: 11 Variablen, 400 Beobachtungen)
+
+
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Daten, Experimente und Innovationen
+
+.right-column[
+.blockquote[
+"[..] the ability to run fast, frugal, and scalable experiments based on high-value business hypotheses is becoming a new core competence for innovation success. As companies gather more data about their customers, channels, usage, complaints, social media, etc., we won't just see people analyzing data with optimization in mind; we'll be seeing machines generating "innovation hypotheses" recommending new configurations, bundles, features, pricing schemes, and business models to test."
+
+.tr[
+`r Citet(bib, "schrage_let_2014")`
+]
+]
+
+]
+.left-column[
+<br>
+```{r}
+#| echo: false
+#| out-width: '100%'
+knitr::include_graphics(xfun::from_root('img','PVA1','schrage_(amazon).jpg'))
+```
+
+]
+.quelle[Bildquelle: [amazon.de](www.amazon.de).]
+
+???
+
+* Insights from Data
+  * descriptive
+  * predictive
+  * prescriptive/actionable
+  
+* Results vs. Methods
+* Data-Driven vs. Data-Informed
+* Data Mining vs. Data Products
+
+
+---
+class: inverse, center, middle
+
+## CRISP-DM (Business Understanding) und `r fa('r-project')`-Tooling
+
+
+???
+
+.blockquote[Retail · Carseats · Problem Translation · R-Tooling]
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Unser Retail-Szenario: Die Carseats-Fallstudie
+
+.pull-left[
+### Der Auftrag
+Sie sind das **Data-Science-Team** einer Handelskette:
+
+* `r fa('store')` **400 Filialen** deutschlandweit
+* Hauptprodukt: **Kindersitze** (Carseats)
+* Problem: Extreme Umsatzunterschiede zwischen Filialen
+
+### Die Management-Frage
+> *"Finde die Underperformer-Filialen und bewerte unser Werbebudget."*
+
+]
+
+.pull-right[
+<svg viewBox="0 0 240 220" width="95%">
+  <defs><style>
+    .pin-good { fill: #502479; }
+    .pin-bad  { fill: #D50006; }
+    .pin-med  { fill: #7d0a52; }
+  </style></defs>
+  <!-- Stilisierte Karte -->
+  <rect x="10" y="10" width="220" height="180" rx="10"
+        fill="#f0f0f0" stroke="#b3b2b2" stroke-width="2"/>
+  <!-- Dummy-Umriss Deutschland -->
+  <path d="M80,30 Q110,20 140,35 L155,60 Q165,80 158,110
+           L145,140 Q130,165 110,170 Q85,175 70,155
+           L55,125 Q45,95 55,70 Z"
+        fill="#e8e8e8" stroke="#686868" stroke-width="1.5"/>
+  <!-- Filial-Pins -->
+  <circle class="pin-good" cx="100" cy="65"  r="6"/>
+  <circle class="pin-good" cx="130" cy="80"  r="6"/>
+  <circle class="pin-med"  cx="115" cy="100" r="6"/>
+  <circle class="pin-bad"  cx="90"  cy="120" r="8"/>
+  <circle class="pin-good" cx="140" cy="115" r="6"/>
+  <circle class="pin-bad"  cx="105" cy="145" r="8"/>
+  <circle class="pin-good" cx="125" cy="55"  r="6"/>
+  <!-- Legende -->
+  <circle class="pin-good" cx="25" cy="168" r="5"/>
+  <text style="font-family:sans-serif;font-size:9px;fill:#333" x="34" y="172">Gute Filiale</text>
+  <circle class="pin-bad" cx="25" cy="183" r="5"/>
+  <text style="font-family:sans-serif;font-size:9px;fill:#333" x="34" y="187">Underperformer</text>
+</svg>
+
+`r fa('circle-right')` Wir starten heute als **AI User** — öffentliche Daten aus `{ISLR2}`
+
+]
+
+???
+* Datensatz: ISLR2::Carseats — 400 Filialen, 11 Variablen
+* Sales (Tausend Einheiten), Price, Advertising, ShelveLoc, Age, Income, ...
+* Keine Import-Probleme: install.packages("ISLR2"), dann data(Carseats)
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Der CRISP-DM Zyklus
+
+.panelset[
+.panel[.panel-name[Zyklus]
+.pull-left[
+<svg viewBox="-20 -20 300 300" width="100%">
+  <defs>
+    <marker id="arrowC" markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#686868"/>
+    </marker>
+  </defs>
+  <!-- Kreisbogen -->
+  <circle cx="130" cy="130" r="110" fill="none"
+          stroke="#b3b2b2" stroke-width="2" stroke-dasharray="8,4"/>
+  <!-- Phasen-Ellipsen -->
+  <ellipse cx="130" cy="25"  rx="55" ry="18" fill="#D50006"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="130" y="29">Business Understanding</text>
+  <ellipse cx="228" cy="80"  rx="48" ry="18" fill="#7d0a52"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="228" y="84">Data Understanding</text>
+  <ellipse cx="228" cy="175" rx="48" ry="18" fill="#502479"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="228" y="179">Data Preparation</text>
+  <ellipse cx="130" cy="235" rx="48" ry="18" fill="#502479"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="130" y="239">Modeling</text>
+  <ellipse cx="32"  cy="175" rx="48" ry="18" fill="#7d0a52"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="32" y="179">Evaluation</text>
+  <ellipse cx="32"  cy="80"  rx="48" ry="18" fill="#686868"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:white;text-anchor:middle" x="32" y="84">Deployment</text>
+  <!-- Daten-Ellipse Mitte -->
+  <ellipse cx="130" cy="130" rx="38" ry="28" fill="#b3b2b2"/>
+  <text style="font-family:sans-serif;font-size:9px;font-weight:bold;fill:#333;text-anchor:middle" x="130" y="127">Daten</text>
+  <text style="font-family:sans-serif;font-size:8px;fill:#333;text-anchor:middle" x="130" y="139">(Zentrum)</text>
+</svg>
+]
+.pull-right[
+<strong>Kein linearer Prozess — ein iterativer Zyklus!</strong>
+<br><br>
+.blockquote[
+"CRISP-DM stresses that the sequence is not rigid – moving back and forth between phases is the norm, not the exception."
+.tr[`r Zitiere(bib, "provost_data_2013")`, S. 27]
+]
+]
+]
+
+.panel[.panel-name[Modulkontext]
+.pull-left[
+.small[
+| Phase | Heute |
+|-------|-------|
+| **Business Understanding** | ✅ Underperformer finden |
+| **Data Understanding** | ✅ Lab 1: EDA |
+| **Data Preparation** | ✅ Lab 2: Feature Engineering |
+| **Modeling** | ✅ Lab 2 & Demo |
+| **Evaluation** | ✅ Lab 3 |
+| **Deployment** | ➡ Managerial Memo |
+]
+]
+.pull-right[
+<br><br>
+Im Modul sollen alle Phasen durchlaufen werden — vom initialen Business Understanding bis hin zum finalen Deployment in Form des Managerial Memo.
+]
+]
+]
+
+???
+* CRISP-DM = Cross-Industry Standard Process for Data Mining
+* Provost & Fawcett nutzen es als Rahmen für alle Kapitel
+* Wichtig: In der Praxis verbringt man 70-80% der Zeit in Data Understanding & Preparation
+
+
+---
+class: left
+
+.blockquote[CRISP-DM & R-Tooling]
+
+## Problem Translation: Vom Business Speak zum Data Speak
+
+.panelset[
+.panel[.panel-name[Die Übersetzung]
+
+.pull-left[
+### Business Speak
+> *"Finde Underperformer-Filialen!"*
+
+.small[
+Ist das ein **Klassifikationsproblem**?
+* Underperformer: Ja/Nein?
+
+`r fa('times-circle')` **Nein!** Warum nicht?
+
+* Binäre Klassifikation braucht eine definierte Schwelle
+* Wer zieht die Grenze? Willkürlich!
+* Wir verlieren die Information über den **Grad** des Underperformings
+]
+]
+
+.pull-right[
+### Data Speak
+`r fa('check-circle')` **Scoring / Ranking** via Regression
+
+.small[
+Wir schätzen den **bedingten Mittelwert**:
+
+$$E[\text{Sales} \mid \mathbf{x}] = \hat{y}$$
+
+Ein **Underperformer** ist eine Filiale mit stark **negativem Residuum**:
+
+$$e_i = y_i - \hat{y}_i \ll 0$$
+
+→ *"Die Filiale verkauft viel weniger, als sie laut Markt-Benchmark sollte."*
+]
+]
+
+]
+
+.panel[.panel-name[Visualisierung]
+
+```{r}
+#| label: problem-translation
+#| echo: false
+#| warning: false
+#| message: false
+#| fig-width: 8
+#| fig-height: 4
+#| out-width: "90%"
+library(tidyverse)
+set.seed(42)
+n <- 60
+x <- runif(n, 50, 200)
+y <- 8 - 0.025 * x + rnorm(n, 0, 1.2)
+
+df <- tibble(
+  Price    = x,
+  Sales    = y,
+  Residual = lm(Sales ~ Price)$residuals
+) |>
+  mutate(
+    Typ = case_when(
+      Residual < -1.8 ~ "Underperformer",
+      Residual >  1.8 ~ "Outperformer",
+      TRUE            ~ "Normal"
+    )
+  )
+
+df %>% 
+ggplot(aes(x = Price, y = Sales)) +
+  geom_point(aes(color = Typ, size = Typ), alpha = 0.8) +
+  geom_smooth(method = "lm", color = "#502479",
+              se = FALSE, linewidth = 1.2) +
+  geom_segment(
+    data = filter(df, Typ == "Underperformer"),
+    aes(xend = Price, yend = Sales - Residual),
+    color = "#D50006", linewidth = 0.8, linetype = "dashed"
+  ) +
+  annotate("text", x = 170, y = 2.3,
+           label = "Negatives Residuum\n= Underperformer",
+           color = "#D50006", size = 3, fontface = "bold") +
+  scale_color_manual(values = c("Underperformer" = "#D50006",
+                                "Outperformer"   = "#502479",
+                                "Normal"         = "#b3b2b2")) +
+  scale_size_manual(values  = c("Underperformer" = 4,
+                                "Outperformer"   = 3,
+                                "Normal"         = 2)) +
+  labs(x = "Preis", y = "Umsatz (Tsd. Einheiten)",
+       color = NULL, size = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+]
+]
+
+???
+* Der statistische Kern: Regression als Benchmark-Modell
+* Residuum = Abweichung vom "was der Markt erwarten würde"
+* Das ist keine Klassifikation! Es ist ein kontinuierliches Scoring

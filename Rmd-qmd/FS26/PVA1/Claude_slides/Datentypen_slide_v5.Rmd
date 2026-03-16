@@ -1,0 +1,206 @@
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## Welche Arten von Daten gibt es?
+
+<style>
+.dt-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 0.8em;
+  margin-top: 0.3em;
+  align-items: stretch;
+}
+.dt-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.dt-hdr {
+  color: white;
+  font-family: sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 5px 5px 0 0;
+  flex-shrink: 0;
+}
+.dt-body {
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  padding: 10px 12px;
+  font-size: 0.79em;
+  flex: 1;
+  box-sizing: border-box;
+}
+.dt-chip {
+  background: #f0f0f0;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 0.88em;
+  display: inline-block;
+  margin: 2px 2px;
+}
+.dt-hint {
+  padding: 6px 9px;
+  font-size: 0.84em;
+  line-height: 1.5;
+  border-radius: 0 3px 3px 0;
+  margin-top: 8px;
+}
+.dt-synth {
+  margin-top: 0.5em;
+  border: 1px solid #b3b2b2;
+  border-radius: 5px;
+  padding: 6px 14px;
+  background: #fafafa;
+  font-size: 0.79em;
+  line-height: 1.6;
+}
+/* ── ER-Badges: untere rechte Ecke, minimal überlappend ── */
+.er-badge {
+  position: absolute;
+  color: white;
+  font-family: sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: 2px solid rgba(255,255,255,0.55);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.28);
+  transform: rotate(40deg);
+  opacity: 0;
+  z-index: 10;
+}
+.er-018 {
+  background: rgba(80, 36, 121, 0.90);
+  bottom: 49px;
+  right: -13px;
+  animation: popIn 0.45s ease-out 1.0s forwards;
+}
+.er-016 {
+  background: rgba(213, 0, 6, 0.88);
+  bottom: 5px;
+  right: 9px;
+  animation: popIn 0.45s ease-out 1.7s forwards;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: rotate(40deg) scale(0.65); }
+  to   { opacity: 1; transform: rotate(40deg) scale(1); }
+}
+</style>
+
+<div class="dt-grid">
+
+<!-- ── Strukturiert ── -->
+<div class="dt-col">
+  <div class="dt-hdr" style="background:#7d0a52;">
+    📊 Strukturierte Daten
+  </div>
+  <div class="dt-body" style="border:2px solid #7d0a52;">
+    <strong>Tabellarisch · festes Schema · direkt analysierbar</strong>
+    <div style="margin:8px 0;">
+      <span class="dt-chip">`r fa('file-excel', fill='#217346')` Excel / CSV</span>
+      <span class="dt-chip">`r fa('database', fill='#336791')` SQL</span>
+      <span class="dt-chip">`r fa('table', fill='#686868')` ERP</span>
+    </div>
+    <table style="font-size:0.9em; border-collapse:collapse; width:100%; margin:4px 0 8px 0;">
+      <tr style="background:#f9f0f3;">
+        <th style="padding:3px 6px; text-align:left; border:1px solid #e0c8d0;">Filiale</th>
+        <th style="padding:3px 6px; border:1px solid #e0c8d0;">Umsatz</th>
+        <th style="padding:3px 6px; border:1px solid #e0c8d0;">Preis</th>
+      </tr>
+      <tr>
+        <td style="padding:3px 6px; border:1px solid #ebebeb;">Hamburg</td>
+        <td style="padding:3px 6px; text-align:center; border:1px solid #ebebeb;">12.4</td>
+        <td style="padding:3px 6px; text-align:center; border:1px solid #ebebeb;">89</td>
+      </tr>
+      <tr style="background:#fdf6f8;">
+        <td style="padding:3px 6px; border:1px solid #ebebeb;">Berlin</td>
+        <td style="padding:3px 6px; text-align:center; border:1px solid #ebebeb;">8.1</td>
+        <td style="padding:3px 6px; text-align:center; border:1px solid #ebebeb;">95</td>
+      </tr>
+    </table>
+    <div class="dt-hint" style="background:#f9f0f3; border-left:3px solid #7d0a52;">
+      `r fa('circle-right')` Taddy (2019): <strong>„flat file"</strong><br>
+      1 Zeile = 1 Beobachtung<br>
+      1 Spalte = 1 Merkmal<br>
+      → direkt für ML nutzbar
+    </div>
+  </div>
+</div>
+
+<!-- ── Unstrukturiert + ER-Badges ── -->
+<div class="dt-col">
+  <div class="dt-hdr" style="background:#D50006;">
+    🎵 Unstrukturierte Daten
+  </div>
+  <div class="dt-body" style="border:2px solid #D50006;">
+    <strong>Kein Schema · ~80% aller Unternehmensdaten</strong>
+    <div style="margin:8px 0;">
+      <span class="dt-chip">`r fa('file-word', fill='#2b579a')` Word</span>
+      <span class="dt-chip">`r fa('file-pdf', fill='#e74c3c')` PDF</span>
+      <span class="dt-chip">`r fa('file-lines', fill='#555')` E-Mail / Text</span>
+      <span class="dt-chip">`r fa('music', fill='#e74c3c')` MP3</span>
+      <span class="dt-chip">`r fa('video', fill='#8e44ad')` MP4</span>
+      <span class="dt-chip">`r fa('image', fill='#16a085')` JPG / PNG</span>
+      <span class="dt-chip">`r fa('comment', fill='#686868')` Social Media</span>
+    </div>
+    <div class="dt-hint" style="background:#fff0f0; border-left:3px solid #D50006;">
+      `r fa('circle-right')` Lange schwer nutzbar —<br>
+      erst <strong>Foundation Models</strong> (GPT etc.)<br>
+      erschließen diesen Typ<br>
+      in großem Maßstab
+    </div>
+  </div>
+  <div class="er-badge er-018">ER018</div>
+  <div class="er-badge er-016">ER016</div>
+</div>
+
+<!-- ── Semi-strukturiert ── -->
+<div class="dt-col">
+  <div class="dt-hdr" style="background:#502479;">
+    🔗 Semi-strukturierte Daten
+  </div>
+  <div class="dt-body" style="border:2px solid #502479;">
+    <strong>Flexibles Schema · verschachtelt (nested)</strong>
+    <div style="margin:8px 0;">
+      <span class="dt-chip">`r fa('code', fill='#e67e22')` JSON</span>
+      <span class="dt-chip">`r fa('file-code', fill='#2980b9')` XML</span>
+      <span class="dt-chip">`r fa('globe', fill='#27ae60')` HTML</span>
+      <span class="dt-chip">`r fa('envelope', fill='#686868')` E-Mail-Header</span>
+    </div>
+    <div style="font-size:0.82em; background:#f4f4f4; border-radius:4px;
+                padding:5px 8px; margin:6px 0; font-family:monospace;
+                line-height:1.4; color:#333;">
+      {"filiale": "Hamburg",<br>
+      &nbsp;"umsatz": 12.4,<br>
+      &nbsp;"prod": [{"id":1,"p":89}]}
+    </div>
+    <div class="dt-hint" style="background:#f5f0fa; border-left:3px solid #502479;">
+      `r fa('circle-right')` Taddy: <strong>„nested data"</strong><br>
+      Rel. DB: normalisierte Tabellen<br>
+      Für ML: erst <strong>flatten</strong>!<br>
+      (denormalisieren)
+    </div>
+  </div>
+</div>
+
+</div><!-- dt-grid -->
+
+<div class="dt-synth">
+`r fa('circle-right')` <strong>Taddy (2019):</strong>
+ML-Algorithmen erwarten fast immer ein <strong>flat file</strong> —
+unstrukturierte und nested Daten müssen erst aufbereitet werden.
+&nbsp;&nbsp;`r fa('circle-right')` <strong>Feature Engineering</strong> = dieser Aufbereitungsschritt (→ Lab 2)
+&nbsp;&nbsp;`r fa('circle-right')` <strong>Carseats:</strong> bereits flat — 400 × 11, direkt nutzbar.
+</div>
+
+???
+* nested → flat: oft teuerster Schritt im Data Engineering
+* Normalisierung (3NF): verhindert Redundanz, erzeugt aber Joins
+* flatten = denormalisieren = Feature Matrix für ML
+* ER018 / ER016: Module die sich mit unstrukturierten Daten beschäftigen

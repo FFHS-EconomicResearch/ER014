@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>PVA2 · Lab 1: Only One Test</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Dr. Jörg Schoder" />
+    <meta name="date" content="2026-03-16" />
+    <script src="PVA2_Lab1_InferenzResampling_files/header-attrs/header-attrs.js"></script>
+    <link rel="stylesheet" href="../../../css/ffhs-theme_js.css" type="text/css" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# PVA2 · Lab 1: Only One Test
+]
+.subtitle[
+## Bootstrap &amp; Permutationstest mit dem infer-Paket
+]
+.author[
+### Prof. Dr. Jörg Schoder
+]
+.date[
+### 2026-03-16
+]
+
+---
+
+
+
+
+---
+class: left
+
+## Lab 1 · Überblick
+
+.pull-left[
+### Lernziel
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Bootstrap-Konfidenzintervall für den Regressionskoeffizienten `\(\hat\beta_{\text{age}}\)` berechnen
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Permutationstest auf Unabhängigkeit durchführen
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Ergebnisse mit dem traditionellen t-Test vergleichen
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Konzept "Only One Test" verstehen
+
+### Modell
+`$$\widehat{\log(\text{mv})} = \hat\beta_0 + \hat\beta_1 \cdot \text{age}$$`
+]
+
+.pull-right[
+### Die infer-Pipe
+
+```
+Daten
+  |&gt; specify()      # Welche Variablen?
+  |&gt; hypothesize()  # Nullhypothese (nur bei Test)
+  |&gt; generate()     # Bootstrap oder Permutation
+  |&gt; calculate()    # Teststatistik berechnen
+  |&gt; visualize()    # Visualisieren
+```
+
+&lt;br&gt;
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg> **Dauer: ca. 40 Minuten**
+
+<svg aria-hidden="true" role="img" viewBox="0 0 640 512" style="height:1em;width:1.25em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160A80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192h42.7c15.9 0 31 3.5 44.6 9.7c-1.3 7.2-1.9 14.7-1.9 22.3c0 38.2 16.8 72.5 43.3 96c-.2 0-.4 0-.7 0H21.3C9.6 320 0 310.4 0 298.7zM405.3 320c-.2 0-.4 0-.7 0c26.6-23.5 43.3-57.8 43.3-96c0-7.6-.7-15-1.9-22.3c13.6-6.3 28.7-9.7 44.6-9.7h42.7C592.2 192 640 239.8 640 298.7c0 11.8-9.6 21.3-21.3 21.3H405.3zM224 224a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zM128 485.3C128 411.7 187.7 352 261.3 352H378.7C452.3 352 512 411.7 512 485.3c0 14.7-11.9 26.7-26.7 26.7H154.7c-14.7 0-26.7-11.9-26.7-26.7z"/></svg> **Einzelarbeit oder Zweierteams**
+]
+
+---
+class: left
+
+## Schritt 1: Punktschätzer — der beobachtete Koeffizient
+
+
+``` r
+library(infer)
+
+# Beobachteter Steigungskoeffizient
+obs_slope &lt;- tbl_buli %&gt;%
+               specify(log_value ~ age) %&gt;%
+               calculate(stat = "slope")
+obs_slope
+```
+
+```
+## Response: log_value (numeric)
+## Explanatory: age (numeric)
+## # A tibble: 1 × 1
+##     stat
+##    &lt;dbl&gt;
+## 1 0.0261
+```
+
+&lt;br&gt;
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Was bedeutet dieser Wert inhaltlich?
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Handelt es sich um einen Populations- oder Stichprobenparameter?
+
+???
+* Studierende sollen den Wert selbst interpretieren
+* Wichtig: dieser Wert ist ein Punktschätzer — er enthält Schätzunsicherheit
+
+---
+class: left
+
+## Schritt 2: Bootstrap-Verteilung
+
+
+``` r
+set.seed(2024)
+
+boot_dist &lt;- tbl_buli %&gt;%
+               specify(log_value ~ age) %&gt;%
+               # KEIN hypothesize() — wir schätzen den Koeffizienten
+               generate(reps = 1000, type = "bootstrap") %&gt;%
+               calculate(stat = "slope")
+```
+
+
+``` r
+visualize(boot_dist) +
+  labs(title = "Bootstrap-Verteilung des Steigungskoeffizienten",
+       x = "β̂_age (log-Marktwert pro Altersjahr)",
+       y = "Häufigkeit")
+```
+
+&lt;img src="PVA2_Lab1_InferenzResampling_files/figure-html/boot-viz-1.png" width="45%" style="display: block; margin: auto;" /&gt;
+
+???
+* Bootstrap: 1000× mit Zurücklegen aus den vorhandenen Daten ziehen
+* Verteilung zeigt: wie stark variiert der Koeffizient je nach Stichprobe?
+* Breite der Verteilung = Standardfehler
+
+---
+class: left
+
+## Schritt 3: Konfidenzintervall berechnen
+
+.panelset[
+.panel[.panel-name[Perzentilmethode]
+
+``` r
+ci_pct &lt;- boot_dist %&gt;%
+            get_confidence_interval(type = "percentile",
+                                    level = 0.95)
+ci_pct
+```
+
+```
+## # A tibble: 1 × 2
+##    lower_ci upper_ci
+##       &lt;dbl&gt;    &lt;dbl&gt;
+## 1 -0.000917   0.0531
+```
+]
+.panel[.panel-name[Standardfehler-Methode]
+
+``` r
+ci_se &lt;- boot_dist %&gt;%
+           get_confidence_interval(type = "se",
+                                   point_estimate = obs_slope,
+                                   level = 0.95)
+ci_se
+```
+
+```
+## # A tibble: 1 × 2
+##    lower_ci upper_ci
+##       &lt;dbl&gt;    &lt;dbl&gt;
+## 1 -0.000514   0.0527
+```
+]
+.panel[.panel-name[Visualisierung]
+
+``` r
+visualize(boot_dist) +
+  shade_confidence_interval(endpoints = ci_pct,
+                            fill = NULL,
+                            linetype = "solid",
+                            color = "#D50006") +
+  shade_confidence_interval(endpoints = ci_se,
+                            fill = NULL,
+                            linetype = "dashed",
+                            color = "#502479") +
+  labs(title = "Bootstrap-KI: Perzentil (rot) vs. Standardfehler (lila)",
+       x = "β̂_age", y = "Häufigkeit")
+```
+
+&lt;img src="PVA2_Lab1_InferenzResampling_files/figure-html/ci-viz-1.png" width="45%" style="display: block; margin: auto;" /&gt;
+]
+.panel[.panel-name[Interpretation]
+
+**Fragen zur Diskussion:**
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Enthält das Konfidenzintervall die Null?
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Was bedeutet das für die Signifikanz des Alterseffekts?
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Warum sind Perzentil- und SE-Methode ähnlich aber nicht identisch?
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Was bedeutet "95% Konfidenz" **exakt**?
+
+.blockquote[
+Bei wiederholter Stichprobenziehung werden 95% der so berechneten Konfidenzintervalle den wahren Parameter `\(\beta_{\text{age}}\)` enthalten.
+]
+]
+]
+
+???
+* Beide Methoden sollten ähnliche Ergebnisse liefern
+* Wenn KI Null nicht enthält: Alterseffekt signifikant auf 5%-Niveau
+
+---
+class: left
+
+## Schritt 4: Permutationstest
+
+.pull-left[
+
+``` r
+set.seed(2024)
+
+null_dist &lt;- tbl_buli %&gt;%
+               specify(log_value ~ age) %&gt;%
+               hypothesize(null = "independence") %&gt;%
+               generate(reps = 1000, type = "permute") %&gt;%
+               calculate(stat = "slope")
+
+# p-Wert berechnen
+null_dist %&gt;%
+  get_p_value(obs_stat = obs_slope,
+              direction = "two-sided")
+```
+
+```
+## # A tibble: 1 × 1
+##   p_value
+##     &lt;dbl&gt;
+## 1   0.034
+```
+]
+
+.pull-right[
+
+``` r
+null_dist %&gt;%
+  visualize() +
+  shade_p_value(obs_stat = obs_slope,
+                direction = "two-sided") +
+  labs(title = "Nullverteilung (Permutationstest)",
+       subtitle = "Roter Bereich = p-Wert",
+       x = "β̂ unter H₀: Unabhängigkeit",
+       y = "Häufigkeit")
+```
+
+&lt;img src="PVA2_Lab1_InferenzResampling_files/figure-html/null-viz-1.png" width="90%" style="display: block; margin: auto;" /&gt;
+]
+
+???
+* Permutation: Alterswerte werden zufällig neu zugeordnet → simuliert Welt ohne Zusammenhang
+* Unser beobachteter Koeffizient liegt weit außerhalb der Nullverteilung → signifikant
+
+---
+class: left
+
+## Schritt 5: Vergleich mit traditionellem t-Test
+
+
+``` r
+library(moderndive)
+
+reg_buli &lt;- tbl_buli %&gt;%
+              lm(log_value ~ age, data = .)
+
+reg_buli %&gt;%
+  get_regression_table() %&gt;%
+  gt() %&gt;%
+  fmt_number(columns = c(estimate, std_error, statistic,
+                         p_value, lower_ci, upper_ci),
+             decimals = 4) %&gt;%
+  tab_options(table.font.size = "14px")
+```
+
+<div id="jwhlkqokxy" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#jwhlkqokxy table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#jwhlkqokxy thead, #jwhlkqokxy tbody, #jwhlkqokxy tfoot, #jwhlkqokxy tr, #jwhlkqokxy td, #jwhlkqokxy th {
+  border-style: none;
+}
+
+#jwhlkqokxy p {
+  margin: 0;
+  padding: 0;
+}
+
+#jwhlkqokxy .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#jwhlkqokxy .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#jwhlkqokxy .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#jwhlkqokxy .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#jwhlkqokxy .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#jwhlkqokxy .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#jwhlkqokxy .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#jwhlkqokxy .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#jwhlkqokxy .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#jwhlkqokxy .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#jwhlkqokxy .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#jwhlkqokxy .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#jwhlkqokxy .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#jwhlkqokxy .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#jwhlkqokxy .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jwhlkqokxy .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#jwhlkqokxy .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#jwhlkqokxy .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#jwhlkqokxy .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jwhlkqokxy .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#jwhlkqokxy .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jwhlkqokxy .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#jwhlkqokxy .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jwhlkqokxy .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#jwhlkqokxy .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#jwhlkqokxy .gt_left {
+  text-align: left;
+}
+
+#jwhlkqokxy .gt_center {
+  text-align: center;
+}
+
+#jwhlkqokxy .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#jwhlkqokxy .gt_font_normal {
+  font-weight: normal;
+}
+
+#jwhlkqokxy .gt_font_bold {
+  font-weight: bold;
+}
+
+#jwhlkqokxy .gt_font_italic {
+  font-style: italic;
+}
+
+#jwhlkqokxy .gt_super {
+  font-size: 65%;
+}
+
+#jwhlkqokxy .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#jwhlkqokxy .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#jwhlkqokxy .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#jwhlkqokxy .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#jwhlkqokxy .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#jwhlkqokxy .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#jwhlkqokxy .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#jwhlkqokxy .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#jwhlkqokxy div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="term">term</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="estimate">estimate</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="std_error">std_error</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="statistic">statistic</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="p_value">p_value</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="lower_ci">lower_ci</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="upper_ci">upper_ci</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="term" class="gt_row gt_left">intercept</td>
+<td headers="estimate" class="gt_row gt_right">13.9810</td>
+<td headers="std_error" class="gt_row gt_right">0.3800</td>
+<td headers="statistic" class="gt_row gt_right">36.8220</td>
+<td headers="p_value" class="gt_row gt_right">0.0000</td>
+<td headers="lower_ci" class="gt_row gt_right">13.2350</td>
+<td headers="upper_ci" class="gt_row gt_right">14.7270</td></tr>
+    <tr><td headers="term" class="gt_row gt_left">age</td>
+<td headers="estimate" class="gt_row gt_right">0.0260</td>
+<td headers="std_error" class="gt_row gt_right">0.0130</td>
+<td headers="statistic" class="gt_row gt_right">2.0050</td>
+<td headers="p_value" class="gt_row gt_right">0.0450</td>
+<td headers="lower_ci" class="gt_row gt_right">0.0010</td>
+<td headers="upper_ci" class="gt_row gt_right">0.0520</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+
+---
+class: left
+
+## Vergleich: Resampling vs. traditionell
+
+&lt;div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8em;
+            font-size:0.8em; margin-top:0.5em;"&gt;
+
+&lt;div style="border:2px solid #502479; border-radius:5px; padding:10px;"&gt;
+&lt;strong style="color:#502479;"&gt;Bootstrap-KI (Perzentil)&lt;/strong&gt;&lt;br&gt;&lt;br&gt;
+Untergrenze: &lt;code&gt;-0.0009&lt;/code&gt;&lt;br&gt;
+Obergrenze: &lt;code&gt;0.0531&lt;/code&gt;&lt;br&gt;&lt;br&gt;
+&lt;em&gt;Enthält Null? Nein ✅&lt;/em&gt;
+&lt;/div&gt;
+
+&lt;div style="border:2px solid #7d0a52; border-radius:5px; padding:10px;"&gt;
+&lt;strong style="color:#7d0a52;"&gt;Bootstrap-KI (SE)&lt;/strong&gt;&lt;br&gt;&lt;br&gt;
+Untergrenze: &lt;code&gt;-0.0005&lt;/code&gt;&lt;br&gt;
+Obergrenze: &lt;code&gt;0.0527&lt;/code&gt;&lt;br&gt;&lt;br&gt;
+&lt;em&gt;Enthält Null? Nein ✅&lt;/em&gt;
+&lt;/div&gt;
+
+&lt;div style="border:2px solid #D50006; border-radius:5px; padding:10px;"&gt;
+&lt;strong style="color:#D50006;"&gt;Traditionell (t-Test)&lt;/strong&gt;&lt;br&gt;&lt;br&gt;
+aus &lt;code&gt;get_regression_table()&lt;/code&gt;&lt;br&gt;&lt;br&gt;
+&lt;em&gt;Gleiche Schlussfolgerung? ✅&lt;/em&gt;
+&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;br&gt;
+
+### <svg aria-hidden="true" role="img" viewBox="0 0 384 512" style="height:1em;width:0.75em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M297.2 248.9C311.6 228.3 320 203.2 320 176c0-70.7-57.3-128-128-128S64 105.3 64 176c0 27.2 8.4 52.3 22.8 72.9c3.7 5.3 8.1 11.3 12.8 17.7l0 0c12.9 17.7 28.3 38.9 39.8 59.8c10.4 19 15.7 38.8 18.3 57.5H109c-2.2-12-5.9-23.7-11.8-34.5c-9.9-18-22.2-34.9-34.5-51.8l0 0 0 0c-5.2-7.1-10.4-14.2-15.4-21.4C27.6 247.9 16 213.3 16 176C16 78.8 94.8 0 192 0s176 78.8 176 176c0 37.3-11.6 71.9-31.4 100.3c-5 7.2-10.2 14.3-15.4 21.4l0 0 0 0c-12.3 16.8-24.6 33.7-34.5 51.8c-5.9 10.8-9.6 22.5-11.8 34.5H226.4c2.6-18.7 7.9-38.6 18.3-57.5c11.5-20.9 26.9-42.1 39.8-59.8l0 0 0 0 0 0c4.7-6.4 9-12.4 12.7-17.7zM192 128c-26.5 0-48 21.5-48 48c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-44.2 35.8-80 80-80c8.8 0 16 7.2 16 16s-7.2 16-16 16zm0 384c-44.2 0-80-35.8-80-80V416H272v16c0 44.2-35.8 80-80 80z"/></svg> "Only One Test" — die zentrale Botschaft
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Bootstrap, Permutation und klassischer t-Test kommen zur **gleichen Schlussfolgerung**
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Der Resampling-Ansatz braucht **keine Verteilungsannahmen** — er nutzt Rechenpower statt Formeln
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM294.6 135.1c-4.2-4.5-10.1-7.1-16.3-7.1C266 128 256 138 256 150.3V208H160c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h96v57.7c0 12.3 10 22.3 22.3 22.3c6.2 0 12.1-2.6 16.3-7.1l99.9-107.1c3.5-3.8 5.5-8.7 5.5-13.8s-2-10.1-5.5-13.8L294.6 135.1z"/></svg> Für komplexe Modelle (Random Forest etc.) gibt es **nur** den Resampling-Ansatz
+
+???
+* "Only One Test" = die konzeptionelle Einheit aller Testverfahren
+* Resampling ist der modernere, flexiblere Ansatz
+* Traditionell: schneller, bewährt, aber setzt Normalverteilungsannahme voraus
+
+---
+class: left
+
+## Aufgaben zur Vertiefung
+
+.pull-left[
+### Pflichtaufgaben
+
+**A1:** Wiederholen Sie die Bootstrap-Analyse für das **Interaktionsmodell** (`log_value ~ age * pos_bin`). Sind beide Koeffizienten signifikant?
+
+```r
+tbl_buli %&gt;%
+  specify(log_value ~ age + pos_bin) %&gt;%
+  generate(reps = 1000, type = "bootstrap") %&gt;%
+  calculate(stat = "slope")
+  # Hinweis: für multiple Regression
+  # andere Syntax nötig — siehe ?infer
+```
+
+**A2:** Interpretieren Sie das Konfidenzintervall für den **Interaktionsterm** `age:pos_binGoalkeeper`. Was bedeutet es für die Hypothese "Torhüter altern anders"?
+]
+
+.pull-right[
+### Bonusaufgaben
+
+**B1:** Berechnen Sie den Bootstrap-Standardfehler und vergleichen Sie ihn mit dem theoretischen Standardfehler aus `get_regression_table()`.
+
+**B2:** Was passiert wenn Sie nur `reps = 100` statt `reps = 1000` verwenden? Wie verändert sich das Konfidenzintervall?
+
+**B3:** Simulieren Sie eine Welt ohne Alterseffekt: Setzen Sie `set.seed(99)` und ziehen Sie eine Zufallsstichprobe von n=20 aus `tbl_buli`. Führen Sie den Permutationstest durch. Was beobachten Sie?
+]
+
+---
+class: left
+
+## Lab 1 · Zusammenfassung
+
+&lt;div style="display:grid; grid-template-columns:1fr 1fr; gap:1em; margin-top:0.5em;"&gt;
+
+&lt;div style="background:#f5f0fa; border:1px solid #d0b8e8; border-radius:5px; padding:12px; font-size:0.82em;"&gt;
+&lt;strong style="color:#502479;"&gt;Was wir gelernt haben&lt;/strong&gt;&lt;br&gt;&lt;br&gt;
+✅ Bootstrap-KI quantifiziert Schätzunsicherheit ohne Normalverteilungsannahme&lt;br&gt;&lt;br&gt;
+✅ Permutationstest simuliert die Null-Welt direkt aus den Daten&lt;br&gt;&lt;br&gt;
+✅ Beide Methoden kommen zur gleichen Schlussfolgerung wie der klassische t-Test&lt;br&gt;&lt;br&gt;
+✅ Das infer-Paket implementiert den einheitlichen Arbeitsablauf: &lt;code&gt;specify → hypothesize → generate → calculate → visualize&lt;/code&gt;
+&lt;/div&gt;
+
+&lt;div style="background:#fff0f0; border:1px solid #f0b8b8; border-radius:5px; padding:12px; font-size:0.82em;"&gt;
+&lt;strong style="color:#D50006;"&gt;Offene Fragen für den Debrief&lt;/strong&gt;&lt;br&gt;&lt;br&gt;
+❓ Warum ist Bootstrapping "ehrlicher" als die Normalverteilungsannahme?&lt;br&gt;&lt;br&gt;
+❓ Wann würden Bootstrap- und t-Test zu &lt;em&gt;verschiedenen&lt;/em&gt; Schlussfolgerungen kommen?&lt;br&gt;&lt;br&gt;
+❓ Was bedeutet es, dass der Alterskoeffizient signifikant ist — aber nur &lt;code&gt;r round(summary(lm(log_value~age, data=tbl_buli))$r.squared*100,1)`%&lt;/code&gt; der Variation erklärt?&lt;br&gt;&lt;br&gt;
+❓ Welcher Fehlertyp wäre schlimmer: einen unterbewerteten Spieler übersehen oder einen überbewerteten kaufen?
+&lt;/div&gt;
+
+&lt;/div&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+  "slideNumberFormat": "Lab 1 · %current%/%total%",
+  "ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

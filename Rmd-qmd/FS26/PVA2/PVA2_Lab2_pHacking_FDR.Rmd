@@ -1,0 +1,281 @@
+---
+title: "PVA2 · Lab 2: p-Hacking & False Discovery Rate"
+subtitle: "Das Multiplizitätsproblem verstehen und kontrollieren"
+author: "Prof. Dr. Jörg Schoder"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: ["../../../css/ffhs-theme_js.css", "xaringan-themer.css"]
+    nature:
+      slideNumberFormat: "Lab 2 · %current%/%total%"
+      ratio: "16:9"
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(tidyverse)
+library(moderndive)
+library(infer)
+library(gt)
+library(fontawesome)
+date <- '2023-09-06'
+my_in_file <- glue::glue('buli_raw_{date}.rds')
+tbl_buli_raw <- read_rds(file = xfun::from_root("data","raw",my_in_file))
+tbl_buli <- tbl_buli_raw %>%
+              mutate(age = lubridate::year(Sys.Date()) -
+                          lubridate::year(player_dob),
+                     log_value = log(player_market_value_euro),
+                     pos_bin = if_else(player_position == "Goalkeeper",
+                                       "Goalkeeper", "Outfield")) %>%
+              rename(name = player_name, mv = player_market_value_euro) %>%
+              filter(!is.na(mv), !is.na(age))
+options(scipen = 999)
+```
+
+---
+class: left
+
+## Lab 2 · Überblick
+
+.pull-left[
+### Lernziel
+
+`r fa('circle-right')` p-Hacking durch Simulation **direkt erfahren**
+
+`r fa('circle-right')` Verstehen warum α = 0.05 bei vielen Tests versagt
+
+`r fa('circle-right')` Benjamini-Hochberg-Prozedur anwenden
+
+`r fa('circle-right')` FDR auf das Bundesliga-Modell anwenden
+
+### Das Szenario
+
+Sie erhalten Zugang zu hunderten von Variablen über Bundesliga-Spieler. Welche davon "erklären" den Marktwert — und welche sind zufällige Treffer?
+]
+
+.pull-right[
+### Die zentrale Frage
+
+> "Wenn ich 100 zufällige Variablen auf Zusammenhang mit dem Marktwert teste — wie viele sind bei α = 0.05 signifikant?"
+
+<br>
+
+**Erwartete Antwort:** $100 \times 0.05 = 5$ falsche Treffer
+
+**Das ist kein Fehler — das ist Mathematik.**
+
+<br>
+
+`r fa('clock')` **Dauer: ca. 25 Minuten**
+
+`r fa('users')` **Einzelarbeit oder Zweierteams**
+]
+
+---
+class: left
+
+## Teil 1: p-Hacking simulieren
+
+```{r phacking, echo=TRUE, message=FALSE, cache=TRUE}
+set.seed(42)
+n_tests <- 100
+n_obs   <- nrow(tbl_buli)
+
+# 100 zufällige (bedeutungslose) Variablen testen
+p_values_random <- map_dbl(1:n_tests, function(i) {
+  # Zufällige Variable ohne echten Zusammenhang
+  tbl_sim <- tbl_buli %>%
+               mutate(rand_var = rnorm(n_obs))
+  # Regression und p-Wert extrahieren
+  lm(log_value ~ rand_var, data = tbl_sim) %>%
+    get_regression_table() %>%
+    filter(term == "rand_var") %>%
+    pull(p_value)
+})
+
+# Wie viele sind signifikant?
+sum(p_values_random < 0.05)
+```
+
+`r fa('circle-right')` **`r sum(purrr::map_dbl(1:100, function(i) {set.seed(i+42); lm(log(player_market_value_euro) ~ rnorm(nrow(tbl_buli)), data=tbl_buli) %>% broom::tidy() %>% filter(term!="(Intercept)") %>% pull(p.value)})) ` — war das zu erwarten?**
+
+???
+* Die genaue Zahl variiert je nach seed — wichtig ist die Größenordnung ~5
+* Pointe: diese Treffer sind REIN zufällig — es gibt keinen echten Zusammenhang
+
+---
+class: left
+
+## Teil 1: Visualisierung der p-Wert-Verteilung
+
+```{r phacking-viz, echo=TRUE, message=FALSE, fig.align='center', out.width='65%'}
+tibble(test_nr = 1:n_tests,
+       p_value = p_values_random,
+       signifikant = p_values_random < 0.05) %>%
+  ggplot(aes(x = p_value, fill = signifikant)) +
+  geom_histogram(bins = 20, color = "white", boundary = 0) +
+  geom_vline(xintercept = 0.05, color = "#D50006",
+             linetype = "dashed", linewidth = 1.2) +
+  scale_fill_manual(
+    values = c("TRUE" = "#D50006", "FALSE" = "#b3b2b2"),
+    labels = c("TRUE" = "p < 0.05 (zufällig signifikant!)",
+               "FALSE" = "p ≥ 0.05 (korrekt nicht signifikant)")
+  ) +
+  labs(x = "p-Wert", y = "Anzahl Tests", fill = NULL,
+       title = "100 Tests mit zufälligen Variablen",
+       subtitle = glue::glue("{sum(p_values_random < 0.05)} von {n_tests} Tests sind p < 0.05")) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+---
+class: left
+
+## Teil 2: Das reale Problem — viele Variablen im Datensatz
+
+```{r many-vars, echo=TRUE, message=FALSE}
+# Welche numerischen Variablen hat der Bundesliga-Datensatz?
+tbl_buli_raw %>%
+  select(where(is.numeric)) %>%
+  names()
+```
+
+```{r many-tests, echo=TRUE, message=FALSE, warning=FALSE}
+# Alle numerischen Variablen gegen log_value testen
+tbl_test <- tbl_buli_raw %>%
+              mutate(log_value = log(mv),
+                     age = lubridate::year(Sys.Date()) -
+                           lubridate::year(player_dob)) %>%
+              select(log_value, where(is.numeric), -mv) %>%
+              select(-any_of(c("log_value"))) %>%
+              select(log_value, everything())
+
+p_values_real <- tbl_test %>%
+  select(-log_value) %>%
+  names() %>%
+  map_dfr(function(var) {
+    tryCatch({
+      p <- lm(as.formula(glue::glue("log_value ~ `{var}`")),
+              data = tbl_test) %>%
+            broom::tidy() %>%
+            filter(term != "(Intercept)") %>%
+            pull(p.value)
+      tibble(variable = var, p_value = p[1])
+    }, error = function(e) tibble(variable = var, p_value = NA_real_))
+  }) %>%
+  filter(!is.na(p_value)) %>%
+  arrange(p_value)
+
+p_values_real %>% head(10) %>% gt() %>%
+  fmt_number(columns = p_value, decimals = 4) %>%
+  tab_options(table.font.size = "13px")
+```
+
+---
+class: left
+
+## Teil 3: Benjamini-Hochberg — FDR kontrollieren
+
+```{r bh, echo=TRUE, message=FALSE}
+# FDR-Korrektur mit Benjamini-Hochberg
+p_values_adjusted <- p_values_real %>%
+  mutate(
+    p_adjusted_BH = p.adjust(p_value, method = "BH"),
+    signifikant_roh     = p_value      < 0.05,
+    signifikant_adjusted = p_adjusted_BH < 0.05
+  )
+
+# Vergleich: wie viele bleiben signifikant?
+p_values_adjusted %>%
+  summarise(
+    `Signifikant (roh, α=0.05)`    = sum(signifikant_roh,      na.rm = TRUE),
+    `Signifikant (BH-korrigiert)`   = sum(signifikant_adjusted, na.rm = TRUE),
+    `Reduktion`                     = sum(signifikant_roh, na.rm=TRUE) -
+                                      sum(signifikant_adjusted, na.rm=TRUE)
+  ) %>%
+  gt() %>% tab_options(table.font.size = "14px")
+```
+
+---
+class: left
+
+## Teil 3: Visualisierung der Korrektur
+
+```{r bh-viz, echo=TRUE, message=FALSE, fig.align='center', out.width='70%'}
+p_values_adjusted %>%
+  mutate(variable = fct_reorder(variable, p_value)) %>%
+  ggplot(aes(y = variable)) +
+  geom_point(aes(x = p_value, color = "Roh"),
+             size = 2.5, alpha = 0.8) +
+  geom_point(aes(x = p_adjusted_BH, color = "BH-korrigiert"),
+             size = 2.5, alpha = 0.8, shape = 17) +
+  geom_vline(xintercept = 0.05, linetype = "dashed",
+             color = "#686868", linewidth = 0.8) +
+  scale_color_manual(values = c("Roh" = "#D50006",
+                                "BH-korrigiert" = "#502479")) +
+  labs(x = "p-Wert", y = "Variable", color = NULL,
+       title = "Rohes vs. BH-korrigiertes Signifikanzniveau",
+       subtitle = "Gestrichelte Linie: α = 0.05") +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+---
+class: left
+
+## Aufgaben
+
+.pull-left[
+### Pflichtaufgaben
+
+**A1:** Führen Sie die p-Hacking-Simulation mit `n_tests = 1000` durch. Wie viele zufällige Variablen sind signifikant? Entspricht das Ihrer Erwartung?
+
+**A2:** Wenden Sie zusätzlich zur BH-Korrektur auch die **Bonferroni-Korrektur** an (`method = "bonferroni"`). Vergleichen Sie die Ergebnisse. Welche Methode ist konservativer?
+
+```r
+p.adjust(p_values, method = "bonferroni")
+```
+
+**A3:** Welche der Bundesliga-Variablen bleibt nach BH-Korrektur signifikant? Macht das inhaltlich Sinn?
+]
+
+.pull-right[
+### Bonusaufgaben
+
+**B1:** Simulieren Sie das **p-Hacking-Szenario** eines Forschers: Testen Sie 20 Variablen mit `set.seed(1)` bis `set.seed(20)` und berichten Sie nur die signifikanten Ergebnisse. Wie viele "Entdeckungen" haben Sie?
+
+**B2:** Was ist der Unterschied zwischen FDR und FWER (Family-Wise Error Rate, kontrolliert von Bonferroni)? In welchem Kontext würden Sie welche Methode wählen?
+
+**B3:** Lesen Sie: [xkcd: Significant](https://xkcd.com/882/) — erklären Sie den Witz statistisch präzise.
+]
+
+---
+class: left
+
+## Lab 2 · Zusammenfassung
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1em; margin-top:0.5em;">
+
+<div style="background:#f5f0fa; border:1px solid #d0b8e8; border-radius:5px; padding:12px; font-size:0.82em;">
+<strong style="color:#502479;">Was wir gelernt haben</strong><br><br>
+✅ Bei 100 Tests mit α=0.05 sind ~5 Ergebnisse zufällig signifikant<br><br>
+✅ p-Hacking: selektives Berichten erzeugt scheinbare Entdeckungen<br><br>
+✅ FDR (Benjamini-Hochberg) kontrolliert den <em>Anteil</em> falscher Entdeckungen<br><br>
+✅ <code>p.adjust(p, method = "BH")</code> — eine Zeile Code schützt vor massenhaften falschen Treffern
+</div>
+
+<div style="background:#fff8e1; border:1px solid #f0d080; border-radius:5px; padding:12px; font-size:0.82em;">
+<strong style="color:#8a6200;">Praktische Faustregeln</strong><br><br>
+🔵 <strong>1 Test, klare Hypothese:</strong> α = 0.05 klassisch<br><br>
+🟣 <strong>Wenige Tests (5–20):</strong> Bonferroni-Korrektur<br><br>
+🔴 <strong>Viele Tests (>50):</strong> FDR (Benjamini-Hochberg)<br><br>
+⚠️ <strong>Data Mining ohne Hypothesen:</strong> immer FDR + inhaltliche Plausibilitätsprüfung!
+</div>
+
+</div>
+
+<br>
+
+.center[
+`r fa('circle-right')` **Überleitung:** Selbst echte Signifikanz sagt nichts über die **praktische Relevanz** — das kommt im nächsten Block.
+]

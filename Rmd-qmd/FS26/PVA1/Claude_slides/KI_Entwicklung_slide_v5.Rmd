@@ -1,0 +1,378 @@
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## KI: Zwei Schritte vor, einer zurück — und dann der Sprung
+
+<svg viewBox="0 0 900 260" width="100%" style="display:block; margin-top:-0.4em;">
+  <defs>
+    <style>
+      .ax  { stroke:#D50006; stroke-width:7; }
+      .tk  { stroke:#686868; stroke-width:1.5; }
+      .yr  { font-family:sans-serif; font-size:12px; font-weight:bold; fill:#333; text-anchor:middle; }
+      .lb  { font-family:sans-serif; font-size:10.5px; fill:#444; text-anchor:middle; }
+      .li  { font-family:sans-serif; font-size:10px; fill:#666; text-anchor:middle; font-style:italic; }
+      .er  { font-family:sans-serif; font-size:9px; font-style:italic; fill:#888; text-anchor:middle; }
+      .ct  { font-family:sans-serif; font-size:13px; font-weight:bold; text-anchor:middle; }
+      .ds  { stroke-dasharray:4,3; stroke-width:1.2; fill:none; }
+      .wi  { font-family:sans-serif; font-size:8.5px; font-weight:bold; fill:#2a6096; text-anchor:middle; }
+      .ws  { font-family:sans-serif; font-size:7.5px; fill:#2a6096; text-anchor:middle; }
+    </style>
+    <marker id="a0" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0,12 4,0 8" fill="#D50006"/>
+    </marker>
+  </defs>
+
+  <!-- Achse -->
+  <line class="ax" x1="42" y1="118" x2="872" y2="118" marker-end="url(#a0)"/>
+
+  <!-- Ticks + Jahre -->
+  <line class="tk" x1="80"  y1="111" x2="80"  y2="127"/> <text class="yr" x="80"  y="142">1950</text>
+  <line class="tk" x1="163" y1="111" x2="163" y2="127"/> <text class="yr" x="163" y="142">1960</text>
+  <line class="tk" x1="246" y1="111" x2="246" y2="127"/> <text class="yr" x="246" y="142">1970</text>
+  <line class="tk" x1="329" y1="111" x2="329" y2="127"/> <text class="yr" x="329" y="142">1980</text>
+  <line class="tk" x1="412" y1="111" x2="412" y2="127"/> <text class="yr" x="412" y="142">1990</text>
+  <line class="tk" x1="495" y1="111" x2="495" y2="127"/> <text class="yr" x="495" y="142">2000</text>
+  <line class="tk" x1="578" y1="111" x2="578" y2="127"/> <text class="yr" x="578" y="142">2010</text>
+  <line class="tk" x1="703" y1="111" x2="703" y2="127"/> <text class="yr" x="703" y="142">2020</text>
+  <line class="tk" x1="786" y1="111" x2="786" y2="127"/> <text class="yr" x="786" y="142">2025</text>
+
+  <!-- Paradigma-Bänder direkt unter Jahreszeile -->
+  <rect x="42"  y="150" width="287" height="15" rx="2" fill="#b3b2b2" fill-opacity="0.4"/>
+  <text class="er" x="185" y="161">„Datengetriebene" Algorithmen</text>
+
+  <!-- Frühphase Label oben -->
+  <text class="lb" x="122" y="52">Multivariate Statistik,</text>
+  <text class="li" x="122" y="65">Perceptron, Backprop.</text>
+  <line class="ds" x1="122" y1="69" x2="122" y2="111" stroke="#aaa"/>
+</svg>
+
+???
+* Schritt 1: Frühphase — erste datengetriebene Modelle
+
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## KI: Zwei Schritte vor, einer zurück — und dann der Sprung
+
+<svg viewBox="0 0 900 260" width="100%" style="display:block; margin-top:-0.4em;">
+  <defs>
+    <style>
+      .ax { stroke:#D50006; stroke-width:7; }
+      .tk { stroke:#686868; stroke-width:1.5; }
+      .yr { font-family:sans-serif; font-size:12px; font-weight:bold; fill:#333; text-anchor:middle; }
+      .lb { font-family:sans-serif; font-size:10.5px; fill:#444; text-anchor:middle; }
+      .li { font-family:sans-serif; font-size:10px; fill:#666; text-anchor:middle; font-style:italic; }
+      .er { font-family:sans-serif; font-size:9px; font-style:italic; fill:#888; text-anchor:middle; }
+      .ct { font-family:sans-serif; font-size:13px; font-weight:bold; text-anchor:middle; }
+      .ds { stroke-dasharray:4,3; stroke-width:1.2; fill:none; }
+      .wi { font-family:sans-serif; font-size:8.5px; font-weight:bold; fill:#2a6096; text-anchor:middle; }
+      .ws { font-family:sans-serif; font-size:7.5px; fill:#2a6096; text-anchor:middle; }
+    </style>
+    <marker id="a1" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0,12 4,0 8" fill="#D50006"/>
+    </marker>
+  </defs>
+
+  <line class="ax" x1="42" y1="118" x2="872" y2="118" marker-end="url(#a1)"/>
+  <line class="tk" x1="80"  y1="111" x2="80"  y2="127"/> <text class="yr" x="80"  y="142">1950</text>
+  <line class="tk" x1="163" y1="111" x2="163" y2="127"/> <text class="yr" x="163" y="142">1960</text>
+  <line class="tk" x1="246" y1="111" x2="246" y2="127"/> <text class="yr" x="246" y="142">1970</text>
+  <line class="tk" x1="329" y1="111" x2="329" y2="127"/> <text class="yr" x="329" y="142">1980</text>
+  <line class="tk" x1="412" y1="111" x2="412" y2="127"/> <text class="yr" x="412" y="142">1990</text>
+  <line class="tk" x1="495" y1="111" x2="495" y2="127"/> <text class="yr" x="495" y="142">2000</text>
+  <line class="tk" x1="578" y1="111" x2="578" y2="127"/> <text class="yr" x="578" y="142">2010</text>
+  <line class="tk" x1="703" y1="111" x2="703" y2="127"/> <text class="yr" x="703" y="142">2020</text>
+  <line class="tk" x1="786" y1="111" x2="786" y2="127"/> <text class="yr" x="786" y="142">2025</text>
+
+  <!-- Bänder -->
+  <rect x="42"  y="150" width="287" height="15" rx="2" fill="#b3b2b2" fill-opacity="0.4"/>
+  <text class="er" x="185" y="161">„Datengetriebene" Algorithmen</text>
+  <rect x="329" y="150" width="166" height="15" rx="2" fill="#502479" fill-opacity="0.15"/>
+  <text class="er" x="412" y="161">„Wissensbasierte" Alg.</text>
+
+  <!-- KI-Winter 1: blauer Balken auf Achse + Label unter Bändern -->
+  <rect x="246" y="118" width="83" height="8" rx="2" fill="#7ab3e0" fill-opacity="0.8"/>
+  <text class="wi" x="287" y="180">❄ 1. KI-Winter</text>
+  <text class="ws" x="287" y="191">~1974–1980</text>
+
+  <!-- Expertensysteme -->
+  <text class="lb" x="380" y="52">Expertensysteme</text>
+  <text class="li" x="380" y="65">(regelbasiert)</text>
+  <line class="ds" x1="380" y1="69" x2="380" y2="111" stroke="#aaa"/>
+
+  <!-- Frühphase -->
+  <text class="lb" x="122" y="52">Multivariate Statistik,</text>
+  <text class="li" x="122" y="65">Perceptron, Backprop.</text>
+  <line class="ds" x1="122" y1="69" x2="122" y2="111" stroke="#aaa"/>
+</svg>
+
+???
+* Schritt 2: 1. KI-Winter + Wissensbasierte Systeme
+
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## KI: Zwei Schritte vor, einer zurück — und dann der Sprung
+
+<svg viewBox="0 0 900 260" width="100%" style="display:block; margin-top:-0.4em;">
+  <defs>
+    <style>
+      .ax { stroke:#D50006; stroke-width:7; }
+      .tk { stroke:#686868; stroke-width:1.5; }
+      .yr { font-family:sans-serif; font-size:12px; font-weight:bold; fill:#333; text-anchor:middle; }
+      .lb { font-family:sans-serif; font-size:10.5px; fill:#444; text-anchor:middle; }
+      .li { font-family:sans-serif; font-size:10px; fill:#666; text-anchor:middle; font-style:italic; }
+      .er { font-family:sans-serif; font-size:9px; font-style:italic; fill:#888; text-anchor:middle; }
+      .ct { font-family:sans-serif; font-size:13px; font-weight:bold; text-anchor:middle; }
+      .ds { stroke-dasharray:4,3; stroke-width:1.2; fill:none; }
+      .wi { font-family:sans-serif; font-size:8.5px; font-weight:bold; fill:#2a6096; text-anchor:middle; }
+      .ws { font-family:sans-serif; font-size:7.5px; fill:#2a6096; text-anchor:middle; }
+    </style>
+    <marker id="a2" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0,12 4,0 8" fill="#D50006"/>
+    </marker>
+  </defs>
+
+  <line class="ax" x1="42" y1="118" x2="872" y2="118" marker-end="url(#a2)"/>
+  <line class="tk" x1="80"  y1="111" x2="80"  y2="127"/> <text class="yr" x="80"  y="142">1950</text>
+  <line class="tk" x1="163" y1="111" x2="163" y2="127"/> <text class="yr" x="163" y="142">1960</text>
+  <line class="tk" x1="246" y1="111" x2="246" y2="127"/> <text class="yr" x="246" y="142">1970</text>
+  <line class="tk" x1="329" y1="111" x2="329" y2="127"/> <text class="yr" x="329" y="142">1980</text>
+  <line class="tk" x1="412" y1="111" x2="412" y2="127"/> <text class="yr" x="412" y="142">1990</text>
+  <line class="tk" x1="495" y1="111" x2="495" y2="127"/> <text class="yr" x="495" y="142">2000</text>
+  <line class="tk" x1="578" y1="111" x2="578" y2="127"/> <text class="yr" x="578" y="142">2010</text>
+  <line class="tk" x1="703" y1="111" x2="703" y2="127"/> <text class="yr" x="703" y="142">2020</text>
+  <line class="tk" x1="786" y1="111" x2="786" y2="127"/> <text class="yr" x="786" y="142">2025</text>
+
+  <!-- Alle Bänder -->
+  <rect x="42"  y="150" width="287" height="15" rx="2" fill="#b3b2b2" fill-opacity="0.4"/>
+  <text class="er" x="185" y="161">„Datengetriebene" Algorithmen</text>
+  <rect x="329" y="150" width="166" height="15" rx="2" fill="#502479" fill-opacity="0.15"/>
+  <text class="er" x="412" y="161">„Wissensbasierte" Alg.</text>
+  <rect x="495" y="150" width="208" height="15" rx="2" fill="#7d0a52" fill-opacity="0.15"/>
+  <text class="er" x="599" y="161">„Datengetriebene" Algorithmen</text>
+
+  <!-- KI-Winter 1 -->
+  <rect x="246" y="118" width="83" height="8" rx="2" fill="#7ab3e0" fill-opacity="0.8"/>
+  <text class="wi" x="287" y="180">❄ 1. KI-Winter</text>
+  <text class="ws" x="287" y="191">~1974–1980</text>
+
+  <!-- KI-Winter 2 -->
+  <rect x="412" y="118" width="83" height="8" rx="2" fill="#7ab3e0" fill-opacity="0.8"/>
+  <text class="wi" x="453" y="180">❄ 2. KI-Winter</text>
+  <text class="ws" x="453" y="191">~1987–1993</text>
+
+  <!-- Predictive AI -->
+  <rect x="495" y="110" width="208" height="8" rx="0" fill="#7d0a52" fill-opacity="0.2"/>
+  <text class="ct" x="560" y="38" fill="#7d0a52">Predictive AI</text>
+  <text class="lb" x="560" y="54">Machine Learning,</text>
+  <text class="lb" x="560" y="68">Deep Learning</text>
+  <line class="ds" x1="536" y1="72" x2="536" y2="110" stroke="#7d0a52" stroke-width="1.5"/>
+
+  <!-- Frühphase + Expertensysteme -->
+  <text class="lb" x="122" y="52">Multivariate Statistik,</text>
+  <text class="li" x="122" y="65">Perceptron, Backprop.</text>
+  <line class="ds" x1="122" y1="69" x2="122" y2="111" stroke="#aaa"/>
+  <text class="lb" x="380" y="52">Expertensysteme</text>
+  <text class="li" x="380" y="65">(regelbasiert)</text>
+  <line class="ds" x1="380" y1="69" x2="380" y2="111" stroke="#aaa"/>
+</svg>
+
+???
+* Schritt 3: 2. KI-Winter + Predictive AI Renaissance
+
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## KI: Zwei Schritte vor, einer zurück — und dann der Sprung
+
+<svg viewBox="0 0 900 260" width="100%" style="display:block; margin-top:-0.4em;">
+  <defs>
+    <style>
+      .ax { stroke:#D50006; stroke-width:7; }
+      .tk { stroke:#686868; stroke-width:1.5; }
+      .yr { font-family:sans-serif; font-size:12px; font-weight:bold; fill:#333; text-anchor:middle; }
+      .lb { font-family:sans-serif; font-size:10.5px; fill:#444; text-anchor:middle; }
+      .li { font-family:sans-serif; font-size:10px; fill:#666; text-anchor:middle; font-style:italic; }
+      .er { font-family:sans-serif; font-size:9px; font-style:italic; fill:#888; text-anchor:middle; }
+      .ct { font-family:sans-serif; font-size:13px; font-weight:bold; text-anchor:middle; }
+      .ds { stroke-dasharray:4,3; stroke-width:1.2; fill:none; }
+      .wi { font-family:sans-serif; font-size:8.5px; font-weight:bold; fill:#2a6096; text-anchor:middle; }
+      .ws { font-family:sans-serif; font-size:7.5px; fill:#2a6096; text-anchor:middle; }
+    </style>
+    <marker id="a3" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0,12 4,0 8" fill="#D50006"/>
+    </marker>
+  </defs>
+
+  <line class="ax" x1="42" y1="118" x2="872" y2="118" marker-end="url(#a3)"/>
+  <line class="tk" x1="80"  y1="111" x2="80"  y2="127"/> <text class="yr" x="80"  y="142">1950</text>
+  <line class="tk" x1="163" y1="111" x2="163" y2="127"/> <text class="yr" x="163" y="142">1960</text>
+  <line class="tk" x1="246" y1="111" x2="246" y2="127"/> <text class="yr" x="246" y="142">1970</text>
+  <line class="tk" x1="329" y1="111" x2="329" y2="127"/> <text class="yr" x="329" y="142">1980</text>
+  <line class="tk" x1="412" y1="111" x2="412" y2="127"/> <text class="yr" x="412" y="142">1990</text>
+  <line class="tk" x1="495" y1="111" x2="495" y2="127"/> <text class="yr" x="495" y="142">2000</text>
+  <line class="tk" x1="578" y1="111" x2="578" y2="127"/> <text class="yr" x="578" y="142">2010</text>
+  <line class="tk" x1="703" y1="111" x2="703" y2="127"/> <text class="yr" x="703" y="142">2020</text>
+  <line class="tk" x1="786" y1="111" x2="786" y2="127"/> <text class="yr" x="786" y="142">2025</text>
+
+  <!-- Alle Bänder -->
+  <rect x="42"  y="150" width="287" height="15" rx="2" fill="#b3b2b2" fill-opacity="0.4"/>
+  <text class="er" x="185" y="161">„Datengetriebene" Algorithmen</text>
+  <rect x="329" y="150" width="166" height="15" rx="2" fill="#502479" fill-opacity="0.15"/>
+  <text class="er" x="412" y="161">„Wissensbasierte" Alg.</text>
+  <rect x="495" y="150" width="208" height="15" rx="2" fill="#7d0a52" fill-opacity="0.15"/>
+  <text class="er" x="599" y="161">„Datengetriebene" Algorithmen</text>
+  <rect x="703" y="150" width="83" height="15" rx="2" fill="#D50006" fill-opacity="0.13"/>
+  <text class="er" x="744" y="161">multimodal</text>
+
+  <!-- KI-Winter -->
+  <rect x="246" y="118" width="83" height="8" rx="2" fill="#7ab3e0" fill-opacity="0.8"/>
+  <text class="wi" x="287" y="180">❄ 1. KI-Winter</text>
+  <text class="ws" x="287" y="191">~1974–1980</text>
+  <rect x="412" y="118" width="83" height="8" rx="2" fill="#7ab3e0" fill-opacity="0.8"/>
+  <text class="wi" x="453" y="180">❄ 2. KI-Winter</text>
+  <text class="ws" x="453" y="191">~1987–1993</text>
+
+  <!-- Predictive AI -->
+  <rect x="495" y="110" width="208" height="8" rx="0" fill="#7d0a52" fill-opacity="0.2"/>
+  <text class="ct" x="560" y="38" fill="#7d0a52">Predictive AI</text>
+  <text class="lb" x="560" y="54">Machine Learning,</text>
+  <text class="lb" x="560" y="68">Deep Learning</text>
+  <line class="ds" x1="536" y1="72" x2="536" y2="110" stroke="#7d0a52" stroke-width="1.5"/>
+
+  <!-- Generative AI NEU -->
+  <rect x="703" y="110" width="83" height="8" rx="0" fill="#D50006" fill-opacity="0.25"/>
+  <text class="ct" x="730" y="38" fill="#D50006">Generative AI</text>
+  <text class="lb" x="730" y="54">Foundation Models,</text>
+  <text class="lb" x="730" y="68">Transformer, GPT…</text>
+  <line class="ds" x1="703" y1="72" x2="703" y2="110" stroke="#D50006" stroke-width="1.5"/>
+
+  <!-- Frühere Labels -->
+  <text class="lb" x="122" y="52">Multivariate Statistik,</text>
+  <text class="li" x="122" y="65">Perceptron, Backprop.</text>
+  <line class="ds" x1="122" y1="69" x2="122" y2="111" stroke="#aaa"/>
+  <text class="lb" x="380" y="52">Expertensysteme</text>
+  <text class="li" x="380" y="65">(regelbasiert)</text>
+  <line class="ds" x1="380" y1="69" x2="380" y2="111" stroke="#aaa"/>
+</svg>
+
+???
+* Schritt 4: Generative AI — Transformer als Wendepunkt
+
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## KI: Zwei Schritte vor, einer zurück — und dann der Sprung
+
+<svg viewBox="0 0 900 260" width="100%" style="display:block; margin-top:-0.4em;">
+  <defs>
+    <style>
+      .ax { stroke:#D50006; stroke-width:7; }
+      .tk { stroke:#686868; stroke-width:1.5; }
+      .yr { font-family:sans-serif; font-size:12px; font-weight:bold; fill:#333; text-anchor:middle; }
+      .lb { font-family:sans-serif; font-size:10.5px; fill:#444; text-anchor:middle; }
+      .li { font-family:sans-serif; font-size:10px; fill:#666; text-anchor:middle; font-style:italic; }
+      .er { font-family:sans-serif; font-size:9px; font-style:italic; fill:#888; text-anchor:middle; }
+      .ct { font-family:sans-serif; font-size:13px; font-weight:bold; text-anchor:middle; }
+      .ds { stroke-dasharray:4,3; stroke-width:1.2; fill:none; }
+      .wi { font-family:sans-serif; font-size:8.5px; font-weight:bold; fill:#2a6096; text-anchor:middle; }
+      .ws { font-family:sans-serif; font-size:7.5px; fill:#2a6096; text-anchor:middle; }
+    </style>
+    <marker id="a4" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0,12 4,0 8" fill="#D50006"/>
+    </marker>
+  </defs>
+
+  <line class="ax" x1="42" y1="118" x2="872" y2="118" marker-end="url(#a4)"/>
+  <line class="tk" x1="80"  y1="111" x2="80"  y2="127"/> <text class="yr" x="80"  y="142">1950</text>
+  <line class="tk" x1="163" y1="111" x2="163" y2="127"/> <text class="yr" x="163" y="142">1960</text>
+  <line class="tk" x1="246" y1="111" x2="246" y2="127"/> <text class="yr" x="246" y="142">1970</text>
+  <line class="tk" x1="329" y1="111" x2="329" y2="127"/> <text class="yr" x="329" y="142">1980</text>
+  <line class="tk" x1="412" y1="111" x2="412" y2="127"/> <text class="yr" x="412" y="142">1990</text>
+  <line class="tk" x1="495" y1="111" x2="495" y2="127"/> <text class="yr" x="495" y="142">2000</text>
+  <line class="tk" x1="578" y1="111" x2="578" y2="127"/> <text class="yr" x="578" y="142">2010</text>
+  <line class="tk" x1="703" y1="111" x2="703" y2="127"/> <text class="yr" x="703" y="142">2020</text>
+  <line class="tk" x1="786" y1="111" x2="786" y2="127"/> <text class="yr" x="786" y="142">2025</text>
+
+  <!-- Alle Bänder inkl. Agentic -->
+  <rect x="42"  y="150" width="287" height="15" rx="2" fill="#b3b2b2" fill-opacity="0.4"/>
+  <text class="er" x="185" y="161">„Datengetriebene" Algorithmen</text>
+  <rect x="329" y="150" width="166" height="15" rx="2" fill="#502479" fill-opacity="0.15"/>
+  <text class="er" x="412" y="161">„Wissensbasierte" Alg.</text>
+  <rect x="495" y="150" width="208" height="15" rx="2" fill="#7d0a52" fill-opacity="0.15"/>
+  <text class="er" x="599" y="161">„Datengetriebene" Algorithmen</text>
+  <rect x="703" y="150" width="83" height="15" rx="2" fill="#D50006" fill-opacity="0.13"/>
+  <text class="er" x="744" y="161">multimodal</text>
+  <rect x="786" y="150" width="60" height="15" rx="2" fill="#502479" fill-opacity="0.18"/>
+  <text class="er" x="816" y="161">2024+</text>
+
+  <!-- KI-Winter -->
+  <rect x="246" y="118" width="83" height="8" rx="2" fill="#7ab3e0" fill-opacity="0.8"/>
+  <text class="wi" x="287" y="180">❄ 1. KI-Winter</text>
+  <text class="ws" x="287" y="191">~1974–1980</text>
+  <rect x="412" y="118" width="83" height="8" rx="2" fill="#7ab3e0" fill-opacity="0.8"/>
+  <text class="wi" x="453" y="180">❄ 2. KI-Winter</text>
+  <text class="ws" x="453" y="191">~1987–1993</text>
+
+  <!-- Alle AI-Labels -->
+  <text class="lb" x="122" y="52">Multivariate Statistik,</text>
+  <text class="li" x="122" y="65">Perceptron, Backprop.</text>
+  <line class="ds" x1="122" y1="69" x2="122" y2="111" stroke="#aaa"/>
+  <text class="lb" x="380" y="52">Expertensysteme</text>
+  <text class="li" x="380" y="65">(regelbasiert)</text>
+  <line class="ds" x1="380" y1="69" x2="380" y2="111" stroke="#aaa"/>
+
+  <rect x="495" y="110" width="208" height="8" rx="0" fill="#7d0a52" fill-opacity="0.2"/>
+  <text class="ct" x="560" y="38" fill="#7d0a52">Predictive AI</text>
+  <text class="lb" x="560" y="54">Machine Learning,</text>
+  <text class="lb" x="560" y="68">Deep Learning</text>
+  <line class="ds" x1="536" y1="72" x2="536" y2="110" stroke="#7d0a52" stroke-width="1.5"/>
+
+  <rect x="703" y="110" width="83" height="8" rx="0" fill="#D50006" fill-opacity="0.25"/>
+  <text class="ct" x="730" y="38" fill="#D50006">Generative AI</text>
+  <text class="lb" x="730" y="54">Foundation Models,</text>
+  <text class="lb" x="730" y="68">Transformer, GPT…</text>
+  <line class="ds" x1="703" y1="72" x2="703" y2="110" stroke="#D50006" stroke-width="1.5"/>
+
+  <!-- Agentic AI NEU -->
+  <rect x="786" y="110" width="60" height="8" rx="0" fill="#502479" fill-opacity="0.28"/>
+  <text class="ct" x="820" y="38" fill="#502479">Agentic AI</text>
+  <text class="lb" x="820" y="54">autonom,</text>
+  <text class="lb" x="820" y="68">multi-step</text>
+  <line class="ds" x1="800" y1="72" x2="800" y2="110" stroke="#502479" stroke-width="1.5"/>
+</svg>
+
+<!-- Treiber-Box direkt unter SVG, kein Whitespace -->
+.small[
+<div style="border:1px solid #b3b2b2; border-radius:5px;
+            padding:5px 14px; background:#f9f9f9; margin-top:0.3em;">
+<strong>Warum der Durchbruch ab 2000?</strong> &emsp;
+`r fa('microchip')` Rechenkapazität &nbsp;·&nbsp;
+`r fa('database')` Große Datenmengen &nbsp;·&nbsp;
+`r fa('cloud')` Open-Source &amp; Cloud &nbsp;·&nbsp;
+`r fa('arrow-trend-up')` Kritische Masse
+&emsp;<span style="color:#D50006; font-weight:bold;">→ selbstverstärkender Kreislauf</span>
+</div>
+]
+
+???
+* Schritt 5: Agentic AI + Treiber-Box
+* KI-Winter: Überhöhte Erwartungen → Förderkürzungen
+* Transformer 2017: Vaswani et al. "Attention is all you need"
+* Narrow AI: Schachcomputer schlägt Kasparov, spielt aber kein Go

@@ -1,0 +1,261 @@
+---
+class: left
+
+.blockquote[Big Picture & Data Strategy]
+
+## KI: Zwei Schritte vor, einer zurück — und dann der Sprung
+
+.panelset[
+
+<!-- ============================================================ -->
+<!-- TAB 1: TIMELINE — baut sich in 6 Fragmenten auf            -->
+<!-- ============================================================ -->
+.panel[.panel-name[70 Jahre in 5 Minuten]
+
+<svg viewBox="0 0 900 230" width="100%" style="display:block; margin-top:-0.2em;">
+  <defs>
+    <style>
+      .tl-axis  { stroke: #D50006; stroke-width: 7; }
+      .tl-tick  { stroke: #686868; stroke-width: 1.5; }
+      .tl-year  { font-family: sans-serif; font-size: 12px; font-weight: bold;
+                  fill: #333; text-anchor: middle; }
+      .tl-lbl   { font-family: sans-serif; font-size: 10.5px; fill: #444;
+                  text-anchor: middle; }
+      .tl-lbl-i { font-family: sans-serif; font-size: 10px; fill: #666;
+                  text-anchor: middle; font-style: italic; }
+      .tl-era   { font-family: sans-serif; font-size: 10px; font-style: italic;
+                  fill: #888; text-anchor: middle; }
+      .tl-cat   { font-family: sans-serif; font-size: 12.5px; font-weight: bold;
+                  text-anchor: middle; }
+      .tl-dash  { stroke-dasharray: 4,3; stroke-width: 1.2; fill: none; }
+    </style>
+    <marker id="arr2" markerWidth="12" markerHeight="8"
+            refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#D50006"/>
+    </marker>
+    <!-- Eismuster für KI-Winter -->
+    <pattern id="ice" patternUnits="userSpaceOnUse" width="8" height="8">
+      <rect width="8" height="8" fill="#ddeeff"/>
+      <line x1="0" y1="4" x2="8" y2="4" stroke="#aac8ee" stroke-width="0.5"/>
+      <line x1="4" y1="0" x2="4" y2="8" stroke="#aac8ee" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- ── Grundachse (immer sichtbar) ── -->
+  <line class="tl-axis" x1="42" y1="128" x2="868" y2="128"
+        marker-end="url(#arr2)"/>
+
+  <!-- ── Jahres-Ticks & Labels (immer sichtbar) ── -->
+  <line class="tl-tick" x1="80"  y1="120" x2="80"  y2="138"/>
+  <text class="tl-year" x="80"  y="152">1950</text>
+  <line class="tl-tick" x1="163" y1="120" x2="163" y2="138"/>
+  <text class="tl-year" x="163" y="152">1960</text>
+  <line class="tl-tick" x1="246" y1="120" x2="246" y2="138"/>
+  <text class="tl-year" x="246" y="152">1970</text>
+  <line class="tl-tick" x1="329" y1="120" x2="329" y2="138"/>
+  <text class="tl-year" x="329" y="152">1980</text>
+  <line class="tl-tick" x1="412" y1="120" x2="412" y2="138"/>
+  <text class="tl-year" x="412" y="152">1990</text>
+  <line class="tl-tick" x1="495" y1="120" x2="495" y2="138"/>
+  <text class="tl-year" x="495" y="152">2000</text>
+  <line class="tl-tick" x1="578" y1="120" x2="578" y2="138"/>
+  <text class="tl-year" x="578" y="152">2010</text>
+  <line class="tl-tick" x1="703" y1="120" x2="703" y2="138"/>
+  <text class="tl-year" x="703" y="152">2020</text>
+  <line class="tl-tick" x1="786" y1="120" x2="786" y2="138"/>
+  <text class="tl-year" x="786" y="152">2025</text>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- FRAGMENT 1: Frühphase                                     -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <g class="fragment">
+    <!-- Paradigma-Band unten: früh datengetrieben -->
+    <rect x="42" y="162" width="287" height="18" rx="3"
+          fill="#b3b2b2" fill-opacity="0.3"/>
+    <text class="tl-era" x="185" y="175">„Datengetriebene" Algorithmen</text>
+    <!-- Label oben -->
+    <text class="tl-lbl"   x="120" y="68">Multivariate Statistik,</text>
+    <text class="tl-lbl-i" x="120" y="82">Perceptron, Backprop.</text>
+    <line class="tl-dash" x1="120" y1="86" x2="120" y2="122" stroke="#aaa"/>
+  </g>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- FRAGMENT 2: 1. KI-Winter + Expertensysteme               -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <g class="fragment">
+    <!-- Eisfeld KI-Winter 1: ~1974–1980 (x=246 bis x=329) -->
+    <rect x="246" y="110" width="83" height="36" rx="0"
+          fill="url(#ice)" stroke="#aac8ee" stroke-width="1"/>
+    <text style="font-family:sans-serif;font-size:8.5px;font-weight:bold;
+                 fill:#4477aa;text-anchor:middle" x="287" y="125">❄ 1. KI-Winter</text>
+    <text style="font-family:sans-serif;font-size:7.5px;fill:#4477aa;text-anchor:middle"
+          x="287" y="138">~1974–1980</text>
+
+    <!-- Paradigma-Band: Wissensbasiert -->
+    <rect x="329" y="162" width="166" height="18" rx="3"
+          fill="#502479" fill-opacity="0.12"/>
+    <text class="tl-era" x="412" y="175">„Wissensbasierte" Algorithmen</text>
+
+    <!-- Expertensysteme -->
+    <text class="tl-lbl"   x="370" y="68">Expertensysteme</text>
+    <text class="tl-lbl-i" x="370" y="82">(regelbasiert)</text>
+    <line class="tl-dash" x1="370" y1="86" x2="370" y2="122" stroke="#aaa"/>
+  </g>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- FRAGMENT 3: 2. KI-Winter + ML-Renaissance                -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <g class="fragment">
+    <!-- Eisfeld KI-Winter 2: ~1987–1993 (x=412 bis x=495) -->
+    <rect x="412" y="110" width="83" height="36" rx="0"
+          fill="url(#ice)" stroke="#aac8ee" stroke-width="1"/>
+    <text style="font-family:sans-serif;font-size:8.5px;font-weight:bold;
+                 fill:#4477aa;text-anchor:middle" x="453" y="125">❄ 2. KI-Winter</text>
+    <text style="font-family:sans-serif;font-size:7.5px;fill:#4477aa;text-anchor:middle"
+          x="453" y="138">~1987–1993</text>
+
+    <!-- Paradigma-Band: Datengetrieben neu -->
+    <rect x="495" y="162" width="208" height="18" rx="3"
+          fill="#7d0a52" fill-opacity="0.15"/>
+    <text class="tl-era" x="599" y="175">„Datengetriebene" Algorithmen</text>
+
+    <!-- Predictive AI -->
+    <text class="tl-cat" x="536" y="36" fill="#7d0a52">Predictive AI</text>
+    <text class="tl-lbl" x="536" y="52">Machine Learning,</text>
+    <text class="tl-lbl" x="536" y="66">Deep Learning</text>
+    <line class="tl-dash" x1="536" y1="70" x2="536" y2="122"
+          stroke="#7d0a52" stroke-width="1.5"/>
+    <rect x="495" y="110" width="208" height="18" rx="0"
+          fill="#7d0a52" fill-opacity="0.18"/>
+  </g>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- FRAGMENT 4: Generative AI                                 -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <g class="fragment">
+    <!-- Generative AI -->
+    <text class="tl-cat" x="724" y="36" fill="#D50006">Generative AI</text>
+    <text class="tl-lbl" x="724" y="52">Foundation Models,</text>
+    <text class="tl-lbl" x="724" y="66">Transformer, GPT…</text>
+    <line class="tl-dash" x1="703" y1="70" x2="703" y2="122"
+          stroke="#D50006" stroke-width="1.5"/>
+    <rect x="703" y="110" width="83" height="18" rx="0"
+          fill="#D50006" fill-opacity="0.2"/>
+    <rect x="703" y="162" width="83" height="18" rx="3"
+          fill="#D50006" fill-opacity="0.12"/>
+    <text class="tl-era" x="744" y="175">multimodal</text>
+  </g>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- FRAGMENT 5: Agentic AI                                    -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <g class="fragment">
+    <text class="tl-cat" x="820" y="36" fill="#502479">Agentic AI</text>
+    <text class="tl-lbl" x="820" y="52">autonom,</text>
+    <text class="tl-lbl" x="820" y="66">multi-step</text>
+    <line class="tl-dash" x1="786" y1="70" x2="786" y2="122"
+          stroke="#502479" stroke-width="1.5"/>
+    <rect x="786" y="110" width="60" height="18" rx="0"
+          fill="#502479" fill-opacity="0.22"/>
+    <rect x="786" y="162" width="60" height="18" rx="3"
+          fill="#502479" fill-opacity="0.15"/>
+    <text class="tl-era" x="816" y="175">2024+</text>
+  </g>
+
+</svg>
+
+<!-- Fragment 6: Treiber-Box als HTML unter dem SVG -->
+.fragment[
+.small[
+<div style="border:1px solid #b3b2b2; border-radius:5px; padding:6px 14px;
+            background:#f9f9f9; margin-top:0.2em;">
+<strong>Warum der Durchbruch ab 2000?</strong> &nbsp;&nbsp;
+`r fa('microchip')` Rechenkapazität &nbsp;·&nbsp;
+`r fa('database')` Große Datenmengen &nbsp;·&nbsp;
+`r fa('cloud')` Open-Source &amp; Cloud &nbsp;·&nbsp;
+`r fa('arrow-trend-up')` Kritische Masse an Anwendungen
+&nbsp;&nbsp;<span style="color:#D50006; font-weight:bold;">→ selbstverstärkender Kreislauf</span>
+</div>
+]
+]
+
+]
+
+<!-- ============================================================ -->
+<!-- TAB 2: DREI PARADIGMEN                                       -->
+<!-- ============================================================ -->
+.panel[.panel-name[Drei Paradigmen]
+
+<svg viewBox="0 0 900 260" width="100%" style="display:block; margin-top:0.2em;">
+  <defs>
+    <style>
+      .sw-hdr  { font-family: sans-serif; font-size: 14px; font-weight: bold;
+                 fill: white; text-anchor: middle; }
+      .sw-yr   { font-family: sans-serif; font-size: 10px; fill: rgba(255,255,255,0.85);
+                 text-anchor: middle; font-style: italic; }
+      .sw-body { font-family: sans-serif; font-size: 10.5px; fill: #333;
+                 text-anchor: start; }
+      .sw-note { font-family: sans-serif; font-size: 9.5px; fill: #777;
+                 text-anchor: start; font-style: italic; }
+    </style>
+  </defs>
+
+  <!-- ── Predictive AI ── -->
+  <rect x="15"  y="15" width="278" height="40" rx="5" fill="#7d0a52"/>
+  <text class="sw-hdr" x="154" y="32">Predictive AI</text>
+  <text class="sw-yr"  x="154" y="48">ca. 2000 – 2018</text>
+  <rect x="15" y="57" width="278" height="188" rx="0"
+        fill="#7d0a52" fill-opacity="0.07" stroke="#7d0a52" stroke-width="1"/>
+  <text class="sw-body" x="28" y="82">Maschinelles Lernen, Deep Learning</text>
+  <text class="sw-body" x="28" y="102">Aufgabe: <tspan font-weight="bold">Vorhersage</tspan> aus Mustern</text>
+  <text class="sw-body" x="28" y="120">Input → Label (klassifizieren, schätzen)</text>
+  <text class="sw-body" x="28" y="146" fill="#7d0a52" font-weight="bold">Beispiele:</text>
+  <text class="sw-body" x="28" y="163">Netflix, Spam-Filter, Kreditscoring,</text>
+  <text class="sw-body" x="28" y="179">AlphaFold</text>
+  <text class="sw-note" x="28" y="205">Daten: strukturiert, gelabelt</text>
+  <text class="sw-note" x="28" y="221">Grenze: Ein Modell = eine Aufgabe</text>
+
+  <!-- ── Generative AI ── -->
+  <rect x="311" y="15" width="278" height="40" rx="5" fill="#D50006"/>
+  <text class="sw-hdr" x="450" y="32">Generative AI</text>
+  <text class="sw-yr"  x="450" y="48">ca. 2018 – 2024</text>
+  <rect x="311" y="57" width="278" height="188" rx="0"
+        fill="#D50006" fill-opacity="0.07" stroke="#D50006" stroke-width="1"/>
+  <text class="sw-body" x="324" y="82">Foundation Models, Transformer</text>
+  <text class="sw-body" x="324" y="102">Aufgabe: <tspan font-weight="bold">Generieren</tspan> von Inhalten</text>
+  <text class="sw-body" x="324" y="120">Prompt → Text, Bild, Code, Audio</text>
+  <text class="sw-body" x="324" y="146" fill="#D50006" font-weight="bold">Beispiele:</text>
+  <text class="sw-body" x="324" y="163">GPT-4, Claude, Gemini, DALL-E,</text>
+  <text class="sw-body" x="324" y="179">Stable Diffusion, Copilot</text>
+  <text class="sw-note" x="324" y="205">Daten: unstrukturiert, riesige Mengen</text>
+  <text class="sw-note" x="324" y="221">Grenze: kein autonomes Handeln</text>
+
+  <!-- ── Agentic AI ── -->
+  <rect x="607" y="15" width="278" height="40" rx="5" fill="#502479"/>
+  <text class="sw-hdr" x="746" y="32">Agentic AI</text>
+  <text class="sw-yr"  x="746" y="48">ab 2024 (im Entstehen)</text>
+  <rect x="607" y="57" width="278" height="188" rx="0"
+        fill="#502479" fill-opacity="0.07" stroke="#502479" stroke-width="1"/>
+  <text class="sw-body" x="620" y="82">Multi-Agenten-Systeme, LLM-Chains</text>
+  <text class="sw-body" x="620" y="102">Aufgabe: <tspan font-weight="bold">Autonom handeln</tspan>, planen</text>
+  <text class="sw-body" x="620" y="120">Ziel → mehrstufige Entscheidungen</text>
+  <text class="sw-body" x="620" y="146" fill="#502479" font-weight="bold">Beispiele:</text>
+  <text class="sw-body" x="620" y="163">Devin AI, CrewAI, AutoGPT,</text>
+  <text class="sw-body" x="620" y="179">Claude Computer Use</text>
+  <text class="sw-note" x="620" y="205">Daten: dynamisch, Werkzeuge, APIs</text>
+  <text class="sw-note" x="620" y="221">Grenze: Kontrolle, Halluzination</text>
+
+</svg>
+
+]
+
+]
+
+???
+
+* Folientitel: "Zwei Schritte vor, einer zurück" = KI-Winter als Rückschläge,
+  "der Sprung" = Transformer 2017 als echter Wendepunkt
+* KI-Winter: Überhöhte Erwartungen + ausbleibende Ergebnisse → Förderkürzungen
+* Transformer: Vaswani et al. 2017 "Attention is all you need"
+* Narrow AI: Schachcomputer schlägt Kasparov, spielt aber kein Go
+* Im Modul: Predictive AI als Fundament — Regression, Klassifikation, Scoring

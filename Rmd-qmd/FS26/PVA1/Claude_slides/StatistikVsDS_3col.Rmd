@@ -1,0 +1,361 @@
+---
+class: left
+count: false
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<style>
+.vs3-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5em;
+  margin-top: 0.25em;
+}
+.vs3-hdr {
+  color: white; font-family: sans-serif; font-size: 11.5px; font-weight: bold;
+  padding: 5px 10px; border-radius: 4px; text-align: center;
+}
+.vs3-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5em; margin-top: 0.28em;
+}
+.vs3-dim {
+  font-family: sans-serif; font-size: 9px; font-weight: bold;
+  text-transform: uppercase; letter-spacing: 0.05em; color: #777;
+  padding: 2px 8px; background: #f5f5f5; border-radius: 3px;
+  grid-column: 1 / -1;
+}
+.vs3-cell {
+  border-radius: 4px; padding: 5px 8px;
+  font-size: 0.73em; line-height: 1.42;
+}
+.vs3-chip {
+  background: rgba(0,0,0,0.07); border-radius: 3px;
+  padding: 1px 4px; font-size: 0.87em;
+  display: inline-block; margin: 1px 1px;
+}
+.vs3-bridge {
+  background: rgba(0,0,0,0.04); border-radius: 3px;
+  padding: 1px 4px; font-size: 0.87em;
+  display: inline-block; margin: 1px 1px;
+  color: #555;
+}
+</style>
+
+<!-- Header -->
+<div class="vs3-grid" style="margin-top:0.15em;">
+  <div class="vs3-hdr" style="background:#502479;">
+    `r fa('chart-line', fill='white')` &nbsp;Klassische Statistik
+  </div>
+  <div class="vs3-hdr" style="background:#686868;">
+    `r fa('arrows-left-right', fill='white')` &nbsp;Übergang / Brücke
+  </div>
+  <div class="vs3-hdr" style="background:#D50006;">
+    `r fa('robot', fill='white')` &nbsp;Data Science / ML
+  </div>
+</div>
+
+<!-- Dim 1: Erkenntnisinteresse — AKTIV -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('bullseye', fill='#777')` &nbsp;Erkenntnisinteresse</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('magnifying-glass')` Erklären</strong><br>
+    <span class="vs3-chip">Inferenz</span><span class="vs3-chip">Kausalität</span><span class="vs3-chip">Hypothesentest</span><br>
+    <span style="color:#666;">Parameter verstehen · „Warum?"</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('circle-half-stroke')` Causal ML</strong><br>
+    <span class="vs3-bridge">SHAP</span><span class="vs3-bridge">LIME</span><span class="vs3-bridge">DoWhy</span><br>
+    <span style="color:#777;">Erklärbare Vorhersagemodelle</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('wand-magic-sparkles')` Vorhersagen</strong><br>
+    <span class="vs3-chip">Prädiktion</span><span class="vs3-chip">Automatisierung</span><span class="vs3-chip">Korrelation</span><br>
+    <span style="color:#666;">Genauigkeit maximieren · „Was kommt?"</span>
+  </div>
+</div>
+
+<!-- Dim 2–4: ausgegraut -->
+<div class="vs3-row" style="opacity:0.13;">
+  <div class="vs3-dim">`r fa('chart-area', fill='#777')` &nbsp;Umgang mit Unsicherheit</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:36px;"></div>
+</div>
+<div class="vs3-row" style="opacity:0.13;">
+  <div class="vs3-dim">`r fa('flask', fill='#777')` &nbsp;Methoden &amp; Evaluierung</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:36px;"></div>
+</div>
+<div class="vs3-row" style="opacity:0.13;">
+  <div class="vs3-dim">`r fa('database', fill='#777')` &nbsp;Daten</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:36px;"></div>
+</div>
+
+???
+* Shmueli (2010): kanonische Referenz — Erklären braucht Theorie, Vorhersagen braucht stabile Muster
+* Causal ML (Pearl): do-Kalkül — kausale Effekte aus Beobachtungsdaten schätzen
+* SHAP/LIME: post-hoc Erklärbarkeit prädiktiver Modelle — Brücke zwischen Black Box und Interpretation
+* Storchen-Beispiel: korreliert mit Geburtenrate — gut für Prognose, falsch für Kausalität
+
+---
+class: left
+count: false
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<div class="vs3-grid" style="margin-top:0.15em;">
+  <div class="vs3-hdr" style="background:#502479;">`r fa('chart-line', fill='white')` &nbsp;Klassische Statistik</div>
+  <div class="vs3-hdr" style="background:#686868;">`r fa('arrows-left-right', fill='white')` &nbsp;Übergang / Brücke</div>
+  <div class="vs3-hdr" style="background:#D50006;">`r fa('robot', fill='white')` &nbsp;Data Science / ML</div>
+</div>
+
+<!-- Dim 1 -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('bullseye', fill='#777')` &nbsp;Erkenntnisinteresse</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('magnifying-glass')` Erklären</strong><br>
+    <span class="vs3-chip">Inferenz</span><span class="vs3-chip">Kausalität</span><span class="vs3-chip">Hypothesentest</span><br>
+    <span style="color:#666;">Parameter verstehen · „Warum?"</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('circle-half-stroke')` Causal ML</strong><br>
+    <span class="vs3-bridge">SHAP</span><span class="vs3-bridge">LIME</span><span class="vs3-bridge">DoWhy</span><br>
+    <span style="color:#777;">Erklärbare Vorhersagemodelle</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('wand-magic-sparkles')` Vorhersagen</strong><br>
+    <span class="vs3-chip">Prädiktion</span><span class="vs3-chip">Automatisierung</span><span class="vs3-chip">Korrelation</span><br>
+    <span style="color:#666;">Genauigkeit maximieren · „Was kommt?"</span>
+  </div>
+</div>
+
+<!-- Dim 2: Unsicherheit — AKTIV -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('chart-area', fill='#777')` &nbsp;Umgang mit Unsicherheit</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('signal')` Theoretisch</strong><br>
+    <span class="vs3-chip">CLT</span><span class="vs3-chip">α-Niveau</span><span class="vs3-chip">Fehler 1. Art</span><br>
+    <span style="color:#666;">Normalverteilung · strenge Annahmen</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('shuffle')` ModernDive · infer</strong><br>
+    <span class="vs3-bridge">Permutationstest</span><span class="vs3-bridge">Bootstrap-KI</span><br>
+    <span style="color:#777;">Resampling-Inferenz ohne Verteilungsannahme</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('arrows-rotate')` Datengetrieben</strong><br>
+    <span class="vs3-chip">Bootstrap</span><span class="vs3-chip">Resampling</span><span class="vs3-chip">FDR</span><br>
+    <span style="color:#666;">False Discovery Rate · hochdimensional</span>
+  </div>
+</div>
+
+<!-- Dim 3–4: ausgegraut -->
+<div class="vs3-row" style="opacity:0.13;">
+  <div class="vs3-dim">`r fa('flask', fill='#777')` &nbsp;Methoden &amp; Evaluierung</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:36px;"></div>
+</div>
+<div class="vs3-row" style="opacity:0.13;">
+  <div class="vs3-dim">`r fa('database', fill='#777')` &nbsp;Daten</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:36px;"></div>
+</div>
+
+???
+* ModernDive (Ismay & Kim): Resampling-basierte Statistik als Lehransatz — Bootstrap-KI ohne CLT
+* infer-Paket (R): tidyverse-kompatible Permutationstests — gleiche Logik wie DS, aber klassische Fragestellung
+* Didaktischer Übergang: "Sie kennen Bootstrap aus der Statistik — in DS skalieren wir das auf tausende Tests"
+* FDR vs α: Bei einem Test α=0.05 sinnvoll; bei 10.000 Tests erwarte ich 500 falsche Entdeckungen — FDR kontrolliert den Anteil
+
+---
+class: left
+count: false
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<div class="vs3-grid" style="margin-top:0.15em;">
+  <div class="vs3-hdr" style="background:#502479;">`r fa('chart-line', fill='white')` &nbsp;Klassische Statistik</div>
+  <div class="vs3-hdr" style="background:#686868;">`r fa('arrows-left-right', fill='white')` &nbsp;Übergang / Brücke</div>
+  <div class="vs3-hdr" style="background:#D50006;">`r fa('robot', fill='white')` &nbsp;Data Science / ML</div>
+</div>
+
+<!-- Dim 1 -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('bullseye', fill='#777')` &nbsp;Erkenntnisinteresse</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('magnifying-glass')` Erklären</strong><br>
+    <span class="vs3-chip">Inferenz</span><span class="vs3-chip">Kausalität</span><span class="vs3-chip">Hypothesentest</span><br>
+    <span style="color:#666;">Parameter verstehen · „Warum?"</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('circle-half-stroke')` Causal ML</strong><br>
+    <span class="vs3-bridge">SHAP</span><span class="vs3-bridge">LIME</span><span class="vs3-bridge">DoWhy</span><br>
+    <span style="color:#777;">Erklärbare Vorhersagemodelle</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('wand-magic-sparkles')` Vorhersagen</strong><br>
+    <span class="vs3-chip">Prädiktion</span><span class="vs3-chip">Automatisierung</span><span class="vs3-chip">Korrelation</span><br>
+    <span style="color:#666;">Genauigkeit maximieren · „Was kommt?"</span>
+  </div>
+</div>
+
+<!-- Dim 2 -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('chart-area', fill='#777')` &nbsp;Umgang mit Unsicherheit</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('signal')` Theoretisch</strong><br>
+    <span class="vs3-chip">CLT</span><span class="vs3-chip">α-Niveau</span><span class="vs3-chip">Fehler 1. Art</span><br>
+    <span style="color:#666;">Normalverteilung · strenge Annahmen</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('shuffle')` ModernDive · infer</strong><br>
+    <span class="vs3-bridge">Permutationstest</span><span class="vs3-bridge">Bootstrap-KI</span><br>
+    <span style="color:#777;">Resampling-Inferenz ohne Verteilungsannahme</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('arrows-rotate')` Datengetrieben</strong><br>
+    <span class="vs3-chip">Bootstrap</span><span class="vs3-chip">Resampling</span><span class="vs3-chip">FDR</span><br>
+    <span style="color:#666;">False Discovery Rate · hochdimensional</span>
+  </div>
+</div>
+
+<!-- Dim 3: Methoden — AKTIV -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('flask', fill='#777')` &nbsp;Methoden &amp; Evaluierung</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('superscript')` OLS · GLM</strong><br>
+    <span class="vs3-chip">R²</span><span class="vs3-chip">p-Wert</span><span class="vs3-chip">In-Sample</span><br>
+    <span style="color:#666;">Signifikanz · Modellgüte am Trainingsdatensatz</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('sliders')` Ridge · Lasso · AIC</strong><br>
+    <span class="vs3-bridge">Regularisierung</span><span class="vs3-bridge">Modellwahl</span><br>
+    <span style="color:#777;">Statistik-Methoden mit DS-Logik</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('tree')` RF · Neuronale Netze</strong><br>
+    <span class="vs3-chip">Cross-Validation</span><span class="vs3-chip">Out-of-Sample</span><br>
+    <span style="color:#666;">Overfitting vermeiden · neue Daten prognostizieren</span>
+  </div>
+</div>
+
+<!-- Dim 4: ausgegraut -->
+<div class="vs3-row" style="opacity:0.13;">
+  <div class="vs3-dim">`r fa('database', fill='#777')` &nbsp;Daten</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd; min-height:36px;"></div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:36px;"></div>
+</div>
+
+???
+* AIC/BIC: klassische Modellwahlkriterien die Out-of-Sample-Logik antizipieren (Parsimonie)
+* Lasso/Ridge: mathematisch Statistik (Penalisierung), wird aber als ML eingesetzt
+* Regularisierung als Brücke: verhindert Overfitting — gleiche Idee, verschiedene Sprachen
+* Cross-Validation: in der Statistik bekannt als Leave-One-Out, in DS als k-fold standard
+
+---
+class: left
+count: false
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<div class="vs3-grid" style="margin-top:0.15em;">
+  <div class="vs3-hdr" style="background:#502479;">`r fa('chart-line', fill='white')` &nbsp;Klassische Statistik</div>
+  <div class="vs3-hdr" style="background:#686868;">`r fa('arrows-left-right', fill='white')` &nbsp;Übergang / Brücke</div>
+  <div class="vs3-hdr" style="background:#D50006;">`r fa('robot', fill='white')` &nbsp;Data Science / ML</div>
+</div>
+
+<!-- Dim 1 -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('bullseye', fill='#777')` &nbsp;Erkenntnisinteresse</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('magnifying-glass')` Erklären</strong><br>
+    <span class="vs3-chip">Inferenz</span><span class="vs3-chip">Kausalität</span><span class="vs3-chip">Hypothesentest</span><br>
+    <span style="color:#666;">Parameter verstehen · „Warum?"</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('circle-half-stroke')` Causal ML</strong><br>
+    <span class="vs3-bridge">SHAP</span><span class="vs3-bridge">LIME</span><span class="vs3-bridge">DoWhy</span><br>
+    <span style="color:#777;">Erklärbare Vorhersagemodelle</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('wand-magic-sparkles')` Vorhersagen</strong><br>
+    <span class="vs3-chip">Prädiktion</span><span class="vs3-chip">Automatisierung</span><span class="vs3-chip">Korrelation</span><br>
+    <span style="color:#666;">Genauigkeit maximieren · „Was kommt?"</span>
+  </div>
+</div>
+
+<!-- Dim 2 -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('chart-area', fill='#777')` &nbsp;Umgang mit Unsicherheit</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('signal')` Theoretisch</strong><br>
+    <span class="vs3-chip">CLT</span><span class="vs3-chip">α-Niveau</span><span class="vs3-chip">Fehler 1. Art</span><br>
+    <span style="color:#666;">Normalverteilung · strenge Annahmen</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('shuffle')` ModernDive · infer</strong><br>
+    <span class="vs3-bridge">Permutationstest</span><span class="vs3-bridge">Bootstrap-KI</span><br>
+    <span style="color:#777;">Resampling-Inferenz ohne Verteilungsannahme</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('arrows-rotate')` Datengetrieben</strong><br>
+    <span class="vs3-chip">Bootstrap</span><span class="vs3-chip">Resampling</span><span class="vs3-chip">FDR</span><br>
+    <span style="color:#666;">False Discovery Rate · hochdimensional</span>
+  </div>
+</div>
+
+<!-- Dim 3 -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('flask', fill='#777')` &nbsp;Methoden &amp; Evaluierung</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('superscript')` OLS · GLM</strong><br>
+    <span class="vs3-chip">R²</span><span class="vs3-chip">p-Wert</span><span class="vs3-chip">In-Sample</span><br>
+    <span style="color:#666;">Signifikanz · Modellgüte am Trainingsdatensatz</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('sliders')` Ridge · Lasso · AIC</strong><br>
+    <span class="vs3-bridge">Regularisierung</span><span class="vs3-bridge">Modellwahl</span><br>
+    <span style="color:#777;">Statistik-Methoden mit DS-Logik</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('tree')` RF · Neuronale Netze</strong><br>
+    <span class="vs3-chip">Cross-Validation</span><span class="vs3-chip">Out-of-Sample</span><br>
+    <span style="color:#666;">Overfitting vermeiden · neue Daten prognostizieren</span>
+  </div>
+</div>
+
+<!-- Dim 4: Daten — AKTIV -->
+<div class="vs3-row">
+  <div class="vs3-dim">`r fa('database', fill='#777')` &nbsp;Daten</div>
+  <div class="vs3-cell" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('table')` Low-Dimensional</strong><br>
+    <span class="vs3-chip">n ≫ p</span><span class="vs3-chip">strukturiert</span><span class="vs3-chip">flat file</span><br>
+    <span style="color:#666;">Carseats: 400 × 11 — hier sind wir heute</span>
+  </div>
+  <div class="vs3-cell" style="background:#f5f5f5; border:1px solid #ddd;">
+    <strong style="color:#555;">`r fa('code-branch')` Mixed Models · GAM</strong><br>
+    <span class="vs3-bridge">nested data</span><span class="vs3-bridge">nicht-linear</span><br>
+    <span style="color:#777;">Statistik mit komplexeren Strukturen</span>
+  </div>
+  <div class="vs3-cell" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('layer-group')` High-Dimensional</strong><br>
+    <span class="vs3-chip">p ≈ n</span><span class="vs3-chip">unstrukturiert</span><span class="vs3-chip">Big Data</span><br>
+    <span style="color:#666;">Text · Bild · Sensor · Web-Logs</span>
+  </div>
+</div>
+
+???
+* Mixed Models (lme4): verschachtelte Daten ohne zu flatten — Schüler in Klassen, Patienten in Kliniken
+* GAM (Generalized Additive Models): nicht-linearer Zusammenhang, aber noch interpretierbar
+* Low-Dimensional: n≫p — klassische Statistik funktioniert, OLS hat eindeutige Lösung
+* High-Dimensional: p≈n → OLS bricht zusammen, Regularisierung nötig (→ PVA3)
+* Kernbotschaft: kein hartes Entweder-Oder — methodische Evolution, Statistik als Fundament
+* Shmueli (2010): Statistical Science 25(3), 289–310 — https://doi.org/10.1214/10-STS330

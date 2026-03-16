@@ -1,0 +1,194 @@
+
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<!-- VERSION 2: zwei Folien mit count:false -->
+<!-- Folie A: Dimensionen 1 + 2 -->
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.7em; margin-top:0.2em;">
+
+<!-- Header Statistik -->
+<div style="background:#502479; color:white; font-family:sans-serif;
+            font-size:13px; font-weight:bold; padding:7px 14px;
+            border-radius:5px; text-align:center;">
+  `r fa('chart-line', fill='white')` &nbsp;Klassische Statistik
+</div>
+<!-- Header DS -->
+<div style="background:#D50006; color:white; font-family:sans-serif;
+            font-size:13px; font-weight:bold; padding:7px 14px;
+            border-radius:5px; text-align:center;">
+  `r fa('robot', fill='white')` &nbsp;Data Science / ML
+</div>
+
+</div>
+
+<!-- Dim 1 -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.7em; margin-top:0.5em;">
+<div style="grid-column:1/-1; font-family:sans-serif; font-size:10px; font-weight:bold;
+            text-transform:uppercase; letter-spacing:0.05em; color:#888;
+            background:#f5f5f5; padding:3px 10px; border-radius:3px;">
+  `r fa('bullseye', fill='#888')` &nbsp;1 · Erkenntnisinteresse
+</div>
+
+<div style="background:#f5f0fa; border:1px solid #d0b8e8;
+            border-radius:4px; padding:12px 14px; font-size:0.83em; line-height:1.6;">
+  <strong style="color:#502479; font-size:1.05em;">`r fa('magnifying-glass')` Erklären</strong><br><br>
+  `r fa('circle-right', fill='#502479')` Inferenz · Hypothesentest<br>
+  `r fa('circle-right', fill='#502479')` Kausalität · ceteris paribus<br>
+  `r fa('circle-right', fill='#502479')` Parameter präzise schätzen<br>
+  `r fa('circle-right', fill='#502479')` „Warum passiert das?"<br><br>
+  <span style="font-size:0.88em; color:#777; font-style:italic;">
+    Shmueli (2010): „Explanatory Modeling"
+  </span>
+</div>
+
+<div style="background:#fff0f0; border:1px solid #f0b8b8;
+            border-radius:4px; padding:12px 14px; font-size:0.83em; line-height:1.6;">
+  <strong style="color:#D50006; font-size:1.05em;">`r fa('wand-magic-sparkles')` Vorhersagen</strong><br><br>
+  `r fa('circle-right', fill='#D50006')` Prädiktion · Automatisierung<br>
+  `r fa('circle-right', fill='#D50006')` Stabile Korrelation genügt<br>
+  `r fa('circle-right', fill='#D50006')` Genauigkeit maximieren<br>
+  `r fa('circle-right', fill='#D50006')` „Was kommt als nächstes?"<br><br>
+  <span style="font-size:0.88em; color:#777; font-style:italic;">
+    Shmueli (2010): „Predictive Modeling"
+  </span>
+</div>
+</div>
+
+<!-- Dim 2 -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.7em; margin-top:0.5em;">
+<div style="grid-column:1/-1; font-family:sans-serif; font-size:10px; font-weight:bold;
+            text-transform:uppercase; letter-spacing:0.05em; color:#888;
+            background:#f5f5f5; padding:3px 10px; border-radius:3px;">
+  `r fa('database', fill='#888')` &nbsp;2 · Daten
+</div>
+
+<div style="background:#f5f0fa; border:1px solid #d0b8e8;
+            border-radius:4px; padding:12px 14px; font-size:0.83em; line-height:1.6;">
+  <strong style="color:#502479; font-size:1.05em;">`r fa('table')` Low-Dimensional</strong><br><br>
+  `r fa('circle-right', fill='#502479')` n ≫ p — klassische Annahmen greifen<br>
+  `r fa('circle-right', fill='#502479')` Strukturiert · flat file<br>
+  `r fa('circle-right', fill='#502479')` Kleine, kuratierte Datensätze<br><br>
+  <span style="font-size:0.88em; color:#777; font-style:italic;">
+    Carseats: 400 × 11 — hier sind wir heute
+  </span>
+</div>
+
+<div style="background:#fff0f0; border:1px solid #f0b8b8;
+            border-radius:4px; padding:12px 14px; font-size:0.83em; line-height:1.6;">
+  <strong style="color:#D50006; font-size:1.05em;">`r fa('layer-group')` High-Dimensional</strong><br><br>
+  `r fa('circle-right', fill='#D50006')` p ≈ n oder p > n<br>
+  `r fa('circle-right', fill='#D50006')` Unstrukturiert · Text · Bild · Sensor<br>
+  `r fa('circle-right', fill='#D50006')` Massiv · komplex · heterogen<br><br>
+  <span style="font-size:0.88em; color:#777; font-style:italic;">
+    Taddy (2019): „Big Data breaks classical statistics"
+  </span>
+</div>
+</div>
+
+???
+* Shmueli (2010): kanonische Referenz — Erklären braucht Theorie, Vorhersagen braucht nur stabile Muster
+* Storchen-Beispiel: Storchenpopulation korreliert mit Geburtenrate — gut für Prognose, falsch für Kausalität
+* Carseats: n≫p — wir lernen heute mit klassischen Methoden, die Grenzen werden in PVA3 sichtbar
+* High-Dimensional: schon 1000 Gene bei 500 Patienten → p>n, OLS hat keine eindeutige Lösung
+
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.7em; margin-top:0.2em;">
+<div style="background:#502479; color:white; font-family:sans-serif;
+            font-size:13px; font-weight:bold; padding:7px 14px;
+            border-radius:5px; text-align:center;">
+  `r fa('chart-line', fill='white')` &nbsp;Klassische Statistik
+</div>
+<div style="background:#D50006; color:white; font-family:sans-serif;
+            font-size:13px; font-weight:bold; padding:7px 14px;
+            border-radius:5px; text-align:center;">
+  `r fa('robot', fill='white')` &nbsp;Data Science / ML
+</div>
+</div>
+
+<!-- Dim 3 -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.7em; margin-top:0.5em;">
+<div style="grid-column:1/-1; font-family:sans-serif; font-size:10px; font-weight:bold;
+            text-transform:uppercase; letter-spacing:0.05em; color:#888;
+            background:#f5f5f5; padding:3px 10px; border-radius:3px;">
+  `r fa('flask', fill='#888')` &nbsp;3 · Methoden &amp; Evaluierung
+</div>
+
+<div style="background:#f5f0fa; border:1px solid #d0b8e8;
+            border-radius:4px; padding:12px 14px; font-size:0.83em; line-height:1.6;">
+  <strong style="color:#502479; font-size:1.05em;">`r fa('square-root-variable')` OLS · GLM · ANOVA</strong><br><br>
+  `r fa('circle-right', fill='#502479')` R² · AIC/BIC · F-Test<br>
+  `r fa('circle-right', fill='#502479')` t-Test · p-Wert · Konfidenzintervall<br>
+  `r fa('circle-right', fill='#502479')` In-Sample-Evaluierung<br>
+  `r fa('circle-right', fill='#502479')` Signifikanz einzelner Variablen<br><br>
+  <span style="font-size:0.88em; color:#777; font-style:italic;">
+    „Ist dieser Effekt real?" → p &lt; 0.05
+  </span>
+</div>
+
+<div style="background:#fff0f0; border:1px solid #f0b8b8;
+            border-radius:4px; padding:12px 14px; font-size:0.83em; line-height:1.6;">
+  <strong style="color:#D50006; font-size:1.05em;">`r fa('tree')` RF · Lasso · Neuronale Netze</strong><br><br>
+  `r fa('circle-right', fill='#D50006')` Cross-Validation · Out-of-Sample<br>
+  `r fa('circle-right', fill='#D50006')` Regularisierung (L1/L2)<br>
+  `r fa('circle-right', fill='#D50006')` Train / Validation / Test Split<br>
+  `r fa('circle-right', fill='#D50006')` RMSE · AUC · F1-Score<br><br>
+  <span style="font-size:0.88em; color:#777; font-style:italic;">
+    „Wie gut prognostiziert das Modell neue Daten?"
+  </span>
+</div>
+</div>
+
+<!-- Dim 4 -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.7em; margin-top:0.5em;">
+<div style="grid-column:1/-1; font-family:sans-serif; font-size:10px; font-weight:bold;
+            text-transform:uppercase; letter-spacing:0.05em; color:#888;
+            background:#f5f5f5; padding:3px 10px; border-radius:3px;">
+  `r fa('wave-square', fill='#888')` &nbsp;4 · Umgang mit Unsicherheit
+</div>
+
+<div style="background:#f5f0fa; border:1px solid #d0b8e8;
+            border-radius:4px; padding:12px 14px; font-size:0.83em; line-height:1.6;">
+  <strong style="color:#502479; font-size:1.05em;">`r fa('bell-curve')` Theoretisch abgeleitet</strong><br><br>
+  `r fa('circle-right', fill='#502479')` Normalverteilung · CLT<br>
+  `r fa('circle-right', fill='#502479')` Starre α-Niveaus (0.05)<br>
+  `r fa('circle-right', fill='#502479')` Fehler 1. Art kontrollieren<br>
+  `r fa('circle-right', fill='#502479')` Strenge Verteilungsannahmen<br><br>
+  <span style="font-size:0.88em; color:#777; font-style:italic;">
+    Zentraler Grenzwertsatz als Fundament
+  </span>
+</div>
+
+<div style="background:#fff0f0; border:1px solid #f0b8b8;
+            border-radius:4px; padding:12px 14px; font-size:0.83em; line-height:1.6;">
+  <strong style="color:#D50006; font-size:1.05em;">`r fa('arrows-rotate')` Datengetrieben</strong><br><br>
+  `r fa('circle-right', fill='#D50006')` Bootstrap · Resampling<br>
+  `r fa('circle-right', fill='#D50006')` Keine Verteilungsannahmen nötig<br>
+  `r fa('circle-right', fill='#D50006')` False Discovery Rate (FDR)<br>
+  `r fa('circle-right', fill='#D50006')` Benjamini-Hochberg-Prozedur<br><br>
+  <span style="font-size:0.88em; color:#777; font-style:italic;">
+    Taddy: „Discover without overfit"
+  </span>
+</div>
+</div>
+
+???
+* Overfitting: Komplexe Modelle lernen Trainingsdaten auswendig → schlechte Generalisierung
+* Cross-Validation: k-fold — Daten in k Teile aufgeteilt, Modell k-mal trainiert und evaluiert
+* Regularisierung: Lasso (L1) setzt unwichtige Koeffizienten auf 0 — automatische Variablenselektion
+* FDR: Bei tausenden simultanen Tests (z.B. Genomik, NLP-Features) ist α=0.05 viel zu lax
+* Bootstrap: Resampling mit Zurücklegen — empirische Verteilung ohne parametrische Annahmen
+* AUC: Area Under the ROC Curve — für Klassifikation, unabhängig von Schwellenwert
+* Im Modul: wir starten klassisch (OLS, p-Werte) und sehen in PVA3 wo das an Grenzen stößt

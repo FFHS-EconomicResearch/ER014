@@ -1,0 +1,345 @@
+---
+title: "PVA2 · Lab 1: Only One Test"
+subtitle: "Bootstrap & Permutationstest mit dem infer-Paket"
+author: "Prof. Dr. Jörg Schoder"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: ["../../../css/ffhs-theme_js.css", "xaringan-themer.css"]
+    nature:
+      slideNumberFormat: "Lab 1 · %current%/%total%"
+      ratio: "16:9"
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(tidyverse)
+library(moderndive)
+library(infer)
+library(gt)
+library(fontawesome)
+date <- '2023-09-06'
+my_in_file <- glue::glue('buli_raw_{date}.rds')
+tbl_buli_raw <- read_rds(file = xfun::from_root("data","raw",my_in_file))
+tbl_buli <- tbl_buli_raw %>%
+              mutate(age = lubridate::year(Sys.Date()) -
+                          lubridate::year(player_dob),
+                     log_value = log(player_market_value_euro),
+                     pos_bin = if_else(player_position == "Goalkeeper",
+                                       "Goalkeeper", "Outfield")) %>%
+              rename(name = player_name, mv = player_market_value_euro) %>%
+              filter(!is.na(mv), !is.na(age))
+options(scipen = 999)
+```
+
+---
+class: left
+
+## Lab 1 · Überblick
+
+.pull-left[
+### Lernziel
+
+`r fa('circle-right')` Bootstrap-Konfidenzintervall für den Regressionskoeffizienten $\hat\beta_{\text{age}}$ berechnen
+
+`r fa('circle-right')` Permutationstest auf Unabhängigkeit durchführen
+
+`r fa('circle-right')` Ergebnisse mit dem traditionellen t-Test vergleichen
+
+`r fa('circle-right')` Konzept "Only One Test" verstehen
+
+### Modell
+$$\widehat{\log(\text{mv})} = \hat\beta_0 + \hat\beta_1 \cdot \text{age}$$
+]
+
+.pull-right[
+### Die infer-Pipe
+
+```
+Daten
+  |> specify()      # Welche Variablen?
+  |> hypothesize()  # Nullhypothese (nur bei Test)
+  |> generate()     # Bootstrap oder Permutation
+  |> calculate()    # Teststatistik berechnen
+  |> visualize()    # Visualisieren
+```
+
+<br>
+
+`r fa('clock')` **Dauer: ca. 40 Minuten**
+
+`r fa('users')` **Einzelarbeit oder Zweierteams**
+]
+
+---
+class: left
+
+## Schritt 1: Punktschätzer — der beobachtete Koeffizient
+
+```{r obs-slope, echo=TRUE, message=FALSE}
+library(infer)
+
+# Beobachteter Steigungskoeffizient
+obs_slope <- tbl_buli %>%
+               specify(log_value ~ age) %>%
+               calculate(stat = "slope")
+obs_slope
+```
+
+<br>
+
+`r fa('circle-right')` Was bedeutet dieser Wert inhaltlich?
+
+`r fa('circle-right')` Handelt es sich um einen Populations- oder Stichprobenparameter?
+
+???
+* Studierende sollen den Wert selbst interpretieren
+* Wichtig: dieser Wert ist ein Punktschätzer — er enthält Schätzunsicherheit
+
+---
+class: left
+
+## Schritt 2: Bootstrap-Verteilung
+
+```{r boot-dist, echo=TRUE, message=FALSE, cache=TRUE}
+set.seed(2024)
+
+boot_dist <- tbl_buli %>%
+               specify(log_value ~ age) %>%
+               # KEIN hypothesize() — wir schätzen den Koeffizienten
+               generate(reps = 1000, type = "bootstrap") %>%
+               calculate(stat = "slope")
+```
+
+```{r boot-viz, echo=TRUE, message=FALSE, out.width='45%', fig.align='center'}
+visualize(boot_dist) +
+  labs(title = "Bootstrap-Verteilung des Steigungskoeffizienten",
+       x = "β̂_age (log-Marktwert pro Altersjahr)",
+       y = "Häufigkeit")
+```
+
+???
+* Bootstrap: 1000× mit Zurücklegen aus den vorhandenen Daten ziehen
+* Verteilung zeigt: wie stark variiert der Koeffizient je nach Stichprobe?
+* Breite der Verteilung = Standardfehler
+
+---
+class: left
+
+## Schritt 3: Konfidenzintervall berechnen
+
+.panelset[
+.panel[.panel-name[Perzentilmethode]
+```{r ci-pct, echo=TRUE, message=FALSE}
+ci_pct <- boot_dist %>%
+            get_confidence_interval(type = "percentile",
+                                    level = 0.95)
+ci_pct
+```
+]
+.panel[.panel-name[Standardfehler-Methode]
+```{r ci-se, echo=TRUE, message=FALSE}
+ci_se <- boot_dist %>%
+           get_confidence_interval(type = "se",
+                                   point_estimate = obs_slope,
+                                   level = 0.95)
+ci_se
+```
+]
+.panel[.panel-name[Visualisierung]
+```{r ci-viz, echo=TRUE, message=FALSE, out.width='45%', fig.align='center'}
+visualize(boot_dist) +
+  shade_confidence_interval(endpoints = ci_pct,
+                            fill = NULL,
+                            linetype = "solid",
+                            color = "#D50006") +
+  shade_confidence_interval(endpoints = ci_se,
+                            fill = NULL,
+                            linetype = "dashed",
+                            color = "#502479") +
+  labs(title = "Bootstrap-KI: Perzentil (rot) vs. Standardfehler (lila)",
+       x = "β̂_age", y = "Häufigkeit")
+```
+]
+.panel[.panel-name[Interpretation]
+
+**Fragen zur Diskussion:**
+
+`r fa('circle-right')` Enthält das Konfidenzintervall die Null?
+
+`r fa('circle-right')` Was bedeutet das für die Signifikanz des Alterseffekts?
+
+`r fa('circle-right')` Warum sind Perzentil- und SE-Methode ähnlich aber nicht identisch?
+
+`r fa('circle-right')` Was bedeutet "95% Konfidenz" **exakt**?
+
+.blockquote[
+Bei wiederholter Stichprobenziehung werden 95% der so berechneten Konfidenzintervalle den wahren Parameter $\beta_{\text{age}}$ enthalten.
+]
+]
+]
+
+???
+* Beide Methoden sollten ähnliche Ergebnisse liefern
+* Wenn KI Null nicht enthält: Alterseffekt signifikant auf 5%-Niveau
+
+---
+class: left
+
+## Schritt 4: Permutationstest
+
+.pull-left[
+```{r null-dist, echo=TRUE, message=FALSE, cache=TRUE}
+set.seed(2024)
+
+null_dist <- tbl_buli %>%
+               specify(log_value ~ age) %>%
+               hypothesize(null = "independence") %>%
+               generate(reps = 1000, type = "permute") %>%
+               calculate(stat = "slope")
+
+# p-Wert berechnen
+null_dist %>%
+  get_p_value(obs_stat = obs_slope,
+              direction = "two-sided")
+```
+]
+
+.pull-right[
+```{r null-viz, echo=TRUE, message=FALSE, out.width='90%', fig.align='center'}
+null_dist %>%
+  visualize() +
+  shade_p_value(obs_stat = obs_slope,
+                direction = "two-sided") +
+  labs(title = "Nullverteilung (Permutationstest)",
+       subtitle = "Roter Bereich = p-Wert",
+       x = "β̂ unter H₀: Unabhängigkeit",
+       y = "Häufigkeit")
+```
+]
+
+???
+* Permutation: Alterswerte werden zufällig neu zugeordnet → simuliert Welt ohne Zusammenhang
+* Unser beobachteter Koeffizient liegt weit außerhalb der Nullverteilung → signifikant
+
+---
+class: left
+
+## Schritt 5: Vergleich mit traditionellem t-Test
+
+```{r trad-test, echo=TRUE, message=FALSE}
+library(moderndive)
+
+reg_buli <- tbl_buli %>%
+              lm(log_value ~ age, data = .)
+
+reg_buli %>%
+  get_regression_table() %>%
+  gt() %>%
+  fmt_number(columns = c(estimate, std_error, statistic,
+                         p_value, lower_ci, upper_ci),
+             decimals = 4) %>%
+  tab_options(table.font.size = "14px")
+```
+
+---
+class: left
+
+## Vergleich: Resampling vs. traditionell
+
+<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8em;
+            font-size:0.8em; margin-top:0.5em;">
+
+<div style="border:2px solid #502479; border-radius:5px; padding:10px;">
+<strong style="color:#502479;">Bootstrap-KI (Perzentil)</strong><br><br>
+Untergrenze: <code>`r round(ci_pct$lower_ci, 4)`</code><br>
+Obergrenze: <code>`r round(ci_pct$upper_ci, 4)`</code><br><br>
+<em>Enthält Null? Nein ✅</em>
+</div>
+
+<div style="border:2px solid #7d0a52; border-radius:5px; padding:10px;">
+<strong style="color:#7d0a52;">Bootstrap-KI (SE)</strong><br><br>
+Untergrenze: <code>`r round(ci_se$lower_ci, 4)`</code><br>
+Obergrenze: <code>`r round(ci_se$upper_ci, 4)`</code><br><br>
+<em>Enthält Null? Nein ✅</em>
+</div>
+
+<div style="border:2px solid #D50006; border-radius:5px; padding:10px;">
+<strong style="color:#D50006;">Traditionell (t-Test)</strong><br><br>
+aus <code>get_regression_table()</code><br><br>
+<em>Gleiche Schlussfolgerung? ✅</em>
+</div>
+
+</div>
+
+<br>
+
+### `r fa('lightbulb')` "Only One Test" — die zentrale Botschaft
+
+`r fa('circle-right')` Bootstrap, Permutation und klassischer t-Test kommen zur **gleichen Schlussfolgerung**
+
+`r fa('circle-right')` Der Resampling-Ansatz braucht **keine Verteilungsannahmen** — er nutzt Rechenpower statt Formeln
+
+`r fa('circle-right')` Für komplexe Modelle (Random Forest etc.) gibt es **nur** den Resampling-Ansatz
+
+???
+* "Only One Test" = die konzeptionelle Einheit aller Testverfahren
+* Resampling ist der modernere, flexiblere Ansatz
+* Traditionell: schneller, bewährt, aber setzt Normalverteilungsannahme voraus
+
+---
+class: left
+
+## Aufgaben zur Vertiefung
+
+.pull-left[
+### Pflichtaufgaben
+
+**A1:** Wiederholen Sie die Bootstrap-Analyse für das **Interaktionsmodell** (`log_value ~ age * pos_bin`). Sind beide Koeffizienten signifikant?
+
+```r
+tbl_buli %>%
+  specify(log_value ~ age + pos_bin) %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "slope")
+  # Hinweis: für multiple Regression
+  # andere Syntax nötig — siehe ?infer
+```
+
+**A2:** Interpretieren Sie das Konfidenzintervall für den **Interaktionsterm** `age:pos_binGoalkeeper`. Was bedeutet es für die Hypothese "Torhüter altern anders"?
+]
+
+.pull-right[
+### Bonusaufgaben
+
+**B1:** Berechnen Sie den Bootstrap-Standardfehler und vergleichen Sie ihn mit dem theoretischen Standardfehler aus `get_regression_table()`.
+
+**B2:** Was passiert wenn Sie nur `reps = 100` statt `reps = 1000` verwenden? Wie verändert sich das Konfidenzintervall?
+
+**B3:** Simulieren Sie eine Welt ohne Alterseffekt: Setzen Sie `set.seed(99)` und ziehen Sie eine Zufallsstichprobe von n=20 aus `tbl_buli`. Führen Sie den Permutationstest durch. Was beobachten Sie?
+]
+
+---
+class: left
+
+## Lab 1 · Zusammenfassung
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1em; margin-top:0.5em;">
+
+<div style="background:#f5f0fa; border:1px solid #d0b8e8; border-radius:5px; padding:12px; font-size:0.82em;">
+<strong style="color:#502479;">Was wir gelernt haben</strong><br><br>
+✅ Bootstrap-KI quantifiziert Schätzunsicherheit ohne Normalverteilungsannahme<br><br>
+✅ Permutationstest simuliert die Null-Welt direkt aus den Daten<br><br>
+✅ Beide Methoden kommen zur gleichen Schlussfolgerung wie der klassische t-Test<br><br>
+✅ Das infer-Paket implementiert den einheitlichen Arbeitsablauf: <code>specify → hypothesize → generate → calculate → visualize</code>
+</div>
+
+<div style="background:#fff0f0; border:1px solid #f0b8b8; border-radius:5px; padding:12px; font-size:0.82em;">
+<strong style="color:#D50006;">Offene Fragen für den Debrief</strong><br><br>
+❓ Warum ist Bootstrapping "ehrlicher" als die Normalverteilungsannahme?<br><br>
+❓ Wann würden Bootstrap- und t-Test zu <em>verschiedenen</em> Schlussfolgerungen kommen?<br><br>
+❓ Was bedeutet es, dass der Alterskoeffizient signifikant ist — aber nur <code>r round(summary(lm(log_value~age, data=tbl_buli))$r.squared*100,1)`%</code> der Variation erklärt?<br><br>
+❓ Welcher Fehlertyp wäre schlimmer: einen unterbewerteten Spieler übersehen oder einen überbewerteten kaufen?
+</div>
+
+</div>

@@ -1,0 +1,897 @@
+---
+title: "PVA2: Ergänzungsfolien"
+subtitle: "p-Werte · KI · Power · Tests · Effektstärken · Fallstudien"
+author: "Prof. Dr. Jörg Schoder"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: ["../../../css/ffhs-theme_js.css", "xaringan-themer.css"]
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      ratio: "16:9"
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(fontawesome)
+library(tidyverse)
+library(moderndive)
+library(infer)
+library(gt)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE, bib.style = "authoryear",
+           style = "markdown", dashed = TRUE)
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+Zitiere <- function(bib, key, ...) gsub(" and ", " und ", Citet(bib, key, ...))
+date <- '2023-09-06'
+tbl_buli_raw <- read_rds(xfun::from_root("data","raw",
+                          glue::glue('buli_raw_{date}.rds')))
+tbl_buli <- tbl_buli_raw %>%
+  mutate(age = lubridate::year(Sys.Date()) - lubridate::year(player_dob),
+         log_value = log(player_market_value_euro),
+         pos_bin = if_else(player_pos == "Goalkeeper","Goalkeeper","Outfield")) %>%
+  rename(name = player_name, mv = player_market_value_euro) %>%
+  filter(!is.na(mv), !is.na(age))
+options(scipen = 999)
+```
+
+---
+class: inverse, center, middle
+
+# p-Werte · Konfidenzintervalle · Power
+
+---
+class: left
+
+.blockquote[Inferenz]
+
+## p-Werte richtig verstehen
+
+.pull-left[
+### Was der p-Wert **ist**
+
+<div style="background:#f5f0fa; border-left:4px solid #502479;
+            padding:10px 14px; font-size:0.85em; border-radius:0 4px 4px 0;">
+<strong>Definition:</strong> Die Wahrscheinlichkeit, die beobachteten Daten
+(oder extremere) zu erhalten, <em>wenn die Nullhypothese wahr ist</em>.
+</div>
+
+<br>
+
+`r fa('circle-right')` p = 0.03 bedeutet: **3% Chance** für dieses Ergebnis unter $H_0$
+
+`r fa('circle-right')` p ist ein Maß für **Kompatibilität mit $H_0$** — nicht mehr
+]
+
+.pull-right[
+### Häufige **Fehlinterpretationen**
+
+<div style="font-size:0.82em;">
+
+<div style="background:#fff0f0; border-left:3px solid #D50006;
+            padding:6px 10px; margin-bottom:6px; border-radius:0 3px 3px 0;">
+❌ „p = Wahrscheinlichkeit, dass $H_0$ stimmt"
+</div>
+<div style="background:#fff0f0; border-left:3px solid #D50006;
+            padding:6px 10px; margin-bottom:6px; border-radius:0 3px 3px 0;">
+❌ „p = Wahrscheinlichkeit, dass Ergebnis repliziert wird"
+</div>
+<div style="background:#fff0f0; border-left:3px solid #D50006;
+            padding:6px 10px; margin-bottom:6px; border-radius:0 3px 3px 0;">
+❌ „p < 0.05 <em>beweist</em> einen Effekt"
+</div>
+<div style="background:#fff0f0; border-left:3px solid #D50006;
+            padding:6px 10px; margin-bottom:6px; border-radius:0 3px 3px 0;">
+❌ „p > 0.05 bedeutet <em>kein</em> Effekt"
+</div>
+<div style="background:#f0fff0; border-left:3px solid #2a7a2a;
+            padding:6px 10px; border-radius:0 3px 3px 0;">
+✅ p ist ein Maß für Kompatibilität mit $H_0$ — nicht mehr
+</div>
+</div>
+]
+
+.center[.small[`r fa('circle-right')` **Der p-Wert beantwortet nicht die Frage, die wir eigentlich stellen wollen!**]]
+
+???
+* Häufigster Interpretationsfehler in der Praxis: p als Irrtumswahrscheinlichkeit
+* Als Manager: p-Wert immer zusammen mit KI und Effektstärke interpretieren
+* Referenz: American Statistical Association (2016) Statement on p-values
+
+---
+class: left
+
+.blockquote[Inferenz]
+
+## Konfidenzintervalle: Definition und Interpretation
+
+.pull-left[
+### Formale Definition
+
+<div style="background:#f5f0fa; border-left:4px solid #502479;
+            padding:10px 14px; font-size:0.85em; border-radius:0 4px 4px 0; margin-bottom:1em;">
+Bei wiederholter Stichprobenziehung würden <strong>95%</strong> der so
+berechneten Intervalle den wahren Parameter enthalten.
+</div>
+
+**Formel (großes n):**
+$$\text{KI} = \bar{x} \pm z_{\alpha/2} \times \text{SE}$$
+
+**Beispiel:**
+$$\bar{x} = 7.2,\quad \text{SE} = 0.3$$
+$$95\%\text{-KI}: [6.61,\ 7.79]$$
+]
+
+.pull-right[
+### Warum KI besser als p-Wert?
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5em;
+            font-size:0.8em; margin-top:0.5em;">
+
+<div style="background:#fff0f0; border:1px solid #f0b8b8;
+            border-radius:4px; padding:8px 10px;">
+<strong style="color:#D50006;">Nur p-Wert</strong><br><br>
+„p = 0.03, signifikant" ✅<br><br>
+Keine Info über Richtung<br>
+Keine Info über Größe<br>
+Keine Info über Präzision
+</div>
+
+<div style="background:#f0fff0; border:1px solid #90c090;
+            border-radius:4px; padding:8px 10px;">
+<strong style="color:#2a7a2a;">KI + p-Wert</strong><br><br>
+„KI: [+1.2, +8.4], p = 0.03" ✅<br><br>
+Richtung klar: positiv<br>
+Größe sichtbar: 1–8 Einheiten<br>
+Präzision erkennbar: relativ breit
+</div>
+
+</div>
+
+<br>
+
+`r fa('circle-right')` **Bundesliga-Beispiel:** KI für $\hat\beta_{\text{age}}$ zeigt nicht nur ob der Alterseffekt signifikant ist, sondern wie groß er mindestens/höchstens ist.
+
+.blockquote[
+Konfidenzintervalle sind informativer als p-Werte — sie zeigen Richtung, Größe **und** Unsicherheit.
+]
+]
+
+???
+* Korrekte Interpretation: "95% der KI enthalten den wahren Wert" — nicht "95% Wahrscheinlichkeit dass wahrer Wert im KI"
+* Das KI ist nach Berechnung entweder richtig oder falsch — wir wissen nur nicht welches
+
+---
+class: inverse, center, middle
+
+# Traditionelle Tests im Überblick
+
+---
+class: left
+
+.blockquote[Traditionelle Tests]
+
+## Das einheitliche Grundprinzip
+
+.pull-left[
+### Alle Tests folgen derselben Logik
+
+1. $H_0$ und $H_A$ formulieren
+2. Teststatistik berechnen
+3. Entscheidungsregel aufstellen
+4. Entscheidung treffen
+
+<br>
+
+### Einordnung
+
+<div style="font-size:0.8em;">
+
+| Methode | Philosophie |
+|---------|-------------|
+| **Resampling** (Bootstrap, Permutation) | Rechenpower, keine Verteilungsannahme |
+| **Parametrisch** (t-Test, ANOVA) | Analytisch, setzt Normalverteilung voraus |
+
+</div>
+
+`r fa('circle-right')` **Beide kommen meist zur gleichen Schlussfolgerung** — das ist "Only One Test"
+]
+
+.pull-right[
+### Übersicht nach Problemstellung
+
+<div style="font-size:0.78em;">
+
+| Frage | Test | R-Funktion |
+|-------|------|-----------|
+| Mittelwert = Annahme? | **t-Test (1 Stichprobe)** | `t.test(x, mu=)` |
+| 2 Gruppen gleich? | **t-Test (2 Stichproben)** | `t.test(x, y)` |
+| Vorher/Nachher? | **Gepaarter t-Test** | `t.test(x, y, paired=T)` |
+| >2 Gruppen gleich? | **ANOVA** | `aov(y ~ gruppe)` |
+| Kategoriale Unabh.? | **Chi²-Test** | `chisq.test(table)` |
+| Normalverteilung? | **Shapiro-Wilk** | `shapiro.test(x)` |
+| Koeffizient ≠ 0? | **t-Test (Regression)** | `get_regression_table()` |
+| Modell signifikant? | **F-Test** | `get_regression_summaries()` |
+
+</div>
+
+`r fa('circle-right')` Alle Tests sind **Spezialfälle desselben Grundprinzips** — Bootstrap und Permutation sind flexibler!
+]
+
+???
+* Referenz: Soetewey (2021) Übersicht statistischer Tests
+* coggle.it/diagram von ModernDive zeigt Entscheidungsbaum
+
+---
+class: left
+
+.blockquote[Traditionelle Tests]
+
+## t-Test: drei Varianten
+
+.pull-left[
+### Ein-Stichproben t-Test
+Testet ob Mittelwert = hypothetischer Wert
+
+$$t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$$
+
+```r
+t.test(x, mu = 40)
+```
+
+*Beispiel:* Ist die durchschnittliche Wochenarbeitszeit = 40h?
+
+<br>
+
+### Zwei-Stichproben t-Test
+Testet ob zwei Gruppen gleichen Mittelwert haben
+
+```r
+t.test(x, y)              # Welch (Default)
+t.test(x, y, var.equal=T) # Student
+```
+
+*Beispiel:* Unterscheidet sich Marktwert Torhüter vs. Feldspieler?
+]
+
+.pull-right[
+### Gepaarter t-Test
+Für abhängige Messungen (vorher/nachher)
+
+```r
+t.test(vorher, nachher, paired = TRUE)
+```
+
+*Beispiel:* Marktwertveränderung nach Saison
+
+<br>
+
+### Welch vs. Student
+
+<div style="background:#fff8e1; border-left:3px solid #D5A000;
+            padding:8px 12px; font-size:0.82em; border-radius:0 4px 4px 0;">
+<strong>Student:</strong> nimmt gleiche Varianz an<br>
+<strong>Welch:</strong> erlaubt verschiedene Varianzen<br>
+<strong style="color:#D5A000;">R nutzt Welch als Default — das ist robuster!</strong>
+</div>
+
+<br>
+
+`r fa('circle-right')` Warum t-verteilt? Der Quotient $\frac{\hat\beta - \beta_0}{\text{SE}}$ folgt einer t-Verteilung mit $n-2$ Freiheitsgraden, wenn die Residuen normalverteilt sind.
+]
+
+???
+* Einstichproben-t-Test: in PVA2-Slides schon als GSS-Beispiel aus 03_Tests.Rmd
+* Zweistichproben: relevant für Bundesliga-Vergleich Torhüter vs. Feldspieler
+* Gepaarter Test: relevant für Panel-Daten (Spieler über Zeit)
+
+---
+class: left
+
+.blockquote[Traditionelle Tests]
+
+## ANOVA: Mehrere Gruppen vergleichen
+
+.pull-left[
+### Wann ANOVA statt t-Test?
+
+`r fa('circle-right')` Mehr als 2 Gruppen → **ANOVA** (Analysis of Variance)
+
+`r fa('circle-right')` Mehrere t-Tests → **α-Inflation** (Multiplizitätsproblem!)
+
+Bei 3 Gruppen und 3 paarweisen t-Tests:
+$$P(\text{mind. 1 FP}) = 1 - (1-0.05)^3 = 14.3\%$$
+
+### Hypothesen
+$$H_0: \mu_1 = \mu_2 = \cdots = \mu_k$$
+$$H_A: \text{mind. ein } \mu_i \neq \mu_j$$
+
+### F-Statistik
+$$F = \frac{\text{Varianz zwischen Gruppen}}{\text{Varianz innerhalb Gruppen}}$$
+]
+
+.pull-right[
+### In R
+
+```r
+# ANOVA
+model <- aov(log_value ~ player_pos,
+             data = tbl_buli)
+summary(model)
+
+# Post-hoc: welche Gruppen unterscheiden sich?
+TukeyHSD(model)
+```
+
+<br>
+
+<div style="background:#fff0f0; border-left:3px solid #D50006;
+            padding:8px 12px; font-size:0.82em; border-radius:0 4px 4px 0;">
+⚠️ <strong>ANOVA sagt nur "es gibt Unterschiede"</strong> — nicht welche Gruppen!<br>
+→ Post-hoc-Test (Tukey HSD) nötig für paarweise Vergleiche
+</div>
+
+<br>
+
+### Bundesliga-Anwendung
+
+`r fa('circle-right')` Unterscheiden sich Marktwerte nach **Position** (Torhüter, Verteidiger, Mittelfeld, Sturm)?
+
+`r fa('circle-right')` ANOVA prüft gemeinsam — vermeidet α-Inflation gegenüber 6 paarweisen t-Tests
+]
+
+???
+* F-Test in der Regressionstabelle ist ein Spezialfall der ANOVA
+* Referenz: Soetewey (2021), moderndive Appendix B
+
+---
+class: left
+
+.blockquote[Traditionelle Tests]
+
+## Regressionstabelle: alle Spalten erklärt
+
+```{r regtable-example, echo=FALSE, message=FALSE}
+lm_full <- tbl_buli %>% lm(log_value ~ age, data = .)
+lm_full %>%
+  get_regression_table() %>%
+  gt() %>%
+  fmt_number(columns = c(estimate, std_error, statistic,
+                         p_value, lower_ci, upper_ci), decimals = 4) %>%
+  tab_options(table.font.size = "14px")
+```
+
+<div style="display:grid; grid-template-columns:repeat(5,1fr); gap:0.5em;
+            font-size:0.74em; margin-top:0.6em; text-align:center;">
+
+<div style="background:#f5f0fa; border-radius:4px; padding:6px 8px;">
+<strong style="color:#502479;">estimate</strong><br>
+Geschätzter Koeffizient $\hat\beta$<br>
+<span style="color:#666;">Steigung oder Achsenabschnitt</span>
+</div>
+<div style="background:#f5f0fa; border-radius:4px; padding:6px 8px;">
+<strong style="color:#502479;">std_error</strong><br>
+Standardfehler SE<br>
+<span style="color:#666;">Streuung der Schätzung</span>
+</div>
+<div style="background:#f5f0fa; border-radius:4px; padding:6px 8px;">
+<strong style="color:#502479;">statistic</strong><br>
+t-Wert = estimate/SE<br>
+<span style="color:#666;">Je größer, desto signifikanter</span>
+</div>
+<div style="background:#fff0f0; border-radius:4px; padding:6px 8px;">
+<strong style="color:#D50006;">p_value</strong><br>
+P($|T| \geq |t|$ | $H_0$)<br>
+<span style="color:#666;">Kleiner = signifikanter</span>
+</div>
+<div style="background:#f0fff0; border-radius:4px; padding:6px 8px;">
+<strong style="color:#2a7a2a;">lower/upper_ci</strong><br>
+95%-Konfidenzintervall<br>
+<span style="color:#666;">Enthält Null? → nicht signifikant</span>
+</div>
+
+</div>
+
+.center[.small[`r fa('circle-right')` **Faustregel:** |t| > 2 → p < 0.05 (bei großem n) &nbsp;·&nbsp; KI enthält Null ↔ p > 0.05 &nbsp;·&nbsp; immer Effektstärke ($R^2$, RMSE) ergänzen]]
+
+???
+* Signifikanzsterne: *** p<0.001, ** p<0.01, * p<0.05, . p<0.1
+* t-Wert = estimate/std_error — direkt nachrechenbar
+* lower_ci und upper_ci: dieselbe Information wie p-Wert, aber informativer
+
+---
+class: inverse, center, middle
+
+# Power und Stichprobengröße
+
+---
+class: left
+
+.blockquote[Power]
+
+## Teststärke (Power): die Macht des Tests
+
+.pull-left[
+### Definition
+
+$$\text{Power} = 1 - \beta = P(\text{H}_0 \text{ ablehnen} \mid H_A \text{ wahr})$$
+
+Power ist die Wahrscheinlichkeit, einen **echten** Effekt auch zu **finden**.
+
+<br>
+
+### Power hängt ab von
+
+`r fa('circle-right')` **Stichprobengröße n** — mehr Daten = mehr Power
+
+`r fa('circle-right')` **Effektgröße d** — größerer Effekt = leichter zu finden
+
+`r fa('circle-right')` **Signifikanzniveau α** — größeres α = mehr Power (aber mehr FP)
+
+`r fa('circle-right')` **Varianz** in den Daten — weniger Rauschen = mehr Power
+
+<br>
+
+### Typische Power-Ziele
+| Power | Einschätzung |
+|-------|-------------|
+| < 80% | Riskant — echte Effekte werden übersehen |
+| 80% | Standard |
+| 90% | Konservativ |
+]
+
+.pull-right[
+```{r power-viz, echo=FALSE, message=FALSE, fig.align='center', out.width='90%'}
+x <- seq(-4, 8, length.out = 500)
+df_h0 <- tibble(x = x, y = dnorm(x, 0, 1), dist = "H₀: kein Effekt")
+df_h1 <- tibble(x = x, y = dnorm(x, 3, 1), dist = "H₁: wahrer Effekt")
+crit <- qnorm(0.95)
+
+ggplot() +
+  geom_line(data = df_h0, aes(x, y, color = dist), linewidth = 1.2) +
+  geom_line(data = df_h1, aes(x, y, color = dist), linewidth = 1.2) +
+  geom_area(data = filter(df_h0, x >= crit),
+            aes(x, y), fill = "#D50006", alpha = 0.35) +
+  geom_area(data = filter(df_h1, x < crit),
+            aes(x, y), fill = "#502479", alpha = 0.35) +
+  geom_vline(xintercept = crit, linetype = "dashed",
+             color = "#686868", linewidth = 1) +
+  annotate("text", x = crit + 0.15, y = 0.38,
+           label = glue::glue("Kritischer\nWert ({round(crit,2)})"),
+           hjust = 0, size = 3, color = "#686868") +
+  annotate("text", x = 4.2, y = 0.08,
+           label = "Power\n(1-β)", size = 3.5, color = "#2a7a2a") +
+  annotate("text", x = 1.8, y = 0.04,
+           label = "β\n(Fehler 2. Art)", size = 3, color = "#502479") +
+  annotate("text", x = 2.5, y = 0.01,
+           label = "α\n(Fehler 1. Art)", size = 3, color = "#D50006") +
+  scale_color_manual(values = c("H₀: kein Effekt" = "#502479",
+                                "H₁: wahrer Effekt" = "#D50006")) +
+  labs(x = "Teststatistik", y = "Dichte", color = NULL,
+       title = "Power, Fehler 1. und 2. Art im Überblick") +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+`r fa('circle-right')` **Underpowered Studies** finden echte Effekte nicht — oder überschätzen sie (Winner's Curse)
+]
+
+???
+* Power-Analyse VOR Datenerhebung — sonst ist Stichprobengröße Glückssache
+* Underpowered: bei Signifikanz wird der Effekt systematisch überschätzt (Publication Bias)
+* Im Bundesliga-Kontext: haben wir genug Spieler um den Interaktionsterm zu detektieren?
+
+---
+class: left
+
+.blockquote[Power]
+
+## Stichprobengröße berechnen
+
+.pull-left[
+### Faustregel für t-Test
+
+$$n \approx \frac{16}{d^2} \text{ pro Gruppe (80% Power)}$$
+
+**Beispiel:** d = 0.5 → n ≈ 64 pro Gruppe
+
+<br>
+
+### In R mit dem `pwr`-Paket
+
+```r
+library(pwr)
+
+# t-Test: Stichprobengröße bestimmen
+pwr.t.test(
+  d         = 0.5,   # Effektgröße
+  sig.level = 0.05,  # α
+  power     = 0.80,  # gewünschte Power
+  type      = "two.sample"
+)
+
+# ANOVA
+pwr.anova.test(
+  k         = 3,     # Anzahl Gruppen
+  f         = 0.25,  # Effektgröße f
+  sig.level = 0.05,
+  power     = 0.80
+)
+```
+]
+
+.pull-right[
+### Power-Kurven
+
+```{r power-curve, echo=FALSE, message=FALSE, fig.align='center', out.width='90%'}
+library(pwr)
+d_seq <- seq(0.1, 1.0, by = 0.05)
+n_seq <- c(20, 50, 100, 200)
+
+expand_grid(d = d_seq, n = n_seq) %>%
+  mutate(power = map2_dbl(d, n, ~{
+    pwr.t.test(d = .x, n = .y, sig.level = 0.05,
+               type = "two.sample")$power
+  }),
+  n_label = glue::glue("n = {n}")) %>%
+  ggplot(aes(x = d, y = power, color = factor(n))) +
+  geom_line(linewidth = 1) +
+  geom_hline(yintercept = 0.8, linetype = "dashed",
+             color = "#686868") +
+  annotate("text", x = 0.12, y = 0.82,
+           label = "80% Power", size = 3, color = "#686868") +
+  scale_color_manual(values = c("#b3b2b2","#7d0a52","#D50006","#502479")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "Effektgröße d", y = "Power (1−β)",
+       color = "Stichprobengröße",
+       title = "Power als Funktion von Effektgröße und n") +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+`r fa('circle-right')` Kleine Effekte brauchen große Stichproben — Power-Analyse ist **essentiell für Budgetplanung**
+]
+
+???
+* pwr-Paket: Cohen (1988) als Grundlage
+* Für Bundesliga: wir haben ~400-500 Spieler — ausreichend für mittlere Effekte
+* Manager-Relevanz: A/B-Tests, Produkttests, klinische Studien
+
+---
+class: inverse, center, middle
+
+# Effektstärken
+
+---
+class: left
+
+.blockquote[Effektstärken]
+
+## Cohen's d: Visualisierung
+
+```{r cohens-d-viz, echo=FALSE, message=FALSE, fig.align='center', out.width='95%', fig.height=3.5}
+plot_cohens_d <- function(d, title) {
+  x <- seq(-4, 4 + d, length.out = 500)
+  tibble(
+    x = x,
+    Kontrolle   = dnorm(x, 0, 1),
+    Behandlung  = dnorm(x, d, 1)
+  ) %>%
+    pivot_longer(-x, names_to = "Gruppe", values_to = "y") %>%
+    ggplot(aes(x, y, fill = Gruppe, color = Gruppe)) +
+    geom_area(alpha = 0.35, position = "identity") +
+    geom_line(linewidth = 0.8) +
+    geom_vline(xintercept = 0, linetype = "dashed",
+               color = "#502479", alpha = 0.7) +
+    geom_vline(xintercept = d, linetype = "dashed",
+               color = "#D50006", alpha = 0.7) +
+    annotate("segment", x = 0, xend = d, y = 0.45, yend = 0.45,
+             arrow = arrow(ends = "both", length = unit(0.08,"cm")),
+             color = "#333") +
+    annotate("text", x = d/2, y = 0.47, label = glue::glue("d = {d}"),
+             size = 3.5, fontface = "bold") +
+    scale_fill_manual(values  = c("Kontrolle"  = "#502479",
+                                  "Behandlung" = "#D50006")) +
+    scale_color_manual(values = c("Kontrolle"  = "#502479",
+                                  "Behandlung" = "#D50006")) +
+    labs(title = title, x = NULL, y = NULL) +
+    theme_minimal(base_size = 10) +
+    theme(legend.position = "bottom",
+          axis.text.y = element_blank())
+}
+
+p1 <- plot_cohens_d(0.2, "Klein (d = 0.2)")
+p2 <- plot_cohens_d(0.5, "Mittel (d = 0.5)")
+p3 <- plot_cohens_d(0.8, "Groß (d = 0.8)")
+
+library(patchwork)
+p1 + p2 + p3
+```
+
+.center[.small[
+`r fa('circle-right')` d = 0.2 (~15% Überlappungsreduktion) &nbsp;·&nbsp; d = 0.5 (~33%) &nbsp;·&nbsp; d = 0.8 (~47%) &nbsp;·&nbsp;
+**Cohen's d = Differenz in Standardabweichungen — unabhängig von n**
+]]
+
+???
+* Cohen's d ist skalenunabhängig — ermöglicht Vergleich über verschiedene Studien
+* Wichtig: d hängt nicht von n ab — im Gegensatz zum p-Wert!
+
+---
+class: left
+
+.blockquote[Effektstärken]
+
+## Cohen's d: Berechnung und Interpretation
+
+.pull-left[
+### Formel
+
+$$d = \frac{\bar{x}_1 - \bar{x}_2}{s_{\text{pooled}}}$$
+
+$$s_{\text{pooled}} = \sqrt{\frac{(n_1-1)s_1^2 + (n_2-1)s_2^2}{n_1 + n_2 - 2}}$$
+
+### Konventionen
+
+| |d| | Interpretation |
+|----|----------------|
+| < 0.2 | vernachlässigbar |
+| ≈ 0.2 | klein |
+| ≈ 0.5 | mittel |
+| ≥ 0.8 | groß |
+
+`r fa('circle-right')` **Immer zusammen mit p-Wert berichten!**
+]
+
+.pull-right[
+### In R
+
+```r
+# Mit effsize-Paket
+library(effsize)
+cohen.d(gruppe_a, gruppe_b)
+
+# Manuell
+cohens_d <- function(x, y) {
+  nx <- length(x)
+  ny <- length(y)
+  s_pool <- sqrt(((nx-1)*var(x) +
+                  (ny-1)*var(y)) /
+                 (nx + ny - 2))
+  (mean(x) - mean(y)) / s_pool
+}
+```
+
+### Bundesliga-Anwendung
+
+```{r cohens-d-buli, echo=TRUE, message=FALSE}
+gk     <- tbl_buli %>%
+            filter(pos_bin == "Goalkeeper") %>%
+            pull(log_value)
+field  <- tbl_buli %>%
+            filter(pos_bin == "Outfield") %>%
+            pull(log_value)
+d_buli <- (mean(field) - mean(gk)) /
+  sqrt(((length(field)-1)*var(field) +
+        (length(gk)-1)*var(gk)) /
+       (length(field)+length(gk)-2))
+round(d_buli, 3)
+```
+]
+
+???
+* d für Bundesliga Feldspieler vs. Torhüter: inhaltlich interpretieren
+* Falls d klein: Positionsunterschied statistisch signifikant aber praktisch gering?
+
+---
+class: inverse, center, middle
+
+# Fallstudien: Signifikanz vs. Relevanz
+
+---
+class: left
+
+.blockquote[Fallstudien]
+
+## Fallstudie 1: E-Commerce Conversion
+
+.pull-left[
+### Situation
+
+Online-Shop testet neuen Checkout-Prozess.
+
+**Daten:**
+- Gruppe A (alt): n = 5.000, 2.1% Conversion
+- Gruppe B (neu): n = 5.000, 2.3% Conversion
+
+**Statistische Analyse:**
+- Chi-Quadrat: p = 0.04 ✅ signifikant
+- Effektgröße: h = 0.03 ⚠️ sehr klein
+]
+
+.pull-right[
+### Business-Kontext
+
+| | Wert |
+|--|--|
+| Monatliche Besucher | 100.000 |
+| Ø Warenkorb | 80 CHF |
+| Mehr Käufe durch +0.2% | 160 / Monat |
+| **Monatlicher Mehrertrag** | **12.800 CHF** |
+
+<br>
+
+<div style="background:#f0fff0; border-left:3px solid #2a7a2a;
+            padding:10px 14px; font-size:0.85em; border-radius:0 4px 4px 0;">
+<strong>Entscheidung: Implementieren ✅</strong><br>
+Trotz kleiner Effektgröße: absoluter Gewinn
+rechtfertigt es bei hohem Volumen.
+</div>
+
+`r fa('circle-right')` **Lektion:** Bei hohem Volumen können auch kleine Effekte wirtschaftlich relevant sein — absoluter Gewinn zählt, nicht nur d.
+]
+
+???
+* Typisch für Web-Analytics: Effekte sind klein, aber Volumen ist riesig
+* Gegenbeispiel kommt gleich: kleiner d + niedriges Volumen = irrelevant
+
+---
+class: left
+
+.blockquote[Fallstudien]
+
+## Fallstudie 2: Medikamentenstudie
+
+.pull-left[
+### Situation
+
+Pharma-Firma testet neues Blutdruck-Medikament.
+
+**Daten:**
+- Placebo: n = 200, BD = 145 mmHg
+- Medikament: n = 200, BD = 143 mmHg
+
+**Statistische Analyse:**
+- t-Test: **p = 0.02** ✅ signifikant
+- Cohen's d = **0.15** ⚠️ sehr klein
+- 95%-KI: **[0.5, 3.5] mmHg**
+]
+
+.pull-right[
+### Klinische Bewertung
+
+<div style="background:#fff0f0; border-left:3px solid #D50006;
+            padding:10px 14px; font-size:0.85em; border-radius:0 4px 4px 0; margin-bottom:1em;">
+<strong>Entscheidung: Nicht zulassen ❌</strong><br>
+2 mmHg Senkung ist klinisch irrelevant.<br>
+Nebenwirkungsrisiko nicht gerechtfertigt.
+</div>
+
+**Was wir lernen:**
+
+`r fa('circle-right')` p = 0.02 sagt: "Kein Zufall" — aber nicht "klinisch bedeutsam"
+
+`r fa('circle-right')` Das KI [0.5, 3.5] zeigt: selbst der obere Rand ist klinisch insignifikant
+
+`r fa('circle-right')` n = 200 war groß genug um trivialen Effekt zu "entdecken"
+
+.blockquote[
+Statistische Signifikanz allein rechtfertigt **keine** klinische Entscheidung.
+]
+]
+
+???
+* Minimally Clinically Important Difference (MCID) für Blutdruck: ~5 mmHg
+* Unser KI-Oberrand ist 3.5 — liegt unter dem MCID
+* Gegenbeispiel zu Fallstudie 1: gleiches p, anderer Kontext → andere Entscheidung
+
+---
+class: left
+
+.blockquote[Fallstudien]
+
+## Fallstudie 3: HR Analytics
+
+.pull-left[
+### Situation
+
+Unternehmen untersucht: Senkt Weiterbildung die Kündigungsrate?
+
+**Daten (n = 500):**
+- Mit Weiterbildung: 8% Kündigung
+- Ohne Weiterbildung: 15% Kündigung
+
+**Statistische Analyse:**
+- Chi-Quadrat: **p < 0.001** ✅ hochsignifikant
+- Odds Ratio: **0.49** (halbes Risiko)
+- Cohen's h = **0.22** (klein-mittel)
+]
+
+.pull-right[
+### Kritische Fragen — Confounding!
+
+<div style="background:#fff8e1; border-left:3px solid #D5A000;
+            padding:10px 14px; font-size:0.84em; border-radius:0 4px 4px 0; margin-bottom:1em;">
+⚠️ <strong>Kausalität oder Selektion?</strong><br>
+Wer bekommt Weiterbildung?<br>
+Mögliche Confounder: Motivation, Potenzial, Abteilung
+</div>
+
+`r fa('circle-right')` Vielleicht kündigen motivierte Mitarbeiter sowieso weniger — **und** bekommen mehr Weiterbildung
+
+`r fa('circle-right')` Ohne Randomisierung (A/B-Test): **keine Kausalaussage** möglich
+
+`r fa('circle-right')` Observationsstudie = Korrelation, nicht Kausalität
+
+.blockquote[
+Signifikante Korrelation beweist keine Kausalität — immer kritisch hinterfragen. Das ist die Kernkompetenz des **Critical Validators**.
+]
+]
+
+???
+* Verbindung zu Konzept 5 aus den fünf Fundamenten: Korrelation ≠ Kausalität
+* Für Manager: bei Observationsdaten immer Confounding-Frage stellen
+* Lösung: Randomisiertes Experiment oder Quasi-Experiment (Differenz-in-Differenzen)
+
+---
+class: left
+
+.blockquote[Zusammenfassung]
+
+## Die drei Fallstudien im Vergleich
+
+<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.7em;
+            font-size:0.78em; margin-top:0.3em;">
+
+<div style="border:2px solid #D50006; border-radius:5px; padding:10px;">
+<div style="background:#D50006; color:white; font-weight:bold; padding:4px 8px;
+            margin:-10px -10px 8px -10px; border-radius:3px 3px 0 0;">
+E-Commerce
+</div>
+p = 0.04 ✅<br>
+d = 0.03 (winzig)<br>
+n = 5.000 pro Gruppe<br>
+Volumen: 100k Besucher/Monat<br><br>
+<strong style="color:#2a7a2a;">→ Implementieren</strong><br>
+Absoluter Gewinn zählt
+</div>
+
+<div style="border:2px solid #502479; border-radius:5px; padding:10px;">
+<div style="background:#502479; color:white; font-weight:bold; padding:4px 8px;
+            margin:-10px -10px 8px -10px; border-radius:3px 3px 0 0;">
+Medikament
+</div>
+p = 0.02 ✅<br>
+d = 0.15 (sehr klein)<br>
+n = 200 pro Gruppe<br>
+MCID: 5 mmHg, KI-Max: 3.5<br><br>
+<strong style="color:#D50006;">→ Nicht zulassen</strong><br>
+Klinisch irrelevant
+</div>
+
+<div style="border:2px solid #7d0a52; border-radius:5px; padding:10px;">
+<div style="background:#7d0a52; color:white; font-weight:bold; padding:4px 8px;
+            margin:-10px -10px 8px -10px; border-radius:3px 3px 0 0;">
+HR Analytics
+</div>
+p < 0.001 ✅✅<br>
+h = 0.22 (klein-mittel)<br>
+n = 500<br>
+Confounding unvermeidlich<br><br>
+<strong style="color:#D5A000;">→ Kein Kausalschluss</strong><br>
+A/B-Test nötig
+</div>
+
+</div>
+
+<br>
+
+.center[
+`r fa('circle-right')` **Gleiche Logik, drei verschiedene Entscheidungen** — weil Kontext, Kosten und Kausalität zählen, nicht nur p < 0.05
+]
+
+???
+* Die drei Fallstudien zeigen: es gibt keine universelle Entscheidungsregel
+* Immer: Signifikanz + Effektstärke + Business-Kontext + Kausalitätsfrage
+* Das ist die Kernkompetenz des Critical Validators

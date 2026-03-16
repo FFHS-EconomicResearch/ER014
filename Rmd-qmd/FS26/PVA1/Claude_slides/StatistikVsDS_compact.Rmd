@@ -1,0 +1,285 @@
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<style>
+.vs-hdr2 {
+  color: white; font-family: sans-serif; font-size: 12px; font-weight: bold;
+  padding: 5px 12px; border-radius: 4px; text-align: center;
+}
+.vs-row2 {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.5em; margin-top: 0.3em;
+}
+.vs-dim2 {
+  font-family: sans-serif; font-size: 9.5px; font-weight: bold;
+  text-transform: uppercase; letter-spacing: 0.05em; color: #777;
+  padding: 2px 8px; background: #f5f5f5; border-radius: 3px;
+  grid-column: 1 / -1;
+}
+.vs-cell2 {
+  border-radius: 4px; padding: 5px 9px;
+  font-size: 0.75em; line-height: 1.45;
+}
+.vs-chip2 {
+  background: rgba(0,0,0,0.07); border-radius: 3px;
+  padding: 1px 4px; font-size: 0.88em;
+  display: inline-block; margin: 1px 1px;
+}
+</style>
+
+<!-- Header -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5em; margin-top:0.2em;">
+  <div class="vs-hdr2" style="background:#502479;">`r fa('chart-line', fill='white')` &nbsp;Klassische Statistik</div>
+  <div class="vs-hdr2" style="background:#D50006;">`r fa('robot', fill='white')` &nbsp;Data Science / ML</div>
+</div>
+
+<!-- Dim 1: Erkenntnisinteresse — AKTIV -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('bullseye', fill='#777')` &nbsp;Erkenntnisinteresse</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('magnifying-glass')` Erklären</strong> &nbsp;
+    <span class="vs-chip2">Inferenz</span><span class="vs-chip2">Hypothesentest</span><span class="vs-chip2">Kausalität</span><br>
+    <span style="color:#666;">Parameter verstehen · „Warum?"</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('wand-magic-sparkles')` Vorhersagen</strong> &nbsp;
+    <span class="vs-chip2">Prädiktion</span><span class="vs-chip2">Automatisierung</span><span class="vs-chip2">Korrelation</span><br>
+    <span style="color:#666;">Genauigkeit maximieren · „Was kommt?"</span>
+  </div>
+</div>
+
+<!-- Dim 2–4: ausgegraut -->
+<div class="vs-row2" style="opacity:0.15;">
+  <div class="vs-dim2">`r fa('chart-area', fill='#777')` &nbsp;Umgang mit Unsicherheit</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:38px;"></div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:38px;"></div>
+</div>
+<div class="vs-row2" style="opacity:0.15;">
+  <div class="vs-dim2">`r fa('flask', fill='#777')` &nbsp;Methoden &amp; Evaluierung</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:38px;"></div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:38px;"></div>
+</div>
+<div class="vs-row2" style="opacity:0.15;">
+  <div class="vs-dim2">`r fa('database', fill='#777')` &nbsp;Daten</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:38px;"></div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:38px;"></div>
+</div>
+
+???
+* Shmueli (2010): kanonische Referenz — Erklären braucht Theorie, Vorhersagen braucht stabile Muster
+* Storchen-Beispiel: korreliert mit Geburtenrate — gut für Prognose, falsch für Kausalität
+* Statistik: Daten auf die „Anklagebank" — Effekte gelten als null bis Gegenteil bewiesen
+
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5em; margin-top:0.2em;">
+  <div class="vs-hdr2" style="background:#502479;">`r fa('chart-line', fill='white')` &nbsp;Klassische Statistik</div>
+  <div class="vs-hdr2" style="background:#D50006;">`r fa('robot', fill='white')` &nbsp;Data Science / ML</div>
+</div>
+
+<!-- Dim 1 -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('bullseye', fill='#777')` &nbsp;Erkenntnisinteresse</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('magnifying-glass')` Erklären</strong> &nbsp;
+    <span class="vs-chip2">Inferenz</span><span class="vs-chip2">Hypothesentest</span><span class="vs-chip2">Kausalität</span><br>
+    <span style="color:#666;">Parameter verstehen · „Warum?"</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('wand-magic-sparkles')` Vorhersagen</strong> &nbsp;
+    <span class="vs-chip2">Prädiktion</span><span class="vs-chip2">Automatisierung</span><span class="vs-chip2">Korrelation</span><br>
+    <span style="color:#666;">Genauigkeit maximieren · „Was kommt?"</span>
+  </div>
+</div>
+
+<!-- Dim 2: Unsicherheit — AKTIV -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('chart-area', fill='#777')` &nbsp;Umgang mit Unsicherheit</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('signal')` Theoretisch</strong> &nbsp;
+    <span class="vs-chip2">Normalverteilung</span><span class="vs-chip2">α-Niveau</span><span class="vs-chip2">Fehler 1. Art</span><br>
+    <span style="color:#666;">Zentraler Grenzwertsatz · strenge Annahmen</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('arrows-rotate')` Datengetrieben</strong> &nbsp;
+    <span class="vs-chip2">Bootstrap</span><span class="vs-chip2">Resampling</span><span class="vs-chip2">FDR</span><br>
+    <span style="color:#666;">Keine Verteilungsannahmen · False Discovery Rate</span>
+  </div>
+</div>
+
+<!-- Dim 3–4: ausgegraut -->
+<div class="vs-row2" style="opacity:0.15;">
+  <div class="vs-dim2">`r fa('flask', fill='#777')` &nbsp;Methoden &amp; Evaluierung</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:38px;"></div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:38px;"></div>
+</div>
+<div class="vs-row2" style="opacity:0.15;">
+  <div class="vs-dim2">`r fa('database', fill='#777')` &nbsp;Daten</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:38px;"></div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:38px;"></div>
+</div>
+
+???
+* FDR (Benjamini-Hochberg): bei tausenden Tests ist α=0.05 zu lax — FDR kontrolliert Anteil falscher Entdeckungen
+* Bootstrap: Resampling mit Zurücklegen — empirische Verteilung ohne parametrische Annahmen
+* Taddy: „Discover without overfit" — zentrales Spannungsfeld in hochdimensionalen Daten
+
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5em; margin-top:0.2em;">
+  <div class="vs-hdr2" style="background:#502479;">`r fa('chart-line', fill='white')` &nbsp;Klassische Statistik</div>
+  <div class="vs-hdr2" style="background:#D50006;">`r fa('robot', fill='white')` &nbsp;Data Science / ML</div>
+</div>
+
+<!-- Dim 1 -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('bullseye', fill='#777')` &nbsp;Erkenntnisinteresse</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('magnifying-glass')` Erklären</strong> &nbsp;
+    <span class="vs-chip2">Inferenz</span><span class="vs-chip2">Hypothesentest</span><span class="vs-chip2">Kausalität</span><br>
+    <span style="color:#666;">Parameter verstehen · „Warum?"</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('wand-magic-sparkles')` Vorhersagen</strong> &nbsp;
+    <span class="vs-chip2">Prädiktion</span><span class="vs-chip2">Automatisierung</span><span class="vs-chip2">Korrelation</span><br>
+    <span style="color:#666;">Genauigkeit maximieren · „Was kommt?"</span>
+  </div>
+</div>
+
+<!-- Dim 2 -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('chart-area', fill='#777')` &nbsp;Umgang mit Unsicherheit</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('signal')` Theoretisch</strong> &nbsp;
+    <span class="vs-chip2">Normalverteilung</span><span class="vs-chip2">α-Niveau</span><span class="vs-chip2">Fehler 1. Art</span><br>
+    <span style="color:#666;">Zentraler Grenzwertsatz · strenge Annahmen</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('arrows-rotate')` Datengetrieben</strong> &nbsp;
+    <span class="vs-chip2">Bootstrap</span><span class="vs-chip2">Resampling</span><span class="vs-chip2">FDR</span><br>
+    <span style="color:#666;">Keine Verteilungsannahmen · False Discovery Rate</span>
+  </div>
+</div>
+
+<!-- Dim 3: Methoden — AKTIV -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('flask', fill='#777')` &nbsp;Methoden &amp; Evaluierung</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('superscript')` OLS · GLM</strong> &nbsp;
+    <span class="vs-chip2">R²</span><span class="vs-chip2">t-Test</span><span class="vs-chip2">p-Wert</span><span class="vs-chip2">In-Sample</span><br>
+    <span style="color:#666;">Signifikanz · Modellgüte am Trainingsdatensatz</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('tree')` RF · Lasso · Neuronale Netze</strong> &nbsp;
+    <span class="vs-chip2">Cross-Validation</span><span class="vs-chip2">Out-of-Sample</span><span class="vs-chip2">Regularisierung</span><br>
+    <span style="color:#666;">Overfitting vermeiden · neue Daten prognostizieren</span>
+  </div>
+</div>
+
+<!-- Dim 4: ausgegraut -->
+<div class="vs-row2" style="opacity:0.15;">
+  <div class="vs-dim2">`r fa('database', fill='#777')` &nbsp;Daten</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8; min-height:38px;"></div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8; min-height:38px;"></div>
+</div>
+
+???
+* Regularisierung: Lasso (L1) setzt unwichtige Koeffizienten auf 0 — automatische Variablenselektion
+* Overfitting: komplexe Modelle lernen Trainingsdaten auswendig → schlechte Generalisierung
+* Cross-Validation: k-fold — Modell wird auf nie gesehenen Daten evaluiert
+
+---
+class: left
+count: false
+
+.blockquote[Big Picture & Data Strategy]
+
+## Statistik vs. Data Science — zwei Denkschulen
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5em; margin-top:0.2em;">
+  <div class="vs-hdr2" style="background:#502479;">`r fa('chart-line', fill='white')` &nbsp;Klassische Statistik</div>
+  <div class="vs-hdr2" style="background:#D50006;">`r fa('robot', fill='white')` &nbsp;Data Science / ML</div>
+</div>
+
+<!-- Dim 1 -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('bullseye', fill='#777')` &nbsp;Erkenntnisinteresse</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('magnifying-glass')` Erklären</strong> &nbsp;
+    <span class="vs-chip2">Inferenz</span><span class="vs-chip2">Hypothesentest</span><span class="vs-chip2">Kausalität</span><br>
+    <span style="color:#666;">Parameter verstehen · „Warum?"</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('wand-magic-sparkles')` Vorhersagen</strong> &nbsp;
+    <span class="vs-chip2">Prädiktion</span><span class="vs-chip2">Automatisierung</span><span class="vs-chip2">Korrelation</span><br>
+    <span style="color:#666;">Genauigkeit maximieren · „Was kommt?"</span>
+  </div>
+</div>
+
+<!-- Dim 2 -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('chart-area', fill='#777')` &nbsp;Umgang mit Unsicherheit</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('signal')` Theoretisch</strong> &nbsp;
+    <span class="vs-chip2">Normalverteilung</span><span class="vs-chip2">α-Niveau</span><span class="vs-chip2">Fehler 1. Art</span><br>
+    <span style="color:#666;">Zentraler Grenzwertsatz · strenge Annahmen</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('arrows-rotate')` Datengetrieben</strong> &nbsp;
+    <span class="vs-chip2">Bootstrap</span><span class="vs-chip2">Resampling</span><span class="vs-chip2">FDR</span><br>
+    <span style="color:#666;">Keine Verteilungsannahmen · False Discovery Rate</span>
+  </div>
+</div>
+
+<!-- Dim 3 -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('flask', fill='#777')` &nbsp;Methoden &amp; Evaluierung</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('superscript')` OLS · GLM</strong> &nbsp;
+    <span class="vs-chip2">R²</span><span class="vs-chip2">t-Test</span><span class="vs-chip2">p-Wert</span><span class="vs-chip2">In-Sample</span><br>
+    <span style="color:#666;">Signifikanz · Modellgüte am Trainingsdatensatz</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('tree')` RF · Lasso · Neuronale Netze</strong> &nbsp;
+    <span class="vs-chip2">Cross-Validation</span><span class="vs-chip2">Out-of-Sample</span><span class="vs-chip2">Regularisierung</span><br>
+    <span style="color:#666;">Overfitting vermeiden · neue Daten prognostizieren</span>
+  </div>
+</div>
+
+<!-- Dim 4: Daten — AKTIV -->
+<div class="vs-row2">
+  <div class="vs-dim2">`r fa('database', fill='#777')` &nbsp;Daten</div>
+  <div class="vs-cell2" style="background:#f5f0fa; border:1px solid #d0b8e8;">
+    <strong style="color:#502479;">`r fa('table')` Low-Dimensional</strong> &nbsp;
+    <span class="vs-chip2">n ≫ p</span><span class="vs-chip2">strukturiert</span><span class="vs-chip2">flat file</span><br>
+    <span style="color:#666;">Taddy: klassische Annahmen greifen · Carseats: 400 × 11</span>
+  </div>
+  <div class="vs-cell2" style="background:#fff0f0; border:1px solid #f0b8b8;">
+    <strong style="color:#D50006;">`r fa('layer-group')` High-Dimensional</strong> &nbsp;
+    <span class="vs-chip2">p ≈ n</span><span class="vs-chip2">unstrukturiert</span><span class="vs-chip2">Big Data</span><br>
+    <span style="color:#666;">Text · Bild · Sensor · Web-Logs</span>
+  </div>
+</div>
+
+???
+* Low-Dimensional: Carseats = 400 × 11, n≫p — perfektes Lehrbeispiel für klassische Statistik
+* High-Dimensional: p≈n → OLS bricht zusammen, keine eindeutige Lösung
+* Shmueli (2010): Statistical Science 25(3), 289–310 — https://doi.org/10.1214/10-STS330
+* Im Modul: wir starten klassisch und sehen in PVA3 wo die Grenzen liegen

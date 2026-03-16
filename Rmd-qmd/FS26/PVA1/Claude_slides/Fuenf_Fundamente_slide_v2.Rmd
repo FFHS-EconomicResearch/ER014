@@ -1,0 +1,177 @@
+---
+class: left
+
+## Fünf statistische Fundamente — und ihr Transfer in die Data Science
+
+<style>
+/* ── Layout ── */
+.bridge-row {
+  display: grid;
+  grid-template-columns: 1fr 38px 1fr;
+  gap: 0;
+  margin-top: 0.16em;
+  align-items: stretch;
+}
+/* ── Zellen ── */
+.bridge-left {
+  border-radius: 4px 0 0 4px;
+  padding: 4px 8px;
+  font-size: 0.71em;
+  line-height: 1.35;
+  background: #f5f0fa;
+  border: 1px solid #c9a8e0;
+  border-right: none;
+}
+.bridge-right {
+  border-radius: 0 4px 4px 0;
+  padding: 4px 8px;
+  font-size: 0.71em;
+  line-height: 1.35;
+  background: #fff0f0;
+  border: 1px solid #f0a8a8;
+  border-left: none;
+}
+/* ── Mittelpfeil: kein writing-mode, stattdessen kurzes Label ── */
+.bridge-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4a4a4a;
+  font-family: sans-serif;
+  font-size: 8px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  line-height: 1.25;
+  padding: 3px 2px;
+  /* Rotiere den gesamten Block 90° — Text bleibt lesbar */
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+/* ── Keywords ── */
+.bridge-kw-l { color: #502479; font-weight: bold; font-size: 1.04em; }
+.bridge-kw-r { color: #D50006; font-weight: bold; font-size: 1.04em; }
+/* ── Chips ── */
+.bridge-chip-l {
+  background: rgba(80,36,121,0.12); border-radius: 3px;
+  padding: 1px 4px; font-size: 0.87em;
+  display: inline-block; margin: 1px 1px;
+}
+.bridge-chip-r {
+  background: rgba(213,0,6,0.12); border-radius: 3px;
+  padding: 1px 4px; font-size: 0.87em;
+  display: inline-block; margin: 1px 1px;
+}
+/* ── Header ── */
+.bridge-hdr {
+  display: grid;
+  grid-template-columns: 1fr 38px 1fr;
+  gap: 0;
+  margin-top: 0.15em;
+  margin-bottom: 0.15em;
+}
+.bridge-hdr-l {
+  background: #502479; color: white; font-family: sans-serif;
+  font-size: 11px; font-weight: bold; padding: 5px 9px;
+  border-radius: 4px 0 0 4px; text-align: center;
+}
+.bridge-hdr-c {
+  background: #4a4a4a;
+}
+.bridge-hdr-r {
+  background: #D50006; color: white; font-family: sans-serif;
+  font-size: 11px; font-weight: bold; padding: 5px 9px;
+  border-radius: 0 4px 4px 0; text-align: center;
+}
+</style>
+
+<!-- Header -->
+<div class="bridge-hdr" style="margin-top:0.15em;">
+  <div class="bridge-hdr-l">`r fa('chart-line', fill='white')` &nbsp;Klassisches Konzept</div>
+  <div class="bridge-hdr-c"></div>
+  <div class="bridge-hdr-r">`r fa('robot', fill='white')` &nbsp;Data Science Transfer</div>
+</div>
+
+<!-- 1: Bedingter Erwartungswert -->
+<div class="bridge-row">
+  <div class="bridge-left">
+    <span class="bridge-kw-l">`r fa('equals')` E[Y|X] — Bedingter Erwartungswert</span><br>
+    <span class="bridge-chip-l">OLS</span><span class="bridge-chip-l">Regressionslinie</span><span class="bridge-chip-l">Populationsmodell</span><br>
+    <span style="color:#666;">Regression schätzt den Mittelwert von Y gegeben X</span>
+  </div>
+  <div class="bridge-arrow">Markt­bench­mark</div>
+  <div class="bridge-right">
+    <span class="bridge-kw-r">`r fa('bullseye')` Residuum als Arbitrage-Chance</span><br>
+    <span class="bridge-chip-r">Jedes ML-Modell</span><span class="bridge-chip-r">Underperformance</span><br>
+    <span style="color:#666;">e = y − ŷ &nbsp;→&nbsp; Unter-/Überbewertung quantifizieren</span>
+  </div>
+</div>
+
+<!-- 2: Stichprobenverteilung -->
+<div class="bridge-row" style="margin-top:0.16em;">
+  <div class="bridge-left">
+    <span class="bridge-kw-l">`r fa('arrows-rotate')` Stichprobenverteilung</span><br>
+    <span class="bridge-chip-l">Standardfehler</span><span class="bridge-chip-l">Konfidenzintervall</span><span class="bridge-chip-l">CLT</span><br>
+    <span style="color:#666;">„Was wenn wir immer wieder neu ziehen würden?"</span>
+  </div>
+  <div class="bridge-arrow">Unsicher­heit messen</div>
+  <div class="bridge-right">
+    <span class="bridge-kw-r">`r fa('shuffle')` Bootstrap · infer</span><br>
+    <span class="bridge-chip-r">Resampling</span><span class="bridge-chip-r">keine Verteilungsannahme</span><br>
+    <span style="color:#666;">Rechenpower ersetzt Formel — für beliebige Algorithmen</span>
+  </div>
+</div>
+
+<!-- 3: Expected Value Framework -->
+<div class="bridge-row" style="margin-top:0.16em;">
+  <div class="bridge-left">
+    <span class="bridge-kw-l">`r fa('scale-balanced')` Erwartungswert &amp; Fehlertypen</span><br>
+    <span class="bridge-chip-l">E[X] = Σ pᵢ·xᵢ</span><span class="bridge-chip-l">Fehler 1. Art</span><span class="bridge-chip-l">Fehler 2. Art</span><br>
+    <span style="color:#666;">Entscheidungen unter Unsicherheit gewichten</span>
+  </div>
+  <div class="bridge-arrow">ROI­-Kalkül</div>
+  <div class="bridge-right">
+    <span class="bridge-kw-r">`r fa('coins')` Expected Value Framework</span><br>
+    <span class="bridge-chip-r">Modellwahrscheinlichkeit</span><span class="bridge-chip-r">Kosten/Nutzen</span><br>
+    <span style="color:#666;">„70% Churn-Wahrscheinlichkeit" → finanzieller ROI?</span>
+  </div>
+</div>
+
+<!-- 4: FDR & Multiplizität -->
+<div class="bridge-row" style="margin-top:0.16em;">
+  <div class="bridge-left">
+    <span class="bridge-kw-l">`r fa('filter')` p-Wert · α-Niveau · Multiplizität</span><br>
+    <span class="bridge-chip-l">α = 0.05</span><span class="bridge-chip-l">Hypothesentest</span><span class="bridge-chip-l">1 Test</span><br>
+    <span style="color:#666;">Bei einem Test: 5% Fehlerrate akzeptabel</span>
+  </div>
+  <div class="bridge-arrow">Signal vs. Rauschen</div>
+  <div class="bridge-right">
+    <span class="bridge-kw-r">`r fa('triangle-exclamation')` FDR · p-Hacking</span><br>
+    <span class="bridge-chip-r">1000 Tests → 50 falsche Treffer</span><span class="bridge-chip-r">Benjamini-Hochberg</span><br>
+    <span style="color:#666;">False Discovery Rate kontrolliert Quote falscher Alarme</span>
+  </div>
+</div>
+
+<!-- 5: Kausalität & Confounding -->
+<div class="bridge-row" style="margin-top:0.16em;">
+  <div class="bridge-left">
+    <span class="bridge-kw-l">`r fa('code-branch')` Korrelation ≠ Kausalität</span><br>
+    <span class="bridge-chip-l">Confounder</span><span class="bridge-chip-l">Omitted Variable Bias</span><br>
+    <span style="color:#666;">Dritte Variable kann scheinbaren Zusammenhang erzeugen</span>
+  </div>
+  <div class="bridge-arrow">Interven­tion</div>
+  <div class="bridge-right">
+    <span class="bridge-kw-r">`r fa('flask')` A/B-Test · Causal ML</span><br>
+    <span class="bridge-chip-r">RCT</span><span class="bridge-chip-r">Conditional Ignorability</span><span class="bridge-chip-r">DAG</span><br>
+    <span style="color:#666;">ML versagt bei Interventionen — Kausalität ist unverzichtbar</span>
+  </div>
+</div>
+
+???
+* Konzept 1: Residuum als Unterperformance-Maß ist der Kern der Carseats-Fallstudie
+* Konzept 2: Bootstrap = "Gedankenexperiment mit Rechenpower" — gleiche Logik, kein CLT nötig
+* Konzept 3: Manager-Relevanz: Modell liefert Wahrscheinlichkeit, Manager entscheidet mit Kosten/Nutzen
+* Konzept 4: p-Hacking Beispiel — bei 20 Tests mit α=0.05 erwarte ich 1 falschen Treffer per Zufall
+* Konzept 5: ML prognostiziert gut wenn Zukunft = Vergangenheit — bei Preisänderung bricht das zusammen
+* Alle 5 Konzepte sind in ER014 verankert und werden in ER017/ER018 vorausgesetzt
