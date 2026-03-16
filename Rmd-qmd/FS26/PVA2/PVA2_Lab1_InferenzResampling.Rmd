@@ -12,6 +12,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+xaringanExtra::use_panelset()
 options(htmltools.dir.version = FALSE)
 library(tidyverse)
 library(moderndive)
@@ -101,6 +102,9 @@ class: left
 
 ## Schritt 2: Bootstrap-Verteilung
 
+
+.panelset[
+.panel[.panel-name[Bootstrap-Verteilung erzeugen]
 ```{r boot-dist, echo=TRUE, message=FALSE, cache=TRUE}
 set.seed(2024)
 
@@ -110,13 +114,31 @@ boot_dist <- tbl_buli %>%
                generate(reps = 1000, type = "bootstrap") %>%
                calculate(stat = "slope")
 ```
+]
 
-```{r boot-viz, echo=TRUE, message=FALSE, out.width='45%', fig.align='center'}
+.panel[.panel-name[Dataviz]
+
+```{r boot-viz, echo=FALSE, message=FALSE, out.width='45%', fig.align='center'}
 visualize(boot_dist) +
   labs(title = "Bootstrap-Verteilung des Steigungskoeffizienten",
        x = "β̂_age (log-Marktwert pro Altersjahr)",
        y = "Häufigkeit")
 ```
+
+]
+.panel[.panel-name[Code Dataviz]
+
+```{r, echo=TRUE, eval=FALSE, out.width='45%', fig.align='center'}
+visualize(boot_dist) +
+  labs(title = "Bootstrap-Verteilung des Steigungskoeffizienten",
+       x = "β̂_age (log-Marktwert pro Altersjahr)",
+       y = "Häufigkeit")
+```
+
+]
+
+]
+
 
 ???
 * Bootstrap: 1000× mit Zurücklegen aus den vorhandenen Daten ziehen
@@ -137,6 +159,7 @@ ci_pct <- boot_dist %>%
 ci_pct
 ```
 ]
+
 .panel[.panel-name[Standardfehler-Methode]
 ```{r ci-se, echo=TRUE, message=FALSE}
 ci_se <- boot_dist %>%
@@ -146,8 +169,8 @@ ci_se <- boot_dist %>%
 ci_se
 ```
 ]
-.panel[.panel-name[Visualisierung]
-```{r ci-viz, echo=TRUE, message=FALSE, out.width='45%', fig.align='center'}
+.panel[.panel-name[Dataviz]
+```{r ci-viz, echo=FALSE, message=FALSE, out.width='45%', fig.align='center'}
 visualize(boot_dist) +
   shade_confidence_interval(endpoints = ci_pct,
                             fill = NULL,
@@ -176,6 +199,21 @@ visualize(boot_dist) +
 .blockquote[
 Bei wiederholter Stichprobenziehung werden 95% der so berechneten Konfidenzintervalle den wahren Parameter $\beta_{\text{age}}$ enthalten.
 ]
+]
+.panel[.panel-name[Code Dataviz]
+```{r, echo=TRUE, eval=FALSE, out.width='45%', fig.align='center'}
+visualize(boot_dist) +
+  shade_confidence_interval(endpoints = ci_pct,
+                            fill = NULL,
+                            linetype = "solid",
+                            color = "#D50006") +
+  shade_confidence_interval(endpoints = ci_se,
+                            fill = NULL,
+                            linetype = "dashed",
+                            color = "#502479") +
+  labs(title = "Bootstrap-KI: Perzentil (rot) vs. Standardfehler (lila)",
+       x = "β̂_age", y = "Häufigkeit")
+```
 ]
 ]
 
@@ -206,7 +244,7 @@ null_dist %>%
 ]
 
 .pull-right[
-```{r null-viz, echo=TRUE, message=FALSE, out.width='90%', fig.align='center'}
+```{r null-viz, echo=TRUE, message=FALSE, out.width='55%', fig.align='center'}
 null_dist %>%
   visualize() +
   shade_p_value(obs_stat = obs_slope,
