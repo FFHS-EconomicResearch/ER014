@@ -1525,19 +1525,15 @@ Angepasster ("fitted") Regressionskoeffizient (Stichprobe)
 
 ---
 class: left
-
 .blockquote[Population vs. Stichprobe]
-
 ## `r fa('flask', fill='#D50006')` Lab 1 — Verweis
 
 <div style="border:3px solid #D50006; border-radius:8px; padding:20px 28px;
             background:#fff5f5; margin-top:1em;">
-
 <div style="font-family:sans-serif; font-size:16px; font-weight:bold;
             color:#D50006; margin-bottom:10px;">
 `r fa('flask')` Lab 1: Only One Test — Bootstrap &amp; Permutation mit infer
 </div>
-
 <div style="font-size:0.85em; line-height:1.8;">
 
 <strong>Lernziel:</strong> Bootstrap-Konfidenzintervall und Permutationstest für den
@@ -1546,14 +1542,19 @@ traditionellen t-Test vergleichen.
 
 <br>
 
-<strong>Datensatz:</strong> <code>buli_raw_2023-09-06.rds</code> (Bundesliga-Spieler, Saison 2022/23)
-
-<strong>Modell:</strong> <code>log_value ~ age</code> (Einfachregression)
+<strong>Datensatz:</strong> <code>buli_raw_2023-09-06.rds</code>
+(Bundesliga-Spieler, Saison 2022/23) &nbsp;·&nbsp;
+<strong>Modell:</strong> <code>log_value ~ age</code>
 
 <br>
 
-`r fa('circle-right')` <strong>Separates Lab-Dokument:</strong>
-<code>PVA2_Lab1_InferenzResampling.Rmd</code>
+`r fa('clock')` <strong>40 Minuten</strong> &nbsp;·&nbsp;
+`r fa('users')` <strong>Einzelarbeit oder Zweierteams</strong>
+
+<br>
+
+`r fa('circle-right')` <strong>Lab-Dokument öffnen:</strong>
+<code>PVA2_Lab1_InferenzResampling.qmd</code>
 
 </div>
 </div>
@@ -1564,9 +1565,9 @@ traditionellen t-Test vergleichen.
 
 ???
 * Lab dauert ca. 40 Minuten
-* Studierende arbeiten in RStudio mit dem Buli-Datensatz
-* Ergebnis: Bootstrap-KI, Permutationstest, Vergleich mit get_regression_table()
-
+* Pflichtaufgaben: Bootstrap-KI + Permutationstest + Vergleich t-Test
+* Bonusaufgaben: Interaktionsmodell, reps=100 vs. 1000, underpowered Stichprobe
+* Ergebnis sichern: obs_slope, boot_dist, ci_pct, ci_se, null_dist werden in Lab 2 nicht mehr gebraucht
 ---
 class: left
 
@@ -1658,12 +1659,12 @@ class: left
   Test: nicht signifikant<br><small>(H₀ nicht verworfen)</small>
 </div>
 <div style="background:#f0fff0; padding:8px; border:1px solid #90c090;">
-  `r fa('check', fill='#2a7a2a')` **Richtige Entscheidung**<br>
+  `r fa('check', fill='#2a7a2a')` <strong>Richtige Entscheidung</strong><br>
   True Negative<br>
   <span style="color:#555;">Kein Alarm, kein Brand</span>
 </div>
 <div style="background:#fff0f0; padding:8px; border:1px solid #f09090;">
-  `r fa('xmark', fill='#D50006')` **Fehler 2. Art (β)**<br>
+  `r fa('xmark', fill='#D50006')` <strong>Fehler 2. Art (β)</strong><br>
   False Negative<br>
   <span style="color:#555;">Brand übersehen!</span>
 </div>
@@ -1672,12 +1673,12 @@ class: left
   Test: signifikant<br><small>(H₀ verworfen)</small>
 </div>
 <div style="background:#fff0f0; padding:8px; border:1px solid #f09090;">
-  `r fa('xmark', fill='#D50006')` **Fehler 1. Art (α)**<br>
+  `r fa('xmark', fill='#D50006')` <strong>Fehler 1. Art (α)</strong><br>
   False Positive<br>
   <span style="color:#555;">Fehlalarm!</span>
 </div>
 <div style="background:#f0fff0; padding:8px; border:1px solid #90c090;">
-  `r fa('check', fill='#2a7a2a')` **Richtige Entscheidung**<br>
+  `r fa('check', fill='#2a7a2a')` <strong>Richtige Entscheidung</strong><br>
   True Positive<br>
   <span style="color:#555;">Brand erkannt!</span>
 </div>
@@ -1703,16 +1704,15 @@ class: left
 
 ## Expected Value Framework: Fehlerkosten quantifizieren
 
-.pull-left[
-### Das Framework (`r Zitiere(bib, "provost_data_2013")`, Kap. 7)
+.panelset[
+.panel[anel-name[Expected Value Framework]
+vgl. `r Zitiere(bib, "provost_data_2013")`, Kap. 7
 
 $$\text{EV} = \sum_i p_i \cdot v_i$$
 
 Für ein binäres Klassifikationsmodell:
 
 $$\text{EV} = \underbrace{p(\text{TP}) \cdot v(\text{TP})}_{\text{echter Treffer}} + \underbrace{p(\text{FP}) \cdot v(\text{FP})}_{\text{Fehlalarm}} + \underbrace{p(\text{FN}) \cdot v(\text{FN})}_{\text{verpasster Treffer}}$$
-
-<br>
 
 ### Bundesliga-Anwendung
 `r fa('circle-right')` **FP**: Spieler kaufen der nicht unterbewertet ist
@@ -1722,8 +1722,7 @@ $$\text{EV} = \underbrace{p(\text{TP}) \cdot v(\text{TP})}_{\text{echter Treffer
 → Kosten: entgangener Wettbewerbsvorteil
 ]
 
-.pull-right[
-<br>
+.panel[.panel-name[Beispiel]
 
 ### Beispiel: Churn-Modell gibt 70% Wahrscheinlichkeit
 
@@ -1741,6 +1740,8 @@ $$\text{EV}_{\text{Intervention}} = 0.7 \cdot 150 + 0.3 \cdot (-30) = 96 €$$
 
 .blockquote[
 Der p-Wert sagt nicht, ob eine Intervention lohnt. Das Expected Value Framework schon.
+]
+
 ]
 ]
 
@@ -1761,29 +1762,31 @@ class: left
 
 <div style="font-family:sans-serif; font-size:16px; font-weight:bold;
             color:#D50006; margin-bottom:10px;">
-`r fa('flask')` Lab 2: p-Hacking Simulation & False Discovery Rate
+`r fa('flask')` Lab 2: p-Hacking Simulation &amp; False Discovery Rate
 </div>
 
-<div style="font-size:0.85em; line-height:1.6;">
+<div style="font-size:0.85em; line-height:1.8;">
 
-**Lernziel:** p-Hacking durch Simulation erfahren und die Benjamini-Hochberg-Prozedur
-zur Kontrolle der False Discovery Rate anwenden.
+<strong>Lernziel:</strong> p-Hacking durch Simulation erfahren und die
+Benjamini-Hochberg-Prozedur zur Kontrolle der False Discovery Rate anwenden.
 
 <br>
 
-**Szenario:** Sie testen 100 zufällige Variablen auf Zusammenhang mit dem Bundesliga-Marktwert.
-Wie viele sind bei α = 0.05 rein zufällig signifikant?
+<strong>Szenario:</strong> Sie testen 100 zufällige Variablen auf Zusammenhang
+mit dem Bundesliga-Marktwert. Wie viele sind bei α = 0.05 rein zufällig signifikant?
 
 <br>
 
-`r fa('circle-right')` **Separates Lab-Dokument:** `PVA2_Lab2_pHacking_FDR.Rmd`
+`r fa('circle-right')` <strong>Separates Lab-Dokument:</strong>
+<code>PVA2_Lab2_pHacking_FDR.Rmd</code>
 
 </div>
 </div>
 
 <br>
 
-.center[.small[Weiter nach dem Lab → **Statistische vs. praktische Signifikanz**]]
+.center[.small[Weiter nach dem Lab → <strong>Statistische vs. praktische Signifikanz</strong>]]
+
 
 ???
 * Lab 2 dauert ca. 25 Minuten
@@ -1978,6 +1981,101 @@ lm_full %>%
 
 ---
 class: left
+.blockquote[Fehler 1. und 2. Art]
+## Expected Value Framework: Bundesliga-Anwendung
+.panelset[
+.panel[.panel-name[Entscheidungssituation]
+`r fa('circle-right')` Modell identifiziert Spieler mit **stark negativem Residuum**
+
+`r fa('circle-right')` Marktwert laut Modell: **6 Mio. €** — Transferpreis: **5 Mio. €**
+
+`r fa('circle-right')` Wertsteigerung bei echtem Arbitrage: **+20% = +1 Mio. €**
+
+`r fa('circle-right')` Opportunitätskosten bei Fehlkauf: **8% p.a. = 400k €**
+]
+.panel[.panel-name[Fehlertypen]
+### Fehlertypen im Kontext
+
+<table style="font-size:0.82em; width:100%; border-collapse:collapse;">
+<thead>
+<tr>
+  <th style="padding:6px 10px; background:#f5f5f5; border:1px solid #ddd; text-align:left;">Fehler</th>
+  <th style="padding:6px 10px; background:#f5f5f5; border:1px solid #ddd; text-align:left;">Situation</th>
+  <th style="padding:6px 10px; background:#f5f5f5; border:1px solid #ddd; text-align:left;">Konsequenz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="padding:6px 10px; border:1px solid #ddd; background:#fff0f0;"><strong>Fehler 1. Art</strong> (FP)</td>
+  <td style="padding:6px 10px; border:1px solid #ddd;">Kaufen — Arbitrage war Zufall</td>
+  <td style="padding:6px 10px; border:1px solid #ddd;">−400k € Opportunitätskosten</td>
+</tr>
+<tr>
+  <td style="padding:6px 10px; border:1px solid #ddd; background:#fff0f0;"><strong>Fehler 2. Art</strong> (FN)</td>
+  <td style="padding:6px 10px; border:1px solid #ddd;">Nicht kaufen — Arbitrage war echt</td>
+  <td style="padding:6px 10px; border:1px solid #ddd;">−1 Mio. € entgangener Gewinn</td>
+</tr>
+</tbody>
+</table>
+
+<br>
+Sei $p_{\text{A}}$ = Wahrscheinlichkeit dass Arbitrage echt ist.
+]
+.panel[.panel-name[Entscheidungsmatrix]
+### Entscheidungsmatrix
+
+<table style="font-size:0.84em; width:100%; border-collapse:collapse; margin-bottom:0.6em;">
+<thead>
+<tr>
+  <th style="padding:6px 10px; background:#f5f5f5; border:1px solid #ddd;"></th>
+  <th style="padding:6px 10px; background:#f5f5f5; border:1px solid #ddd; text-align:center;"><strong>Arbitrage echt</strong></th>
+  <th style="padding:6px 10px; background:#f5f5f5; border:1px solid #ddd; text-align:center;"><strong>Modell falsch</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="padding:6px 10px; border:1px solid #ddd; background:#f5f5f5;"><strong>Kaufen</strong></td>
+  <td style="padding:6px 10px; border:1px solid #ddd; text-align:center; background:#f0fff0;">+1.0 Mio. € ✅</td>
+  <td style="padding:6px 10px; border:1px solid #ddd; text-align:center; background:#fff8e1;">−0.4 Mio. € ⚠️</td>
+</tr>
+<tr>
+  <td style="padding:6px 10px; border:1px solid #ddd; background:#f5f5f5;"><strong>Nicht kaufen</strong></td>
+  <td style="padding:6px 10px; border:1px solid #ddd; text-align:center; background:#fff0f0;">−1.0 Mio. € ❌</td>
+  <td style="padding:6px 10px; border:1px solid #ddd; text-align:center; background:#f0fff0;">0 € ✅</td>
+</tr>
+</tbody>
+</table>
+<small>Nicht kaufen bei echter Arbitrage = entgangener Gewinn von 1 Mio. €</small>
+]
+.panel[.panel-name[Erwartungswert]
+### Expected Value
+
+$$\text{EV}(\text{Kaufen}) = p_{\text{A}} \cdot 1.0 - (1-p_{\text{A}}) \cdot 0.4$$
+
+$$\text{EV}(\text{Nicht kaufen}) = -p_{\text{A}} \cdot 1.0 + (1-p_{\text{A}}) \cdot 0$$
+
+**Kaufen lohnt wenn** EV(Kaufen) > EV(Nicht kaufen):
+
+$$p_{\text{A}} > \frac{0.4}{0.4 + 2} \approx \mathbf{17\%}$$
+
+<div style="background:#f0fff0; border-left:3px solid #2a7a2a;
+            padding:8px 12px; font-size:0.84em; border-radius:0 4px 4px 0;
+            margin-top:0.6em;">
+`r fa('circle-right')` Schon bei <strong>17% Überzeugung</strong> lohnt der Transfer —
+weil Nicht-Kaufen bei echter Arbitrage ebenfalls kostet.
+</div>
+]
+]
+
+???
+* Fehler 2. Art hat einen echten Preis: entgangener Arbitragegewinn von 1 Mio.
+* Deshalb ist die Entscheidungsschwelle mit 17% deutlich niedriger als α = 0.05 suggeriert
+* Moneyball-Logik: asymmetrisches Payoff + niedriger Break-even → datengetriebene Transfers lohnen sich auch bei Modellunsicherheit
+* p-Wert von 3.4% rechtfertigt den Alterseffekt als real — p_A schätzt der Manager selbst ein
+* Kernbotschaft: α = 0.05 ist eine willkürliche Konvention — die echte Entscheidungsschwelle hängt von den Kosten beider Fehlertypen ab
+
+---
+class: left
 
 .blockquote[Signifikanz vs. Relevanz]
 
@@ -2009,7 +2107,7 @@ lm_interaction %>%
 ???
 * Volle Interpretation: Alterskoeffizient signifikant und ökonomisch bedeutsam
 * Interaktionsterm: signifikant → Torhüter-Alterseffekt unterscheidet sich wirklich
-* KI nicht bei Null → stabiler Befund
+* Konfidenzintervall nicht bei Null → stabiler Befund
 
 ---
 class: left
