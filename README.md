@@ -16,5 +16,5 @@ Materialien zum Modul ER014 - Data Science and Strategy for Business
 * [Foliensatz](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/FS26/PVA2/PVA2_slides.html#1)
 
 * Labs:
-  * Lab 1: [html](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/FS26/PVA2/PVA2_Lab1_InferenzResampling.html#1), [Quarto](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/FS26/PVA2/PVA2_Lab1_InferenzResampling.qmd)
-  * Lab 2: [html](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/FS26/PVA2/PVA2_Lab2_pHacking.html#1), [Quarto](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/FS26/PVA2/PVA2_Lab2_pHacking.qmd)
+  * Lab 1: [html](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/FS26/PVA2/PVA2_Lab1_InferenzResampling.html#1), [Quarto](https://github.com/FFHS-EconomicResearch/ER014/blob/main/Rmd-qmd/FS26/PVA2/PVA2_Lab1_InferenzResampling.qmd)
+  * Lab 2: [html](https://FFHS-EconomicResearch.github.io/ER014/Rmd-qmd/FS26/PVA2/PVA2_Lab2_pHacking.html#1), [Quarto](https://github.com/FFHS-EconomicResearch/ER014/blob/main/Rmd-qmd/FS26/PVA2/PVA2_Lab2_pHacking_FDR.qmd)
