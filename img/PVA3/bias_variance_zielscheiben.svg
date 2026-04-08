@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 420" style="max-width:100%;height:auto;font-family:'Fira Sans','Helvetica Neue',Arial,sans-serif">
+<style>
+:root{--fr:#D50006;--fv:#502479;--fp:#7d0a52;--fg:#686868;--fgl:#b3b2b2;--ring1:#fce8e9;--ring2:#f5d0d1;--ring3:#e8a0a2;--bull:#D50006;--tx:#222;--ts:#686868}
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<!-- Column headers -->
+<text x="170" y="28" text-anchor="middle" fill="#502479" font-weight="500" font-size="13">Bias tief (valide)</text>
+<text x="510" y="28" text-anchor="middle" fill="#D50006" font-weight="500" font-size="13">Bias hoch (nicht valide)</text>
+
+<!-- Row headers -->
+<text x="18" y="160" text-anchor="middle" dominant-baseline="central" fill="#502479" font-weight="500" font-size="12" transform="rotate(-90,18,160)">Varianz tief (reliabel)</text>
+<text x="18" y="330" text-anchor="middle" dominant-baseline="central" fill="#D50006" font-weight="500" font-size="12" transform="rotate(-90,18,330)">Varianz hoch (nicht reliabel)</text>
+
+<!-- Top-left: low bias, low variance -->
+<circle cx="170" cy="140" r="62" fill="#fce8e9" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="170" cy="140" r="42" fill="#f5d0d1" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="170" cy="140" r="22" fill="#e8a0a2" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="170" cy="140" r="6" fill="#D50006"/>
+<line x1="170" y1="72" x2="170" y2="208" stroke="#b3b2b2" stroke-width="0.3"/>
+<line x1="102" y1="140" x2="238" y2="140" stroke="#b3b2b2" stroke-width="0.3"/>
+<circle cx="168" cy="137" r="4" fill="#502479" opacity="0.85"/>
+<circle cx="174" cy="142" r="4" fill="#502479" opacity="0.85"/>
+<circle cx="170" cy="135" r="4" fill="#502479" opacity="0.85"/>
+<circle cx="166" cy="141" r="4" fill="#502479" opacity="0.85"/>
+<circle cx="172" cy="139" r="4" fill="#502479" opacity="0.85"/>
+<text x="170" y="222" text-anchor="middle" fill="#222" font-weight="500" font-size="12">Tiefer Bias, tiefe Varianz</text>
+<text x="170" y="238" text-anchor="middle" fill="#686868" font-size="11">Valide + reliabel ✓</text>
+
+<!-- Top-right: high bias, low variance -->
+<circle cx="510" cy="140" r="62" fill="#fce8e9" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="510" cy="140" r="42" fill="#f5d0d1" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="510" cy="140" r="22" fill="#e8a0a2" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="510" cy="140" r="6" fill="#D50006"/>
+<line x1="510" y1="72" x2="510" y2="208" stroke="#b3b2b2" stroke-width="0.3"/>
+<line x1="442" y1="140" x2="578" y2="140" stroke="#b3b2b2" stroke-width="0.3"/>
+<circle cx="535" cy="112" r="4" fill="#D50006" opacity="0.85"/>
+<circle cx="538" cy="118" r="4" fill="#D50006" opacity="0.85"/>
+<circle cx="540" cy="108" r="4" fill="#D50006" opacity="0.85"/>
+<circle cx="533" cy="115" r="4" fill="#D50006" opacity="0.85"/>
+<circle cx="537" cy="110" r="4" fill="#D50006" opacity="0.85"/>
+<text x="510" y="222" text-anchor="middle" fill="#222" font-weight="500" font-size="12">Hoher Bias, tiefe Varianz</text>
+<text x="510" y="238" text-anchor="middle" fill="#686868" font-size="11">Reliabel, nicht valide</text>
+
+<!-- Bottom-left: low bias, high variance -->
+<circle cx="170" cy="320" r="62" fill="#fce8e9" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="170" cy="320" r="42" fill="#f5d0d1" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="170" cy="320" r="22" fill="#e8a0a2" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="170" cy="320" r="6" fill="#D50006"/>
+<line x1="170" y1="252" x2="170" y2="388" stroke="#b3b2b2" stroke-width="0.3"/>
+<line x1="102" y1="320" x2="238" y2="320" stroke="#b3b2b2" stroke-width="0.3"/>
+<circle cx="158" cy="308" r="4" fill="#7d0a52" opacity="0.85"/>
+<circle cx="180" cy="330" r="4" fill="#7d0a52" opacity="0.85"/>
+<circle cx="165" cy="340" r="4" fill="#7d0a52" opacity="0.85"/>
+<circle cx="175" cy="305" r="4" fill="#7d0a52" opacity="0.85"/>
+<circle cx="160" cy="325" r="4" fill="#7d0a52" opacity="0.85"/>
+<text x="170" y="400" text-anchor="middle" fill="#222" font-weight="500" font-size="12">Tiefer Bias, hohe Varianz</text>
+
+<!-- Bottom-right: high bias, high variance -->
+<circle cx="510" cy="320" r="62" fill="#fce8e9" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="510" cy="320" r="42" fill="#f5d0d1" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="510" cy="320" r="22" fill="#e8a0a2" stroke="#b3b2b2" stroke-width="0.5"/>
+<circle cx="510" cy="320" r="6" fill="#D50006"/>
+<line x1="510" y1="252" x2="510" y2="388" stroke="#b3b2b2" stroke-width="0.3"/>
+<line x1="442" y1="320" x2="578" y2="320" stroke="#b3b2b2" stroke-width="0.3"/>
+<circle cx="535" cy="295" r="4" fill="#686868" opacity="0.85"/>
+<circle cx="490" cy="345" r="4" fill="#686868" opacity="0.85"/>
+<circle cx="540" cy="340" r="4" fill="#686868" opacity="0.85"/>
+<circle cx="530" cy="300" r="4" fill="#686868" opacity="0.85"/>
+<circle cx="485" cy="305" r="4" fill="#686868" opacity="0.85"/>
+<text x="510" y="400" text-anchor="middle" fill="#222" font-weight="500" font-size="12">Hoher Bias, hohe Varianz</text>
+</svg>

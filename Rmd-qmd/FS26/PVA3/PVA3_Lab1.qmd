@@ -1,0 +1,56 @@
+---
+title: "Lab1"
+format: html
+---
+
+---
+class: left
+
+## Die A-Annahmen: Das Business-Modell prüfen
+
+*A-Annahmen prüfen, ob wir die Realität sinnvoll abstrahiert haben.*
+
+.pull-left[
+**A1: Variablenauswahl**
+Wir dürfen keine relevanten Variablen weglassen.
+* *Validation:* Fehlt ein wichtiger Faktor (z.B. "Schulferien" in unserem Hotel-Beispiel), entsteht der **Omitted Variable Bias** [9] – das Modell liefert gefährliche Scheinkorrelationen!
+]
+
+.pull-right[
+**A3: Konstante Parameter**
+Der Zusammenhang darf sich nicht grundlegend ändern.
+* *Validation:* **Die Lucas-Kritik!** [4] Sobald Sie als Manager aktiv in den Markt eingreifen (z.B. Preise ändern), provozieren Sie einen Strukturbruch [4]. Alte Muster brechen zusammen.
+]
+
+---
+class: left
+
+## Die B-Annahmen: Das Rauschen managen
+
+*B-Annahmen fordern, dass sich das unvorhersehbare Rauschen "brav" verhält (z.B. konstante Varianz/Homoskedastizität, Normalverteilung).*
+
+### Die Management-Implikation: Delegation an die Rechenpower!
+In Big-Data-Szenarien sind diese B-Annahmen ohnehin **fast immer verletzt** [10]. 
+Als *Critical Validator* wissen Sie: Wir vergeuden keine Zeit mehr mit unzähligen theoretischen Tests für jede einzelne Verletzung. 
+
+Stattdessen delegieren wir das Problem an die pure Rechenpower des Computers: 
+Wir nutzen **robuste Standardfehler** und **Resampling-Verfahren (Bootstrapping)** aus Block 2, um die Unsicherheit realitätsnah und datengetrieben zu simulieren [10, 11]!
+
+---
+class: left
+
+## Die C-Annahmen: Die große Weggabelung
+
+*Die C-Annahmen bestimmen unsere finale Daten-Strategie. Sie entscheiden, ob wir Gefahr 1 (Overfitting) oder Gefahr 2 (Intervention) bekämpfen.*
+
+.pull-left[
+### C2: Keine perfekte Multikollinearität
+* **Das Big-Data-Problem:** Wenn wir tausende Variablen haben, korrelieren sie stark. Reine Induktion führt zu fatalem Overfitting (Gefahr 1).
+* **Die Data-Science-Lösung:** Wir wechseln in den **Predictive-Modus**. Wir nutzen Regularisierung (z.B. **Lasso**) und prüfen via *Train-Test-Split*, wie gut das Modell Out-of-Sample vorhersagt [12, 13].
+]
+
+.pull-right[
+### C1: Exogenität
+* **Das Interventions-Problem:** Wenn wir Entscheidungen treffen, beeinflussen verborgene Störgrößen unsere Daten (Endogenität) [14]. Gefahr 2 droht!
+* **Die Data-Science-Lösung:** Wir wechseln in den **Causal-Modus**. Um echte Kausalität zu beweisen, müssen wir zwingend experimentieren (**A/B-Tests** als Goldstandard) [15].
+]

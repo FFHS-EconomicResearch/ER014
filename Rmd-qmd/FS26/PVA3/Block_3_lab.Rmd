@@ -1,0 +1,716 @@
+---
+title: "Lab Block 3: Komplexität, Kausalität & Generalisierung"
+subtitle: "Data Science and Strategy for Business – Hands-on Übungen"
+author: "Präsenzveranstaltung 3"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: false
+    number_sections: true
+    code_folding: show
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 9,
+  fig.height = 5
+)
+```
+
+# Vorbereitung {.tabset}
+
+## Pakete installieren und laden
+
+```{r packages}
+# Pakete installieren (nur beim ersten Mal nötig)
+# install.packages(c("tidyverse", "car", "glmnet", "caret", 
+#                     "lmtest", "pROC", "patchwork", "effectsize"))
+
+# Pakete laden
+library(tidyverse)    # Datenmanipulation & Visualisierung
+library(car)          # VIF-Berechnung
+library(glmnet)       # Lasso/Ridge Regularisierung
+library(caret)        # Kreuzvalidierung
+library(lmtest)       # Diagnostik-Tests
+library(pROC)         # ROC/AUC für Logit
+library(patchwork)    # Plots kombinieren
+library(effectsize)   # Cohen's d
+```
+
+## Daten generieren
+
+Wir arbeiten mit einem simulierten Datensatz, der typische Probleme illustriert:
+
+```{r data-generation}
+set.seed(2026)
+n <- 500
+
+# Simulierter Business-Datensatz: Kundenverkäufe
+daten <- tibble(
+  # Features
+  werbeausgaben = rnorm(n, 50, 15),
+  preis         = rnorm(n, 100, 20),
+  qualitaet     = rnorm(n, 7, 2),
+  # Multikollinearität: marketing_score hängt stark von werbeausgaben ab
+  marketing_score = 0.8 * werbeausgaben + rnorm(n, 0, 5),
+  # Saison als Confounder
+  saison        = sample(1:4, n, replace = TRUE),
+  saison_effekt = case_when(
+    saison == 1 ~ -10,
+    saison == 2 ~ 5,
+    saison == 3 ~ 15,
+    saison == 4 ~ 20
+  ),
+  # Zufallsvariable (kein Effekt)
+  zufall        = rnorm(n, 0, 10)
+) %>%
+  mutate(
+    # Kontinuierliche Zielvariable (Umsatz)
+    umsatz = 200 + 1.5 * werbeausgaben - 0.8 * preis + 
+             3 * qualitaet + saison_effekt + rnorm(n, 0, 15),
+    # Binäre Zielvariable (Kauf ja/nein)
+    kauf_prob = plogis(-2 + 0.03 * werbeausgaben - 0.01 * preis + 
+                        0.2 * qualitaet),
+    kauf = rbinom(n, 1, kauf_prob)
+  )
+
+# Erste Zeilen anschauen
+head(daten)
+```
+
+```{r data-summary}
+# Überblick
+summary(daten %>% select(umsatz, werbeausgaben, preis, qualitaet, marketing_score, kauf))
+```
+
+---
+
+# BLUE-Annahmen prüfen
+
+## Aufgabe 1: OLS-Modell schätzen und Diagnostik
+
+Schätzen Sie ein lineares Modell für den Umsatz und prüfen Sie die Annahmen.
+
+```{r ols-model}
+# Modell schätzen
+model_ols <- lm(umsatz ~ werbeausgaben + preis + qualitaet + saison_effekt, 
+                data = daten)
+summary(model_ols)
+```
+
+### Diagnose-Plots
+
+```{r diagnostics-plots, fig.height=8}
+# 4 Standard-Diagnose-Plots
+par(mfrow = c(2, 2))
+plot(model_ols)
+par(mfrow = c(1, 1))
+```
+
+### Formale Tests
+
+```{r formal-tests}
+# Breusch-Pagan Test für Homoskedastizität
+cat("=== Breusch-Pagan Test (Homoskedastizität) ===\n")
+bptest(model_ols)
+
+# Shapiro-Wilk Test für Normalität der Residuen
+cat("\n=== Shapiro-Wilk Test (Normalität) ===\n")
+shapiro.test(residuals(model_ols))
+
+# Durbin-Watson Test für Autokorrelation
+cat("\n=== Durbin-Watson Test (Autokorrelation) ===\n")
+dwtest(model_ols)
+```
+
+> **Frage:** Welche Annahmen sind verletzt? Was bedeutet das für unsere Schätzer?
+
+---
+
+# Multikollinearität erkennen
+
+## Aufgabe 2: VIF berechnen
+
+```{r multicollinearity}
+# Modell MIT der korrelierten Variable
+model_mc <- lm(umsatz ~ werbeausgaben + marketing_score + preis + qualitaet, 
+               data = daten)
+summary(model_mc)
+```
+
+```{r vif-calculation}
+# VIF berechnen
+cat("=== Variance Inflation Factors ===\n")
+vif(model_mc)
+```
+
+### Korrelationsmatrix visualisieren
+
+```{r correlation-matrix, fig.height=5}
+# Korrelationen berechnen
+cor_matrix <- cor(daten %>% select(werbeausgaben, marketing_score, preis, qualitaet))
+
+# Als Heatmap
+cor_long <- as.data.frame(as.table(cor_matrix)) %>%
+  rename(Var1 = Var1, Var2 = Var2, Korrelation = Freq)
+
+ggplot(cor_long, aes(Var1, Var2, fill = Korrelation)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(Korrelation, 2)), size = 4) +
+  scale_fill_gradient2(low = "#3498DB", mid = "white", high = "#E74C3C", 
+                       midpoint = 0, limits = c(-1, 1)) +
+  labs(title = "Korrelationsmatrix der Prädiktoren") +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Aufgabe 3: Multikollinearität lösen
+
+```{r mc-solution}
+# Lösung 1: Variable entfernen
+model_clean <- lm(umsatz ~ werbeausgaben + preis + qualitaet, data = daten)
+summary(model_clean)
+
+# VIF nach Entfernung
+cat("\n=== VIF nach Entfernung von marketing_score ===\n")
+vif(model_clean)
+```
+
+> **Übung:** Vergleichen Sie die Koeffizienten und Standardfehler von `model_mc` und `model_clean`. Was fällt auf?
+
+```{r mc-comparison}
+# Vergleichstabelle
+tibble(
+  Variable = c("werbeausgaben", "preis", "qualitaet"),
+  `Koef. mit MC` = coef(model_mc)[c("werbeausgaben", "preis", "qualitaet")],
+  `SE mit MC` = summary(model_mc)$coefficients[c("werbeausgaben", "preis", "qualitaet"), 2],
+  `Koef. ohne MC` = coef(model_clean)[c("werbeausgaben", "preis", "qualitaet")],
+  `SE ohne MC` = summary(model_clean)$coefficients[c("werbeausgaben", "preis", "qualitaet"), 2]
+) %>%
+  mutate(across(where(is.numeric), ~round(., 4)))
+```
+
+---
+
+# Bias-Varianz-Tradeoff & Overfitting
+
+## Aufgabe 4: Overfitting demonstrieren
+
+```{r overfitting-demo, fig.width=12, fig.height=5}
+# Einfacher Datensatz zum Demonstrieren
+set.seed(42)
+n_small <- 25
+x <- sort(runif(n_small, 0, 2*pi))
+y_true <- sin(x)
+y <- y_true + rnorm(n_small, 0, 0.3)
+df_demo <- data.frame(x = x, y = y, y_true = y_true)
+
+# Verschiedene Polynomgrade fitten
+degrees <- c(1, 3, 5, 15)
+x_new <- seq(0, 2*pi, length.out = 200)
+
+plots <- map(degrees, function(d) {
+  fit <- lm(y ~ poly(x, d, raw = TRUE), data = df_demo)
+  pred <- predict(fit, newdata = data.frame(x = x_new))
+  
+  df_pred <- data.frame(x = x_new, y = pred)
+  
+  ggplot() +
+    geom_point(data = df_demo, aes(x, y), size = 2) +
+    geom_line(data = data.frame(x = x_new, y = sin(x_new)), 
+              aes(x, y), color = "grey50", linetype = "dashed", linewidth = 0.8) +
+    geom_line(data = df_pred, aes(x, y), color = "#E74C3C", linewidth = 1.2) +
+    labs(title = paste0("Polynom Grad ", d),
+         subtitle = paste0("R² = ", round(summary(fit)$r.squared, 3))) +
+    ylim(-2, 2) +
+    theme_minimal(base_size = 11)
+})
+
+plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]]
+```
+
+## Aufgabe 5: In-Sample vs. Out-of-Sample Performance
+
+```{r in-vs-out-sample}
+set.seed(123)
+# Train/Test Split
+train_idx <- sample(1:n, 0.7 * n)
+train <- daten[train_idx, ]
+test  <- daten[-train_idx, ]
+
+# Verschiedene Modelle vergleichen
+models <- list(
+  "Einfach (1 Var)"    = lm(umsatz ~ werbeausgaben, data = train),
+  "Mittel (3 Var)"     = lm(umsatz ~ werbeausgaben + preis + qualitaet, data = train),
+  "Komplex (alle Var)" = lm(umsatz ~ werbeausgaben + preis + qualitaet + 
+                             marketing_score + zufall + saison_effekt, data = train),
+  "Overfit (Poly 5)"   = lm(umsatz ~ poly(werbeausgaben, 5) + poly(preis, 5) + 
+                             qualitaet, data = train)
+)
+
+# Performance messen
+ergebnisse <- map_dfr(names(models), function(name) {
+  m <- models[[name]]
+  tibble(
+    Modell = name,
+    `Train RMSE` = sqrt(mean(residuals(m)^2)),
+    `Test RMSE`  = sqrt(mean((test$umsatz - predict(m, newdata = test))^2)),
+    `Train R²`   = summary(m)$r.squared
+  )
+})
+
+ergebnisse %>% 
+  mutate(across(where(is.numeric), ~round(., 2))) %>%
+  knitr::kable(caption = "In-Sample vs. Out-of-Sample Performance")
+```
+
+```{r performance-chart, fig.height=4}
+ergebnisse %>%
+  pivot_longer(c(`Train RMSE`, `Test RMSE`), names_to = "Typ", values_to = "RMSE") %>%
+  ggplot(aes(reorder(Modell, RMSE), RMSE, fill = Typ)) +
+  geom_col(position = "dodge", width = 0.7) +
+  scale_fill_manual(values = c("Train RMSE" = "#3498DB", "Test RMSE" = "#E74C3C")) +
+  coord_flip() +
+  labs(x = "", y = "RMSE", title = "Train vs. Test Performance",
+       subtitle = "Große Differenz = Overfitting!") +
+  theme_minimal(base_size = 13)
+```
+
+---
+
+# Regularisierung mit glmnet
+
+## Aufgabe 6: Lasso-Regression
+
+```{r lasso-regression}
+# Daten als Matrix vorbereiten
+X_train <- model.matrix(umsatz ~ werbeausgaben + preis + qualitaet + 
+                          marketing_score + zufall + saison_effekt, 
+                        data = train)[, -1]
+y_train <- train$umsatz
+
+X_test <- model.matrix(umsatz ~ werbeausgaben + preis + qualitaet + 
+                         marketing_score + zufall + saison_effekt, 
+                       data = test)[, -1]
+y_test <- test$umsatz
+
+# Lasso mit Kreuzvalidierung
+cv_lasso <- cv.glmnet(X_train, y_train, alpha = 1, nfolds = 10)
+```
+
+### Lambda-Pfad visualisieren
+
+```{r lambda-plot, fig.height=5}
+plot(cv_lasso, main = "Lasso: Kreuzvalidierter MSE vs. Lambda")
+abline(v = log(cv_lasso$lambda.min), col = "#E74C3C", lty = 2)
+abline(v = log(cv_lasso$lambda.1se), col = "#3498DB", lty = 2)
+legend("topleft", legend = c("lambda.min", "lambda.1se"), 
+       col = c("#E74C3C", "#3498DB"), lty = 2)
+```
+
+### Koeffizienten bei optimalem Lambda
+
+```{r lasso-coefs}
+# Optimales Lambda
+cat("Optimales Lambda (min):", cv_lasso$lambda.min, "\n")
+cat("Optimales Lambda (1se):", cv_lasso$lambda.1se, "\n")
+
+# Koeffizienten
+cat("\n=== Lasso-Koeffizienten (lambda.min) ===\n")
+coef(cv_lasso, s = "lambda.min")
+
+cat("\n=== Lasso-Koeffizienten (lambda.1se) – sparsamer ===\n")
+coef(cv_lasso, s = "lambda.1se")
+```
+
+### Lasso-Vorhersage evaluieren
+
+```{r lasso-eval}
+# Vorhersagen
+pred_lasso <- predict(cv_lasso, newx = X_test, s = "lambda.min")
+rmse_lasso <- sqrt(mean((y_test - pred_lasso)^2))
+
+cat("Lasso Test RMSE:", round(rmse_lasso, 2), "\n")
+cat("OLS (mittel) Test RMSE:", round(ergebnisse$`Test RMSE`[2], 2), "\n")
+```
+
+## Aufgabe 7: Ridge vs. Lasso vs. Elastic Net
+
+```{r ridge-elastic}
+# Ridge (alpha = 0)
+cv_ridge <- cv.glmnet(X_train, y_train, alpha = 0, nfolds = 10)
+
+# Elastic Net (alpha = 0.5)
+cv_enet <- cv.glmnet(X_train, y_train, alpha = 0.5, nfolds = 10)
+
+# Vergleich
+vergleich <- tibble(
+  Methode = c("OLS", "Lasso", "Ridge", "Elastic Net"),
+  `Test RMSE` = c(
+    ergebnisse$`Test RMSE`[2],
+    sqrt(mean((y_test - predict(cv_lasso, newx = X_test, s = "lambda.min"))^2)),
+    sqrt(mean((y_test - predict(cv_ridge, newx = X_test, s = "lambda.min"))^2)),
+    sqrt(mean((y_test - predict(cv_enet, newx = X_test, s = "lambda.min"))^2))
+  )
+)
+
+vergleich %>%
+  mutate(`Test RMSE` = round(`Test RMSE`, 3)) %>%
+  knitr::kable(caption = "Vergleich der Regularisierungsmethoden")
+```
+
+### Koeffizientenpfade
+
+```{r coef-paths, fig.width=12, fig.height=5}
+fit_lasso <- glmnet(X_train, y_train, alpha = 1)
+fit_ridge <- glmnet(X_train, y_train, alpha = 0)
+
+par(mfrow = c(1, 2))
+plot(fit_lasso, xvar = "lambda", main = "Lasso (L1)", label = TRUE)
+plot(fit_ridge, xvar = "lambda", main = "Ridge (L2)", label = TRUE)
+par(mfrow = c(1, 1))
+```
+
+> **Beobachtung:** Lasso setzt Koeffizienten auf exakt 0 (Variablenselektion!), Ridge schrumpft alle, aber keiner wird 0.
+
+---
+
+# Kreuzvalidierung
+
+## Aufgabe 8: K-Fold CV mit caret
+
+```{r cv-caret}
+# 10-Fold CV für verschiedene Modelle
+ctrl <- trainControl(method = "cv", number = 10, savePredictions = TRUE)
+
+cv_einfach <- train(umsatz ~ werbeausgaben, data = daten, 
+                    method = "lm", trControl = ctrl)
+cv_mittel  <- train(umsatz ~ werbeausgaben + preis + qualitaet, data = daten,
+                    method = "lm", trControl = ctrl)
+cv_komplex <- train(umsatz ~ werbeausgaben + preis + qualitaet + 
+                     marketing_score + zufall, data = daten,
+                    method = "lm", trControl = ctrl)
+
+# Ergebnisse
+cv_ergebnisse <- tibble(
+  Modell = c("Einfach", "Mittel", "Komplex"),
+  `CV-RMSE` = c(cv_einfach$results$RMSE, 
+                cv_mittel$results$RMSE, 
+                cv_komplex$results$RMSE),
+  `CV-R²` = c(cv_einfach$results$Rsquared,
+              cv_mittel$results$Rsquared,
+              cv_komplex$results$Rsquared)
+)
+
+cv_ergebnisse %>%
+  mutate(across(where(is.numeric), ~round(., 3))) %>%
+  knitr::kable(caption = "10-Fold Kreuzvalidierung: Modellvergleich")
+```
+
+> **Frage:** Welches Modell hat die beste Out-of-Sample Performance? Warum?
+
+---
+
+# Korrelation vs. Kausalität
+
+## Aufgabe 9: Scheinkorrelation demonstrieren
+
+```{r spurious-correlation, fig.width=10, fig.height=5}
+set.seed(2026)
+n_sim <- 100
+
+# Confounder: Temperatur
+temperatur <- rnorm(n_sim, 20, 8)
+
+# Eisverkauf hängt von Temperatur ab
+eisverkauf <- 50 + 3 * temperatur + rnorm(n_sim, 0, 10)
+
+# Ertrinkungsfälle hängen auch von Temperatur ab
+ertrinken <- 2 + 0.5 * temperatur + rnorm(n_sim, 0, 3)
+
+df_spurious <- data.frame(temperatur, eisverkauf, ertrinken)
+
+# Naive Korrelation
+cor_naive <- cor(eisverkauf, ertrinken)
+cat("Naive Korrelation (Eis vs. Ertrinken):", round(cor_naive, 3), "\n")
+
+# Partielle Korrelation (kontrolliert für Temperatur)
+resid_eis <- residuals(lm(eisverkauf ~ temperatur))
+resid_ert <- residuals(lm(ertrinken ~ temperatur))
+cor_partial <- cor(resid_eis, resid_ert)
+cat("Partielle Korrelation (kontrolliert für Temperatur):", round(cor_partial, 3), "\n")
+```
+
+```{r spurious-plots, fig.width=12, fig.height=4}
+p1 <- ggplot(df_spurious, aes(eisverkauf, ertrinken)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "#E74C3C") +
+  labs(title = paste0("Scheinkorrelation: r = ", round(cor_naive, 2)),
+       x = "Eisverkauf", y = "Ertrinkungsfälle") +
+  theme_minimal(base_size = 12)
+
+p2 <- ggplot(data.frame(resid_eis, resid_ert), aes(resid_eis, resid_ert)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "#27AE60") +
+  labs(title = paste0("Nach Kontrolle für Temperatur: r = ", round(cor_partial, 2)),
+       x = "Residuen Eisverkauf", y = "Residuen Ertrinken") +
+  theme_minimal(base_size = 12)
+
+p3 <- ggplot(df_spurious, aes(temperatur, eisverkauf)) +
+  geom_point(alpha = 0.5, color = "#3498DB") +
+  geom_smooth(method = "lm", se = FALSE, color = "#3498DB") +
+  labs(title = "Wahrer Zusammenhang", x = "Temperatur", y = "Eisverkauf") +
+  theme_minimal(base_size = 12)
+
+p1 + p2 + p3
+```
+
+> **Erkenntnis:** Die Korrelation zwischen Eisverkauf und Ertrinken verschwindet fast vollständig, wenn wir für den Confounder (Temperatur) kontrollieren!
+
+---
+
+# A/B-Test simulieren
+
+## Aufgabe 10: A/B-Test durchführen
+
+```{r ab-test}
+set.seed(2026)
+n_ab <- 1000
+
+# Simulierter A/B-Test: Neues Website-Design
+ab_daten <- tibble(
+  gruppe = sample(c("A (Kontrolle)", "B (Neues Design)"), n_ab, replace = TRUE),
+  # Treatment-Effekt: Neues Design erhöht Conversion um 3 Prozentpunkte
+  conversion = case_when(
+    gruppe == "A (Kontrolle)"    ~ rbinom(n_ab, 1, 0.10),
+    gruppe == "B (Neues Design)" ~ rbinom(n_ab, 1, 0.13)
+  ),
+  # Umsatz pro Besuch
+  umsatz_visit = case_when(
+    gruppe == "A (Kontrolle)"    ~ rnorm(n_ab, 5.0, 3),
+    gruppe == "B (Neues Design)" ~ rnorm(n_ab, 5.8, 3)
+  )
+)
+
+# Deskriptive Statistik
+ab_daten %>%
+  group_by(gruppe) %>%
+  summarise(
+    n = n(),
+    conv_rate = mean(conversion),
+    mean_umsatz = mean(umsatz_visit),
+    sd_umsatz = sd(umsatz_visit)
+  ) %>%
+  knitr::kable(digits = 3, caption = "A/B-Test Ergebnisse")
+```
+
+### Statistische Tests
+
+```{r ab-tests}
+# 1. Chi-Quadrat-Test für Conversion Rate
+tab <- table(ab_daten$gruppe, ab_daten$conversion)
+cat("=== Chi-Quadrat-Test (Conversion) ===\n")
+chisq.test(tab)
+
+# 2. t-Test für Umsatz
+cat("\n=== t-Test (Umsatz pro Besuch) ===\n")
+t.test(umsatz_visit ~ gruppe, data = ab_daten)
+```
+
+### Cohen's d berechnen
+
+```{r cohens-d}
+# Cohen's d für den Umsatz-Unterschied
+d <- cohens_d(umsatz_visit ~ gruppe, data = ab_daten)
+cat("Cohen's d:", round(d$Cohens_d, 3), "\n")
+cat("Interpretation:", interpret_cohens_d(d$Cohens_d), "\n")
+```
+
+```{r ab-visualization, fig.height=4, fig.width=10}
+p_conv <- ab_daten %>%
+  group_by(gruppe) %>%
+  summarise(rate = mean(conversion), se = sqrt(rate*(1-rate)/n())) %>%
+  ggplot(aes(gruppe, rate, fill = gruppe)) +
+  geom_col(width = 0.6) +
+  geom_errorbar(aes(ymin = rate - 1.96*se, ymax = rate + 1.96*se), width = 0.2) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("#3498DB", "#E74C3C")) +
+  labs(title = "Conversion Rate", x = "", y = "Rate") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+
+p_umsatz <- ggplot(ab_daten, aes(umsatz_visit, fill = gruppe)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_manual(values = c("#3498DB", "#E74C3C")) +
+  labs(title = "Umsatzverteilung", x = "Umsatz pro Besuch", y = "Dichte") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+
+p_conv + p_umsatz
+```
+
+---
+
+# Logistische Regression
+
+## Aufgabe 11: Logit-Modell schätzen
+
+```{r logit-model}
+# Logistische Regression: Kaufwahrscheinlichkeit
+logit_model <- glm(kauf ~ werbeausgaben + preis + qualitaet, 
+                   data = train, family = binomial)
+summary(logit_model)
+```
+
+### Odds Ratios berechnen
+
+```{r odds-ratios}
+# Odds Ratios mit Konfidenzintervallen
+or_table <- tibble(
+  Variable = names(coef(logit_model))[-1],
+  `Log-Odds (β)` = coef(logit_model)[-1],
+  `Odds Ratio` = exp(coef(logit_model)[-1]),
+  `OR 2.5%` = exp(confint(logit_model))[-1, 1],
+  `OR 97.5%` = exp(confint(logit_model))[-1, 2]
+)
+
+or_table %>%
+  mutate(across(where(is.numeric), ~round(., 4))) %>%
+  knitr::kable(caption = "Odds Ratios mit 95%-Konfidenzintervallen")
+```
+
+### Odds Ratios visualisieren
+
+```{r or-plot, fig.height=4}
+ggplot(or_table, aes(x = `Odds Ratio`, y = reorder(Variable, `Odds Ratio`))) +
+  geom_point(size = 3, color = "#E74C3C") +
+  geom_errorbarh(aes(xmin = `OR 2.5%`, xmax = `OR 97.5%`), height = 0.2, color = "#E74C3C") +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  labs(x = "Odds Ratio (mit 95%-KI)", y = "",
+       title = "Odds Ratios: Einflussfaktoren auf Kaufentscheidung") +
+  theme_minimal(base_size = 13)
+```
+
+> **Interpretation:** 
+> - OR > 1 und KI enthält nicht 1 → signifikant erhöhte Kaufchance
+> - OR < 1 und KI enthält nicht 1 → signifikant verringerte Kaufchance
+
+## Aufgabe 12: Modellgüte evaluieren
+
+```{r logit-performance}
+# Vorhersagen
+pred_prob <- predict(logit_model, newdata = test, type = "response")
+pred_class <- ifelse(pred_prob > 0.5, 1, 0)
+
+# Confusion Matrix
+conf_mat <- confusionMatrix(factor(pred_class), factor(test$kauf), positive = "1")
+print(conf_mat)
+```
+
+### ROC-Kurve und AUC
+
+```{r roc-curve, fig.height=5}
+roc_obj <- roc(test$kauf, pred_prob)
+
+# ROC-Kurve plotten
+ggroc(roc_obj, color = "#E74C3C", linewidth = 1.2) +
+  geom_abline(slope = 1, intercept = 1, linetype = "dashed", color = "grey50") +
+  annotate("text", x = 0.3, y = 0.3, 
+           label = paste0("AUC = ", round(auc(roc_obj), 3)),
+           size = 5, fontface = "bold", color = "#E74C3C") +
+  labs(title = "ROC-Kurve: Logistische Regression",
+       x = "Spezifität", y = "Sensitivität") +
+  theme_minimal(base_size = 13)
+```
+
+---
+
+# Zusammenfassung & Reflexion
+
+## Was haben wir gelernt?
+
+```{r summary-table}
+tibble(
+  Thema = c("BLUE-Annahmen", "Multikollinearität", "Overfitting",
+            "Regularisierung", "Kreuzvalidierung", "Kausalität",
+            "A/B-Tests", "Logistische Regression"),
+  `Wichtigste Erkenntnis` = c(
+    "Immer prüfen vor der Interpretation!",
+    "VIF > 5 → handeln (entfernen, kombinieren, regularisieren)",
+    "Training ≠ Generalisierung → immer Out-of-Sample validieren",
+    "Lasso für Variablenselektion, Ridge bei vielen kleinen Effekten",
+    "CV-Score ist die beste Schätzung für Generalisierung",
+    "Korrelation ≠ Kausalität → Confounder beachten!",
+    "Randomisierung eliminiert Confounding → kausale Aussagen möglich",
+    "Für binäre Outcomes: Odds Ratios, Confusion Matrix, AUC"
+  ),
+  `R-Funktion` = c(
+    "plot(model), bptest(), dwtest()",
+    "car::vif()",
+    "train/test split, vergleiche RMSE",
+    "glmnet::cv.glmnet()",
+    "caret::train(trControl = trainControl('cv'))",
+    "Partielle Korrelation, DAGs",
+    "t.test(), chisq.test(), effectsize::cohens_d()",
+    "glm(family=binomial), exp(coef()), pROC::roc()"
+  )
+) %>%
+  knitr::kable(caption = "Block 3: Cheat Sheet")
+```
+
+---
+
+## Bonus-Übung: Vollständige Pipeline
+
+> Bauen Sie ein Vorhersagemodell für die Variable `kauf` mit folgender Pipeline:
+>
+> 1. Explorative Datenanalyse
+> 2. VIF prüfen und problematische Variablen entfernen
+> 3. Logistische Regression mit glm()
+> 4. Lasso-Logit mit cv.glmnet(family = "binomial")
+> 5. 10-Fold Kreuzvalidierung
+> 6. Modelle vergleichen (AUC)
+> 7. Ergebnisse interpretieren
+
+```{r bonus-pipeline, eval=FALSE}
+# Ihre Lösung hier!
+
+# 1. EDA
+daten %>% 
+  select(kauf, werbeausgaben, preis, qualitaet) %>%
+  summary()
+
+# 2. VIF
+# ...
+
+# 3. Logit
+# ...
+
+# 4. Lasso-Logit
+cv_logit_lasso <- cv.glmnet(X_train, train$kauf, 
+                             alpha = 1, family = "binomial")
+
+# 5. CV
+# ...
+
+# 6. AUC vergleichen
+# ...
+
+# 7. Interpretation
+# ...
+```
+
+---
+
+*Viel Erfolg bei den Übungen! 🚀*
+
+*Ausblick: Modul ER017 vertieft ML-Algorithmen (Random Forest, Boosting, Neural Networks).*

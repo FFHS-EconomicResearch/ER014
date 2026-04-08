@@ -1,0 +1,544 @@
+---
+title: "Lab 2: Baseline-Modell — Einfachregression"
+subtitle: "CRISP-DM Phase 3 & 4 — Data Preparation & Modeling"
+author: "Prof. Dr. Jörg Schoder"
+date: today
+lang: de
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "Inhalt"
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Code anzeigen"
+    theme: cosmo
+    css: ../../../css/styles.css
+    embed-resources: true
+execute:
+  echo: true
+  message: false
+  warning: false
+---
+
+```{r setup}
+#| include: false
+library(tidyverse)
+library(moderndive)
+library(broom)
+library(gt)
+library(patchwork)
+library(ISLR2)
+
+tbl_carseats <- tibble(Carseats)
+```
+
+## Lernziele und Überblick
+
+:::{.callout-note}
+## Lernziele dieses Labs
+
+- Ein einfaches OLS-Modell als **Benchmark** schätzen und interpretieren
+- Koeffizienten als **bedingte Mittelwerte** verstehen — nicht als Kausalaussagen
+- Das **Bestimmtheitsmaß R²** berechnen und korrekt interpretieren
+- **Residuen** als Underperformance-Maß lesen und im Residualplot sehen
+- Den **Omitted Variable Bias** (OVB) im Residualplot diagnostizieren
+:::
+
+**Szenario:** In Lab 1 haben Sie die Carseats-Daten exploriert und festgestellt, 
+dass `Price` negativ mit `Sales` korreliert. Jetzt bauen Sie das einfachste mögliche 
+Regressionsmodell — das **Baseline-Modell** — und prüfen kritisch, was es kann und was nicht.
+
+:::{.callout-tip}
+## Zeitplanung
+⏱ **15 Minuten** — Pflichtaufgaben (A1–A3), Bonusaufgaben wenn Zeit bleibt.
+:::
+
+---
+
+## Hintergrund: OLS und der bedingte Mittelwert
+
+### Die Grundidee der linearen Regression
+
+OLS (Ordinary Least Squares) schätzt eine Gerade der Form:
+
+$$\hat{y}_i = \hat\beta_0 + \hat\beta_1 \cdot x_i$$
+
+wobei $\hat{y}_i$ den **bedingten Mittelwert** von $y$ gegeben $x_i$ approximiert:
+
+$$\hat{y}_i \approx E[Y \mid X = x_i]$$
+
+:::{.callout-important}
+## Regression als Benchmark — nicht als Wahrheit
+
+Die Regressionsgerade ist **kein** Kausalmodell und **keine** exakte Vorhersage.
+Sie ist der **Marktstandard**: der Umsatz, den eine Filiale *im Durchschnitt* 
+bei diesem Preis erzielen sollte.
+
+Eine Filiale mit einem stark **negativen Residuum** verkauft weniger als der Markt erwartet — 
+das ist das Underperformance-Signal das wir suchen.
+
+> *"Regression does not give us truth. It gives us conditional averages —
+> benchmarks against which to judge individual cases."*
+> — @taddy_business_2019, S. 32
+:::
+
+### Herleitung: Methode der kleinsten Quadrate
+
+OLS wählt $\hat\beta_0$ und $\hat\beta_1$ so, dass die **Summe der quadrierten Residuen (SSR)** minimal wird:
+
+$$\min_{\hat\beta_0,\, \hat\beta_1} \sum_{i=1}^{n} e_i^2 = \sum_{i=1}^{n}(y_i - \hat\beta_0 - \hat\beta_1 x_i)^2$$
+
+Die Bedingungen erster Ordnung (partielle Ableitungen = 0) liefern analytische Lösungen:
+
+$$\hat\beta_1 = \frac{s_{xy}}{s_x^2} = \frac{\sum_i(x_i - \bar{x})(y_i - \bar{y})}{\sum_i(x_i - \bar{x})^2}$$
+
+$$\hat\beta_0 = \bar{y} - \hat\beta_1 \cdot \bar{x}$$
+
+**Interpretation:**
+
+- $\hat\beta_1$: Steigungskoeffizient — **marginaler Effekt** von $x$ auf $\hat{y}$. Pro Einheit mehr in $x$ ändert sich $\hat{y}$ um $\hat\beta_1$ Einheiten.
+- $\hat\beta_0$: Achsenabschnitt (Intercept) — vorhergesagter Wert von $\hat{y}$ wenn $x = 0$.
+
+### Bestimmtheitsmaß R²
+
+Die Gesamtstreuung (TSS) lässt sich in erklärte Streuung (ESS) und Reststreuung (SSR) zerlegen:
+
+$$\underbrace{\sum_i(y_i - \bar{y})^2}_{\text{TSS}} = \underbrace{\sum_i(\hat{y}_i - \bar{y})^2}_{\text{ESS}} + \underbrace{\sum_i e_i^2}_{\text{SSR}}$$
+
+Das Bestimmtheitsmaß misst den Anteil der erklärten Streuung:
+
+$$R^2 = \frac{\text{ESS}}{\text{TSS}} = 1 - \frac{\text{SSR}}{\text{TSS}} \in [0, 1]$$
+
+:::{.callout-note}
+## R² korrekt interpretieren
+
+$R^2 = 0.15$ bedeutet: **15% der Varianz in `Sales`** wird durch das Modell erklärt.
+Die restlichen 85% sind auf andere (nicht im Modell enthaltene) Faktoren zurückzuführen.
+
+Ein niedriges $R^2$ ist **kein Fehler** — es zeigt an, dass wichtige Variablen fehlen.
+Das ist didaktisch wertvoll: es motiviert das **multiple Modell** mit ShelveLoc und Advertising.
+:::
+
+---
+
+## Schritt 1: Baseline-Modell schätzen
+
+### Einfachregression Sales ~ Price
+
+```{r baseline-fit}
+#| code-fold: false
+library(moderndive)
+
+# Modell fitten
+mod_baseline <- tbl_carseats %>%
+  lm(Sales ~ Price, data = .)
+
+# Regressionstabelle
+mod_baseline %>%
+  get_regression_table() %>%
+  gt() %>%
+  fmt_number(columns = c(estimate, std_error, statistic,
+                         p_value, lower_ci, upper_ci),
+             decimals = 4) %>%
+  tab_style(
+    style     = cell_fill(color = "#fff8e1"),
+    locations = cells_body(rows = term == "Price")
+  ) %>%
+  tab_options(table.font.size = "14px") %>%
+  tab_footnote("Gelb = Steigungskoeffizient für Price")
+```
+
+:::{.callout-note}
+## Alle Spalten der Regressionstabelle erklärt
+
+| Spalte | Bedeutung |
+|--------|-----------|
+| `estimate` | Geschätzter Koeffizient $\hat\beta$ |
+| `std_error` | Standardfehler — Streuung der Schätzung (→ PVA2) |
+| `statistic` | t-Wert = estimate / std_error |
+| `p_value` | Wahrscheinlichkeit unter $H_0: \beta = 0$ (→ PVA2) |
+| `lower_ci` / `upper_ci` | 95%-Konfidenzintervall (→ PVA2) |
+
+**Heute fokussieren wir auf `estimate`** — die Inferenz (Spalten 2–6) kommt in PVA2.
+:::
+
+### Modellgüte
+
+```{r baseline-summary}
+mod_baseline %>%
+  get_regression_summaries() %>%
+  select(r_squared, adj_r_squared, rmse, sigma, nobs) %>%
+  gt() %>%
+  fmt_number(columns = c(r_squared, adj_r_squared, rmse, sigma),
+             decimals = 4) %>%
+  tab_options(table.font.size = "14px")
+```
+
+:::{.callout-caution icon=false}
+## `r fontawesome::fa("pen")` A1: Koeffizienten interpretieren
+
+Schreiben Sie die Regressionsgleichung auf und interpretieren Sie die Koeffizienten:
+
+$$\widehat{\text{Sales}} = \hat\beta_0 + \hat\beta_1 \cdot \text{Price}$$
+
+1. **Intercept $\hat\beta_0$:** Was sagt dieser Wert inhaltlich? 
+   Ist er sinnvoll interpretierbar (Preis = 0)?
+
+2. **Steigung $\hat\beta_1$:** Wie verändert sich der vorhergesagte Umsatz, 
+   wenn der Preis um 1 USD steigt? Um 10 USD?
+
+3. **$R^2$:** Wie viel Prozent der Umsatzvarianz erklärt das Modell? 
+   Was bedeutet das für die Qualität des Modells?
+
+4. **RMSE:** Was sagt der Root Mean Squared Error über die durchschnittliche 
+   Vorhersagegenauigkeit (in welchen Einheiten)?
+:::
+
+### Visualisierung: Regressionsgerade
+
+```{r scatter-fit}
+tbl_carseats %>%
+  ggplot(aes(x = Price, y = Sales)) +
+  geom_point(alpha = 0.35, color = "#7d0a52", size = 1.8) +
+  geom_smooth(method = "lm", color = "#D50006",
+              se = TRUE, linewidth = 1.2) +
+  annotate("text", x = 70, y = 16,
+           label = paste0("Sales = ",
+                          round(coef(mod_baseline)[1], 2), " + ",
+                          round(coef(mod_baseline)[2], 2), " × Price\n",
+                          "R² = ", round(summary(mod_baseline)$r.squared, 3)),
+           color = "#D50006", size = 3.5, hjust = 0, fontface = "bold") +
+  labs(
+    title    = "Baseline-Modell: Sales ~ Price",
+    subtitle = "Regressionsgerade = bedingter Mittelwert E[Sales | Price]",
+    x = "Preis (USD)", y = "Sales (Tsd. Einheiten)"
+  ) +
+  theme_minimal(base_size = 11)
+```
+
+---
+
+## Schritt 2: Residualanalyse
+
+### Residuen berechnen und anzeigen
+
+```{r residuals}
+#| code-fold: false
+reg_points <- mod_baseline %>%
+  get_regression_points()
+
+# Erste 10 Beobachtungen
+reg_points %>%
+  head(10) %>%
+  gt() %>%
+  fmt_number(columns = c(Sales, Price, Sales_hat, residual),
+             decimals = 3) %>%
+  tab_style(
+    style     = cell_fill(color = "#fff0f0"),
+    locations = cells_body(rows = residual < -2)
+  ) %>%
+  tab_style(
+    style     = cell_fill(color = "#f0fff0"),
+    locations = cells_body(rows = residual > 2)
+  ) %>%
+  tab_options(table.font.size = "13px") %>%
+  tab_footnote("Rot = stark negatives Residuum (Underperformer) | Grün = stark positives (Outperformer)")
+```
+
+:::{.callout-note}
+## Das Residuum als Underperformance-Maß
+
+$$e_i = y_i - \hat{y}_i = \text{Sales}_i - \widehat{\text{Sales}}_i$$
+
+- **$e_i < 0$:** Filiale verkauft **weniger** als der Preis-Benchmark erwarten würde → Underperformer
+- **$e_i > 0$:** Filiale verkauft **mehr** als erwartet → Outperformer
+- **$e_i \approx 0$:** Filiale liegt im Marktdurchschnitt
+
+Das Residuum quantifiziert die **Abweichung vom Marktstandard** —
+das ist das Scoring für unser Performance-Mining (→ Lab 3).
+:::
+
+### Residualplot
+
+```{r residual-plots}
+pts <- augment(mod_baseline, data = tbl_carseats)
+
+# Plot 1: Residuen vs. Fitted Values
+p1 <- pts %>%
+  ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.4, color = "#7d0a52", size = 1.5) +
+  geom_hline(yintercept = 0, color = "#D50006",
+             linewidth = 1.1, linetype = "dashed") +
+  geom_smooth(method = "loess", color = "#502479",
+              se = FALSE, linewidth = 0.8) +
+  labs(title = "Residuen vs. Vorhergesagte Werte",
+       subtitle = "Ideal: zufällige Streuung um 0",
+       x = "Vorhergesagter Wert (Ŝales)", y = "Residuum") +
+  theme_minimal(base_size = 10)
+
+# Plot 2: Residuen gefärbt nach ShelveLoc
+p2 <- pts %>%
+  ggplot(aes(x = .fitted, y = .resid, color = ShelveLoc)) +
+  geom_point(alpha = 0.5, size = 1.5) +
+  geom_hline(yintercept = 0, color = "#686868",
+             linewidth = 1, linetype = "dashed") +
+  scale_color_manual(values = c("Bad"    = "#D50006",
+                                "Medium" = "#b3b2b2",
+                                "Good"   = "#502479")) +
+  labs(title = "Residuen gefärbt nach Regalplatz",
+       subtitle = "Systematisches Muster = fehlende Variable!",
+       x = "Vorhergesagter Wert", y = "Residuum",
+       color = "ShelveLoc") +
+  theme_minimal(base_size = 10)
+
+p1 + p2
+```
+
+:::{.callout-caution icon=false}
+## `r fontawesome::fa("pen")` A2: Residualplot interpretieren
+
+1. **Plot links:** Zeigt der Residualplot ein zufälliges Muster oder eine Systematik?
+   Was würde ein idealer Residualplot aussehen?
+
+2. **Plot rechts:** Beschreiben Sie das Muster nach ShelveLoc-Färbung.
+   - Wo liegen die roten Punkte (Bad) tendenziell?
+   - Wo liegen die lila Punkte (Good)?
+   - Was sagt das über eine fehlende Variable im Modell?
+
+3. **Omitted Variable Bias:** Wenn ein Confounder (ShelveLoc) sowohl mit dem Regressor 
+   (Price) als auch mit der Zielvariable (Sales) korreliert — in welche Richtung 
+   wird der Preiskoeffizient verzerrt?
+
+```r
+# Prüfen: Korreliert ShelveLoc mit Price?
+tbl_carseats %>%
+  group_by(ShelveLoc) %>%
+  summarise(mean_price = mean(Price),
+            mean_sales = mean(Sales))
+```
+:::
+
+---
+
+## Schritt 3: OVB-Diagnose und Log-Transformation
+
+### R² manuell berechnen
+
+```{r r2-manual}
+#| code-fold: false
+ssq <- reg_points %>%
+  summarise(
+    TSS = sum((Sales - mean(Sales))^2),
+    SSR = sum(residual^2),
+    ESS = TSS - SSR,
+    R2  = 1 - SSR / TSS
+  )
+ssq %>%
+  gt() %>%
+  fmt_number(columns = everything(), decimals = 2) %>%
+  tab_options(table.font.size = "14px")
+```
+
+### Vergleich: lineares vs. log-lineares Modell
+
+```{r log-comparison}
+# Modell mit log(Sales)
+tbl_carseats_log <- tbl_carseats %>%
+                      filter(Sales > 0) %>% #Log(0) undefiniert -> nur positive Sales)
+                      mutate(log_sales = log(Sales))
+  
+
+mod_log <- tbl_carseats_log %>%
+  lm(log_sales ~ Price, data = .)
+
+# Vergleich
+tibble(
+  Modell   = c("Sales ~ Price (linear)", "log(Sales) ~ Price (log-linear)"),
+  R2       = c(summary(mod_baseline)$r.squared,
+               summary(mod_log)$r.squared),
+  `β_Price` = c(coef(mod_baseline)[2],
+                coef(mod_log)[2]),
+  Interpretation = c(
+    "1 USD mehr → β̂ Tsd. Einheiten mehr Sales",
+    "1 USD mehr → β̂ × 100% mehr log(Sales)"
+  )
+) %>%
+  gt() %>%
+  fmt_number(columns = c(R2, `β_Price`), decimals = 4) %>%
+  tab_options(table.font.size = "13px")
+```
+
+:::{.callout-note}
+## Interpretation des log-linearen Koeffizienten
+
+Im log-linearen Modell gilt für kleine $\hat\beta$:
+
+$$\hat\beta_1 \approx \frac{\Delta \text{Sales\%}}{1 \text{ USD Preis}}$$
+
+Exakt: $e^{\hat\beta_1} - 1 =$ prozentuale Veränderung von Sales pro 1 USD Preis.
+
+```r
+# Exakte prozentuale Veränderung
+(exp(coef(mod_log)[2]) - 1) * 100
+```
+:::
+
+:::{.callout-caution icon=false}
+## `r fontawesome::fa("pen")` A3: Modellvergleich und OVB
+
+1. Vergleichen Sie $R^2$ beider Modelle. Verbessert die Log-Transformation die Modellanpassung?
+
+2. **OVB-Formel:** Der Bias im Preiskoeffizient ergibt sich als:
+$$\hat\beta_{\text{Price, biased}} = \beta_{\text{Price}} + \underbrace{\beta_{\text{ShelveLoc}} \cdot \frac{\text{Cov(Price, ShelveLoc)}}{\text{Var(Price)}}}_{\text{Bias}}$$
+
+   Prüfen Sie empirisch: Wie stark verändert sich $\hat\beta_{\text{Price}}$, wenn Sie ShelveLoc 
+   ins Modell aufnehmen?
+
+```r
+# Modell OHNE ShelveLoc
+mod_ohne <- lm(Sales ~ Price, data = tbl_carseats)
+
+# Modell MIT ShelveLoc
+mod_mit  <- lm(Sales ~ Price + ShelveLoc, data = tbl_carseats)
+
+# Vergleich der Preiskoeffizienten
+coef(mod_ohne)["Price"]
+coef(mod_mit)["Price"]
+```
+
+3. In welche Richtung ist der Koeffizient verzerrt? Ist das konsistent mit Ihrer 
+   Erwartung aus A2?
+:::
+
+---
+
+## Bonusaufgaben
+
+:::{.callout-tip icon=false}
+## `r fontawesome::fa("star")` B1: Varianzzerlegung visualisieren
+
+Visualisieren Sie TSS, ESS und SSR für die ersten 20 Beobachtungen:
+
+```r
+first20 <- reg_points %>% slice(1:20) %>%
+  mutate(
+    ybar = mean(tbl_carseats$Sales),
+    x_rank = row_number()
+  )
+
+ggplot(first20, aes(x = x_rank)) +
+  # TSS: Abweichung vom Mittelwert
+  geom_segment(aes(xend = x_rank, y = ybar, yend = Sales),
+               color = "#b3b2b2", linewidth = 1) +
+  # SSR: Residuen
+  geom_segment(aes(xend = x_rank, y = Sales_hat, yend = Sales),
+               color = "#D50006", linewidth = 1.2) +
+  # ESS: erklärte Abweichung
+  geom_segment(aes(xend = x_rank, y = ybar, yend = Sales_hat),
+               color = "#502479", linewidth = 1.2) +
+  geom_point(aes(y = Sales), color = "#7d0a52", size = 2) +
+  geom_point(aes(y = Sales_hat), color = "#D50006", shape = 17, size = 2) +
+  geom_hline(yintercept = mean(tbl_carseats$Sales),
+             linetype = "dashed", color = "#686868") +
+  labs(title = "Varianzzerlegung: TSS = ESS + SSR",
+       subtitle = "Grau = TSS | Lila = ESS (erklärt) | Rot = SSR (Residuum)",
+       x = "Beobachtung", y = "Sales") +
+  theme_minimal()
+```
+:::
+
+:::{.callout-tip icon=false}
+## `r fontawesome::fa("star")` B2: Bestimmtheitsmaß und Korrelation
+
+Zeigen Sie empirisch, dass im Fall der Einfachregression gilt:
+$$R^2 = r_{x,y}^2$$
+
+```r
+r_xy <- cor(tbl_carseats$Price, tbl_carseats$Sales)
+r_xy^2
+summary(mod_baseline)$r.squared
+```
+
+Warum gilt diese Gleichheit **nur** bei der Einfachregression, nicht bei der multiplen Regression?
+:::
+
+:::{.callout-tip icon=false}
+## `r fontawesome::fa("star")` B3: Underperformer identifizieren
+
+Erstellen Sie eine erste Rangliste der Underperformer-Filialen auf Basis des Baseline-Modells:
+
+```r
+reg_points %>%
+  arrange(residual) %>%
+  head(10) %>%
+  select(ID, Sales, Price, Sales_hat, residual) %>%
+  gt() %>%
+  fmt_number(columns = c(Sales, Sales_hat, residual), decimals = 2) %>%
+  tab_style(
+    style = cell_fill(color = "#fff0f0"),
+    locations = cells_body(rows = residual < -3)
+  )
+```
+
+Was haben die Top-Underperformer gemeinsam? Schauen Sie sich ihre ShelveLoc an.
+:::
+
+---
+
+## Zusammenfassung
+
+```{r summary-comparison}
+#| echo: false
+tibble::tribble(
+  ~Kriterium,            ~`Baseline (Sales ~ Price)`,  ~`Erwartung mit ShelveLoc`,
+  "R²",                  paste0(round(summary(mod_baseline)$r.squared, 3)),
+                         "~0.50 (deutlich besser)",
+  "β_Price",             paste0(round(coef(mod_baseline)[2], 3), " USD/Tsd."),
+                         "Verändert sich durch OVB-Korrektur",
+  "Residualplot",        "Systematisches Muster (ShelveLoc)",
+                         "Zufällige Streuung um 0",
+  "Verwendbarkeit",      "Zu ungenau für Entscheidungen",
+                         "Bessere Benchmark-Qualität",
+  "Hauptproblem",        "Omitted Variable Bias durch ShelveLoc",
+                         "Wird durch multiple Regression gelöst"
+) %>%
+  gt() %>%
+  tab_style(
+    style     = cell_fill(color = "#f5f0fa"),
+    locations = cells_column_labels()
+  ) %>%
+  tab_style(
+    style     = cell_fill(color = "#fff0f0"),
+    locations = cells_body(rows = Kriterium == "Hauptproblem")
+  ) %>%
+  tab_options(table.font.size = "13px")
+```
+
+:::{.callout-important}
+## Kernbotschaften dieses Labs
+
+1. **Regression = bedingter Mittelwert** — kein Kausalmodell, sondern ein Benchmark.
+
+2. **R² = `r round(summary(mod_baseline)$r.squared, 2)`** — der Preis allein erklärt nur einen kleinen Teil der Umsatzvarianz. Das ist keine Schwäche des Verfahrens, sondern ein Signal: wichtige Variablen fehlen.
+
+3. **Residualplot diagnostiziert OVB** — das systematische ShelveLoc-Muster zeigt, dass der Preiskoeffizient durch eine fehlende Variable verzerrt ist.
+
+4. **Log-Transformation** verbessert die Modellannahmen bei rechtsschiefen Zielvariablen und macht Koeffizienten als Elastizitäten interpretierbar.
+:::
+
+:::{.callout-note}
+## Überleitung zur Live-Demo
+
+In der **Live-Demo** zeigt der Dozent, was passiert wenn wir `ShelveLoc` und `Advertising` 
+ins Modell aufnehmen:
+
+- $R^2$ steigt von ~0.15 auf ~0.50
+- Der Preiskoeffizient verändert sich (OVB-Korrektur)
+- Der Residualplot verliert sein systematisches Muster
+
+Das ist das **multiple Regressionsmodell** — und es führt direkt zu Lab 3: Performance Mining.
+:::
+
+## Quellenverzeichnis {.unnumbered}

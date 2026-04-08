@@ -1,0 +1,1408 @@
+---
+title: "Block 3: Komplexität, Generalisierung & Kausalität"
+subtitle: "Data Science and Strategy for Business"
+author: "Präsenzveranstaltung 3"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: ["default", "default-fonts", "custom_block3.css"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      slideNumberFormat: "%current% / %total%"
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+                      fig.align = "center", fig.width = 10, fig.height = 5.5,
+                      dpi = 150, cache = FALSE)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+```
+
+---
+class: inverse, center, middle
+
+# Wo stehen wir?
+
+### PVA 1 → PVA 2 → **PVA 3**
+
+---
+
+# Rückblick: Unser bisheriger Weg
+
+.pull-left[
+### PVA 1: Sehen & Beschreiben
+- Deskriptive Statistik & EDA
+- Data Mining: **Muster erkennen**
+- Deskriptive Regression (Stocker): *Gerade als Zusammenfassung der Daten*
+- Residuum = was das Modell **nicht** erklärt
+- Erster Ausblick: Overfitting
+
+### PVA 2: Quantifizierung von Unsicherheit
+- Resampling & Bootstrap
+- p-Hacking & HARKing
+- ANOVA: *"There is only one test"* (moderndive)
+- Signifikanz vs. Relevanz
+]
+
+.pull-right[
+### PVA 3: Heute
+
+**Komplexität** — Was passiert, wenn Modelle wachsen?
+
+**Generalisierung** — Wann funktioniert ein Modell auch morgen noch?
+
+**Kausalität** — Wann darf ich aus Daten *handeln*?
+
+> *"There is a ton of data on the graph but little useful information."*
+> — Taddy (2019)
+
+📌 Ziel: Reflektierter Umgang mit datengetriebenen Entscheidungen.
+]
+
+
+
+
+
+---
+
+class: center, middle
+# Das philosophische Fundament
+## Wie Data Science eigentlich "denkt"
+
+---
+
+# Induktion und Deduktion in der Data Science
+
+Um die Herausforderungen der modernen Datenwissenschaft zu verstehen, unterteilen wir den Prozess in zwei logische Schritte. 
+**Unser Beispiel: Ein Preis-Absatz-Modell (Lineare Regression) für Hotelzimmer.**
+
+.pull-left[
+### 1. Induktion (Das "Lernen")
+* **Was passiert:** Wir nutzen tausende historische Datenpunkte, um daraus eine allgemeine Regel abzuleiten.
+* **Data Science Begriff:** *Model Training / Data Mining*. 
+* **Das gefundene Muster:** Der Algorithmus lernt die Regel: *"Wenn die Zimmerpreise hoch sind, haben wir extrem hohe Verkaufszahlen (hohe Auslastung)."*
+]
+
+.pull-right[
+### 2. Deduktion (Die "Anwendung")
+* **Was passiert:** Wir nehmen diese induzierte Regel und wenden sie auf neue Einzelfälle an, um Vorhersagen zu treffen.
+* **Data Science Begriff:** *Scoring / Prediction*.
+* **Die Anwendung:** Das Modell prognostiziert für eine kommende Woche mit hohen Preisen völlig korrekt eine Auslastung von fast 100%.
+]
+
+???
+
+"Aha-Moment": Data Mining (Modelltraining) ist nichts anderes als maschinelle Induktion.
+
+
+---
+
+# Die zwei großen Gefahren für das Management
+
+Wenn Manager algorithmischen Regeln blind vertrauen, tappen sie in eine von zwei Fallen:
+
+### Gefahr 1: Gescheiterte Induktion (Fehlende Generalisierung)
+* Das Modell hat gar keine echte Regel gelernt, sondern nur die zufälligen Schwankungen unserer spezifischen Stichprobe auswendig gelernt (*Overfitting*).
+* **Konsequenz:** Die Vorhersage bei neuen Daten schlägt fehl. 
+* **Lösung:** Out-of-Sample Evaluierung (Train-Test-Split / Kreuzvalidierung).
+
+### Gefahr 2: Blinde Deduktion bei Interventionen (Kausalitäts-Falle)
+* Unsere induzierte Regel ("Hoher Preis = hohe Verkäufe") basiert auf reiner *Korrelation*. Es gibt eine unsichtbare Störgröße (Confounder): **Die Schulferien**. In den Ferien steigt die Nachfrage massiv, und *deshalb* sind die Preise hoch.
+* **Konsequenz:** Das Management nutzt die Regel für eine aktive Entscheidung (Intervention) und verdoppelt im November mitten in der Woche die Preise. Die historische Korrelation bricht sofort zusammen, der Umsatz stürzt ab.
+* **Lösung:** Causal Inference (z. B. A/B-Tests für echte Preiselastizität).
+
+
+???
+
+* Generalisierung bedeutet: Wir müssen sicherstellen, dass unsere Induktion kein Overfitting ist, damit sie auch bei neuen Daten gilt.
+* Kausalität bedeutet: Wir dürfen korrelationsbasierte Regeln nicht blind deduktiv anwenden, wenn wir als Manager aktiv eingreifen. Matt Taddy betont genau das: Ein Modell, das nur auf Korrelation beruht, bricht zusammen, wenn wir das System manipulieren
+
+---
+
+class: center, middle
+# Der Manager als "Critical Validator"
+## Wie wir diese Gefahren abwenden
+
+---
+
+# Vom AI User zum AI Value Creator
+
+In einer Wirtschaft, in der KI-Tools die Erstellung von Code vereinfachen, wandelt sich Ihre Rolle:
+
+.pull-left[
+### Der AI User (Passiv)
+* Konsumiert analytische Ergebnisse und vertraut der algorithmischen "Black Box".
+* **Das Risiko:** Trifft deduktive Entscheidungen auf Basis von Modellen, die aufgrund verletzter Grundannahmen in der Realität sofort zusammenbrechen.
+]
+
+.pull-right[
+### Der AI Value Creator (Aktiv)
+* Agiert als **"Critical Validator"** und steuert Modelle mit starker Data Governance und exklusiven Daten [6, 7].
+* **Der Vorteil:** Überprüft die statistische Logik kritisch, um sicherzustellen, dass echte Kausalität oder Generalisierung vorliegt, bevor Budgets freigegeben werden.
+]
+
+---
+
+# Die Management-Checkliste: Die A-B-C-Systematik
+
+Um Modelle kritisch zu prüfen und die Gefahren der Induktion/Deduktion abzuwenden, nutzen wir die **A-B-C-Annahmen** der linearen Regression (nach von Auer) [8]. 
+
+Für den *AI Value Creator* ist dies die ultimative Checkliste:
+
+* **Die A-Annahmen (Spezifikation):** *Haben wir das richtige Business-Modell gebaut, um Kausalitäts-Fallen (Gefahr 2) zu meiden?*
+* **Die B-Annahmen (Störgrößen):** *Wie verhält sich das Rauschen in unserer Umwelt?*
+* **Die C-Annahmen (Datenqualität):** *Haben wir das richtige experimentelle Design und die richtigen Daten?*
+
+$\rightarrow$ *In der Praxis scheitern Data-Science-Projekte fast immer an den A- und C-Annahmen. Hier ist Ihr ökonomisches Domänenwissen gefragt!*
+
+---
+
+# Die A-Annahmen: Das Business-Modell prüfen
+
+*A-Annahmen prüfen, ob wir die Realität sinnvoll abstrahiert haben.*
+
+.pull-left[
+**A1: Variablenauswahl**
+Wir dürfen keine relevanten Variablen weglassen.
+* *Validation:* Fehlt ein wichtiger Faktor (z.B. "Schulferien" in unserem Hotel-Beispiel), entsteht der **Omitted Variable Bias** [9] – das Modell liefert gefährliche Scheinkorrelationen!
+]
+
+.pull-right[
+**A3: Konstante Parameter**
+Der Zusammenhang darf sich nicht grundlegend ändern.
+* *Validation:* **Die Lucas-Kritik!** [4] Sobald Sie als Manager aktiv in den Markt eingreifen (z.B. Preise ändern), provozieren Sie einen Strukturbruch [4]. Alte Muster brechen zusammen.
+]
+
+---
+
+# Die B-Annahmen: Das Rauschen managen
+
+*B-Annahmen fordern, dass sich das unvorhersehbare Rauschen "brav" verhält (z.B. konstante Varianz/Homoskedastizität, Normalverteilung).*
+
+### Die Management-Implikation: Delegation an die Rechenpower!
+In Big-Data-Szenarien sind diese B-Annahmen ohnehin **fast immer verletzt** [10]. 
+Als *Critical Validator* wissen Sie: Wir vergeuden keine Zeit mehr mit unzähligen theoretischen Tests für jede einzelne Verletzung. 
+
+Stattdessen delegieren wir das Problem an die pure Rechenpower des Computers: 
+Wir nutzen **robuste Standardfehler** und **Resampling-Verfahren (Bootstrapping)** aus Block 2, um die Unsicherheit realitätsnah und datengetrieben zu simulieren [10, 11]!
+
+---
+
+# Die C-Annahmen: Die große Weggabelung
+
+*Die C-Annahmen bestimmen unsere finale Daten-Strategie. Sie entscheiden, ob wir Gefahr 1 (Overfitting) oder Gefahr 2 (Intervention) bekämpfen.*
+
+.pull-left[
+### C2: Keine perfekte Multikollinearität
+* **Das Big-Data-Problem:** Wenn wir tausende Variablen haben, korrelieren sie stark. Reine Induktion führt zu fatalem Overfitting (Gefahr 1).
+* **Die Data-Science-Lösung:** Wir wechseln in den **Predictive-Modus**. Wir nutzen Regularisierung (z.B. **Lasso**) und prüfen via *Train-Test-Split*, wie gut das Modell Out-of-Sample vorhersagt [12, 13].
+]
+
+.pull-right[
+### C1: Exogenität
+* **Das Interventions-Problem:** Wenn wir Entscheidungen treffen, beeinflussen verborgene Störgrößen unsere Daten (Endogenität) [14]. Gefahr 2 droht!
+* **Die Data-Science-Lösung:** Wir wechseln in den **Causal-Modus**. Um echte Kausalität zu beweisen, müssen wir zwingend experimentieren (**A/B-Tests** als Goldstandard) [15].
+]
+
+---
+class: center, middle
+
+# Fazit für den Translator:
+## Verletzen wir C2 (Multikollinearität), Regularisieren wir (Predictive). 
+## Verletzen wir C1 (Exogenität), Experimentieren wir (Causal).
+
+???
+
+OLS-Annahmen (BLUE) nicht als akademischen Selbstzweck, sondern als Barrieren auf dem Weg zu sicherer Induktion (Multikollinearität stört die Mustererkennung) und sicherer Deduktion bei Interventionen (Endogenität verschleiert Kausalität)
+
+Abhängig davon, welche OLS-Annahme wir verletzen und welches Business-Ziel wir verfolgen, spaltet sich unsere Strategie:
+
+### Pfad A: Predictive Modeling (Die Induktion absichern)
+Wir wollen **Generalisierung** für Vorhersagen garantieren (Kundenverhalten prognostizieren). 
+Das Hauptproblem: **Multikollinearität** und zu viele Variablen führen zu Overfitting.
+
+### Pfad B: Causal Modeling (Die Intervention absichern)
+Wir wollen echte **Kausalität** für Management-Entscheidungen (Pricing-Strategie) beweisen. 
+Das Hauptproblem: **Mangelnde Exogenität** (Endogenität / Omitted Variable Bias durch Faktoren wie "Saisonalität").
+
+
+
+
+---
+class: center, middle, inverse
+
+# Pfad A: Predictive Modeling
+## Ziel: Vorhersage, Mustererkennung & Generalisierung
+### Vom Scheitern klassischer Statistik zur Lasso-Regularisierung
+
+---
+class: left
+
+## Das Grundproblem (Gefahr 1): Overfitting
+
+### Wichtige Unterscheidung
+
+| Ziel | Multikollinearität... |
+|:-----|:---------------------|
+| **Interpretation** | ⚠️ Problematisch! |
+| **Vorhersage** | ✅ Oft tolerierbar |
+
+### Die Management-Regel
+
+* Als *AI Value Creator* wissen Sie: 
+
+  * Bei reiner Vorhersage kann Multikollinearität **toleriert** werden:
+      * die Koeffizienten sind instabil, aber die Vorhersagen bleiben stabil.
+      * Die Vorhersagegenauigkeit (**Out-of-Sample**) ist das einzige, was zählt (**Generalisierung**)
+  * Wenn das Management die Treiber verstehen möchte (**Interpretation** einzelner Effekte im Rahmen **konfirmatorischer Analysen**) ist Multikollinearität gefährlich und muss zwingend adressiert werden.
+
+
+???
+
+Wenn wir uns bei der Suche nach Mustern in einem Datensatz genügend Flexibilität erlauben, werden wir unweigerlich Muster finden. In der modernen Datenwissenschaft (mit vielen Variablen) führt dies zur **Gefahr 1**.
+
+Der In-Sample $R^2$ ist wertlos, da man ihn einfach durch das Hinzufügen von "Junk-Variablen" künstlich in die Höhe treiben kann [5].
+* Es zählt ausschließlich die **Out-of-Sample-Performance** (Generalisierung)
+
+.pull-left[
+### Die Illusion des In-Sample-Fittings
+* Ein komplexes Modell neigt dazu, sich perfekt an die Trainingsdaten anzupassen (Overfitting), anstatt auf neue, ungesehene Daten zu generalisieren [2].
+* In hochdimensionalen Settings modelliert der Algorithmus lediglich idiosynkratisches Rauschen [3]. 
+* **Das Resultat:** Das Modell liefert auf den Trainingsdaten einen perfekten In-Sample $R^2$, versagt aber bei der Vorhersage neuer Daten völlig (oft sogar mit negativem Out-of-Sample $R^2$) [4], [5].
+]
+
+.pull-right[
+### Die Management-Regel
+* Als *AI Value Creator* wissen Sie: Der In-Sample $R^2$ ist wertlos, da man ihn einfach durch das Hinzufügen von "Junk-Variablen" künstlich in die Höhe treiben kann [5].
+* Es zählt ausschließlich die **Out-of-Sample-Performance** (Generalisierung) [6]!
+]
+
+Ein komplexes Modell (wie in der Grafik bei Thomas et al. oder Provost/Fawcett gesehen) lernt die Trainingsdaten einfach "auswendig". Als AI Value Creator wissen Ihre Studierenden nun: Wer Modelle auf In-Sample-Daten präsentiert, betreibt Augenwischerei.
+
+
+---
+
+# Overfitting oder die Illusion des In-Sample-Fittings
+
+```{r overfitting-demo, echo=FALSE, fig.height=5, fig.width=11}
+set.seed(42)
+n <- 30
+x <- sort(runif(n, 0, 10))
+y <- sin(x) + rnorm(n, 0, 0.3)
+
+df_fit <- data.frame(x = x, y = y)
+
+p1 <- ggplot(df_fit, aes(x, y)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", se = FALSE, color = "#3498DB", linewidth = 1.2) +
+  labs(title = "Underfitting (linear)", subtitle = "Hoher Bias, niedrige Varianz") +
+  theme_minimal(base_size = 13)
+
+p2 <- ggplot(df_fit, aes(x, y)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 3), se = FALSE, color = "#27AE60", linewidth = 1.2) +
+  labs(title = "Guter Fit (Polynom Grad 3)", subtitle = "Balance aus Bias und Varianz") +
+  theme_minimal(base_size = 13)
+
+p3 <- ggplot(df_fit, aes(x, y)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 20), se = FALSE, color = "#E74C3C", linewidth = 1.2) +
+  labs(title = "Overfitting (Polynom Grad 20)", subtitle = "Niedriger Bias, hohe Varianz") +
+  theme_minimal(base_size = 13)
+
+library(patchwork)
+p1 + p2 + p3
+```
+
+
+---
+
+# Bias vs. Varianz
+
+.pull-left[
+### Bias (Verzerrung) → Underfitting
+- Systematischer Fehler
+- Modell **zu einfach**
+- Wichtige Zusammenhänge fehlen
+- *Beispiel: Lineare Regression für quadratischen Zusammenhang*
+
+### Varianz → Overfitting
+- Zufällige Schwankung
+- Modell **zu komplex**
+- Lernt Rauschen mit
+- *Beispiel: Polynom Grad 20 für 10 Datenpunkte*
+]
+
+.pull-right[
+### Gesamtfehler
+
+$$E[(y - \hat{y})^2] = \text{Bias}^2 + \text{Varianz} + \sigma^2$$
+
+```{r target-analogy, echo=FALSE, fig.height=4.5, fig.width=6}
+library(ggplot2)
+
+set.seed(42)
+# Hoher Bias
+theta1 <- runif(20, 0, 2*pi)
+r1 <- rnorm(20, 0, 0.3)
+bias_x <- 1.5 + r1 * cos(theta1)
+bias_y <- 1.5 + r1 * sin(theta1)
+
+# Hohe Varianz
+theta2 <- runif(20, 0, 2*pi)
+r2 <- rnorm(20, 0, 1.2)
+var_x <- 0 + r2 * cos(theta2)
+var_y <- 0 + r2 * sin(theta2)
+
+df_target <- data.frame(
+  x = c(bias_x, var_x),
+  y = c(bias_y, var_y),
+  type = rep(c("Hoher Bias\n(konsistent daneben)", "Hohe Varianz\n(verstreut)"), each = 20)
+)
+
+ggplot(df_target, aes(x, y)) +
+  geom_point(color = "#E74C3C", size = 2.5) +
+  geom_point(aes(x = 0, y = 0), shape = 3, size = 5, color = "#2C3E50") +
+  facet_wrap(~type) +
+  coord_fixed(xlim = c(-3, 3), ylim = c(-3, 3)) +
+  theme_minimal(base_size = 13) +
+  labs(x = "", y = "", title = "Ziel: Niedrig in beidem – das ist der Sweet Spot") +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(),
+        panel.grid.minor = element_blank())
+```
+]
+
+
+
+
+---
+
+# Overfitting erkennen und vermeiden
+
+.pull-left[
+### Symptome
+- Training-Fehler **sehr klein**
+- Test-Fehler **viel größer**
+- Komplexes Modell mit vielen Parametern
+- Koeffizienten werden sehr groß
+
+### Ursachen
+- Zu wenig Daten
+- Zu viele Features
+- Zu flexibles Modell
+- Kein separates Testset
+]
+
+.pull-right[
+### Gegenmassnahmen
+
+1. ✅ Mehr Daten sammeln
+2. ✅ Feature Selection
+3. ✅ **Regularisierung**
+4. ✅ **Kreuzvalidierung**
+5. ✅ Einfacheres Modell wählen
+
+### Faustregel
+
+> Mindestens **10–20 Beobachtungen pro Prädiktor!**
+
+⚠️ Overfitting ist **das** Hauptproblem in Machine Learning – **immer validieren!**
+]
+
+---
+
+# Der klassische Versuch: Stepwise Selection
+
+In der traditionellen Statistik versuchte man, Komplexität durch manuelles oder schrittweises Hinzufügen/Entfernen von Variablen zu kontrollieren [7].
+
+### Backward vs. Forward Selection
+* **Backward Selection:** Man startet mit dem vollen Modell und wirft insignifikante Variablen heraus. *Problem:* Bei "Big Data" (wenn die Anzahl der Variablen $p$ in die Nähe der Beobachtungen $n$ rückt) ist das volle Modell extrem instabil oder mathematisch gar nicht erst berechenbar [8], [9].
+* **Forward Stepwise Selection:** Ein "Greedy Algorithm" (gieriger Algorithmus), der bei null beginnt und schrittweise immer diejenige Variable hinzufügt, die den In-Sample $R^2$ am stärksten maximiert [10]. 
+
+**Das Problem der Greedy-Algorithmen:** Sie agieren extrem kurzsichtig (myopic) [11]. Jeder Schritt wird isoliert betrachtet, ohne das globale Optimum des gesamten Modellpfades zu berücksichtigen [11].
+
+???
+
+wie man das Problem "früher" gelöst hat. Man warf einfach Variablen basierend auf p-Werten (Backward) rein oder raus. Machen Sie klar: In Big-Data-Szenarien, in denen wir mehr Variablen als Datenpunkte haben (p>n), versagen diese Methoden ohnehin mathematisch.
+
+
+
+---
+
+# Die Lösung für Gefahr 1: Kreuzvalidierung
+
+Um sich nicht durch Overfitting (Gefahr 1) täuschen zu lassen, müssen wir die Generalisierungsfähigkeit des Modells in einem "Labortest" simulieren [12].
+
+### K-Fold Cross-Validation (Der Goldstandard)
+Anstatt die Daten nur einmalig in Training und Test zu teilen, nutzen wir die Daten effizienter [13]:
+1. Die Daten werden in $K$ gleich große, zufällige Teile (Folds) geschnitten [14].
+2. Der Algorithmus trainiert das Modell auf $K-1$ Teilen der Daten [13], [15].
+3. Wir messen die Vorhersagekraft (Out-of-Sample Deviance) auf dem einen versteckten Teil [16].
+4. Dies wird $K$-mal wiederholt. 
+
+**Der Vorteil:** Jeder einzelne Datenpunkt wird exakt einmal als ungesehenes Test-Szenario genutzt [17], [16]. Wir erhalten den echten Out-of-Sample-Fehler [16].
+
+
+???
+
+Wir wollen die Zukunft simulieren, indem wir die Daten strategisch in K Teile zerschneiden "und jedes Mal einen Teil verstecken, um die Vorhersagekraft zu testen." Das ist die Essenz der Kreuzvalidierung.
+
+---
+
+# Das Scheitern der klassischen Algorithmen
+
+*Warum kombinieren wir nicht einfach Stepwise Selection (Variablenauswahl) mit Kreuzvalidierung (Test)?*
+
+**Weil klassische Algorithmen hierfür zu langsam und zu instabil sind!**
+
+.pull-left[
+### 1. Zu Langsam (Kosten)
+* Das Hinzufügen einer einzigen Variable verändert alle anderen Koeffizienten [18]. 
+* Daher muss bei jedem Schritt das komplette Modell von Grund auf neu berechnet werden (Matrix-Inversion) [18]. 
+* Dies in einer Cross-Validation-Schleife $K$-mal zu tun, ist bei großen Datenmengen schlichtweg unmöglich [19].
+]
+
+.pull-right[
+### 2. Zu Instabil (Sampling Variance)
+* Stepwise-Modelle sind hochgradig instabil: Ein winziger "Jitter" (Rauschen) in den Daten führt dazu, dass der Algorithmus plötzlich völlig andere Variablen auswählt [20].
+* Wendet man Kreuzvalidierung auf solch instabile Modelle an, explodiert die Varianz des Tests [21], [22].
+]
+
+
+???
+
+Aha Moment: Warum nicht einfach Stepwise kreuzvalidieren? Weil ein gieriger Algorithmus bei jeder Variable alles neu berechnen muss. In der Praxis "stirbt" der Computer bei diesem Versuch. Die Varianz explodiert
+
+
+
+---
+
+# Regularisierung: Lasso und Ridge
+
+.pull-left[
+### Idee
+Koeffizienten "bestrafen", um Overfitting zu reduzieren.
+
+### Ridge (L2-Strafe)
+$$\min \sum(y_i - \hat{y}_i)^2 + \lambda \sum \beta_j^2$$
+
+➡️ **Schrumpft** alle Koeffizienten, entfernt keine.
+
+### Lasso (L1-Strafe)
+$$\min \sum(y_i - \hat{y}_i)^2 + \lambda \sum |\beta_j|$$
+
+➡️ **Schrumpft UND setzt auf 0** → Variablenselektion!
+]
+
+.pull-right[
+```{r lasso-paths, echo=FALSE, fig.height=5, fig.width=6}
+set.seed(42)
+n <- 200; p <- 5
+X <- matrix(rnorm(n*p), n, p)
+colnames(X) <- c("Preis", "Werbung", "Qualität", "Alter", "Zufall")
+y <- 2*X[,1] - 1.5*X[,2] + 1*X[,3] + 0.3*X[,4] + 0*X[,5] + rnorm(n)
+
+library(glmnet)
+fit <- glmnet(X, y, alpha = 1)
+
+# Extract coefficients at each lambda
+beta_df <- as.data.frame(as.matrix(t(coef(fit)[-1,])))
+beta_df$lambda <- fit$lambda
+beta_long <- pivot_longer(beta_df, -lambda, names_to = "Variable", values_to = "Koeffizient")
+
+ggplot(beta_long, aes(log10(lambda), Koeffizient, color = Variable)) +
+  geom_line(linewidth = 1.1) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.3) +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = expression(log[10](lambda)), y = "Koeffizientenwert",
+       title = "Lasso: Koeffizientenpfade") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "right")
+```
+]
+
+---
+
+# Lasso vs. Ridge: Wann was?
+
+.pull-left[
+### Ridge bevorzugen wenn:
+- Viele **kleine Effekte**
+- **Alle** Variablen wichtig
+- **Multikollinearität** vorhanden
+- Stabilere Koeffizienten gewünscht
+
+### Lasso bevorzugen wenn:
+- **Sparsity** erwartet (wenige wichtige Variablen)
+- **Variablenselektion** gewünscht
+- **Interpretierbarkeit** wichtig
+- Sehr viele Features
+]
+
+.pull-right[
+### Elastic Net – das Beste aus beiden Welten
+
+$$\lambda_1 \sum |\beta_j| + \lambda_2 \sum \beta_j^2$$
+
+### In R (`glmnet`)
+
+```r
+library(glmnet)
+
+# alpha = 1: Lasso
+# alpha = 0: Ridge  
+# alpha = 0.5: Elastic Net
+
+cv_fit <- cv.glmnet(X, y, alpha = 1)
+best_lambda <- cv_fit$lambda.min
+```
+
+💡 **Praxis:** Oft Elastic Net mit CV für α und λ.
+]
+
+???
+
+Die technologische Rettung: Lasso-Regularisierung
+
+Wir brauchen einen Algorithmus, der Komplexität kontrolliert, aber schnell und stabil genug für die Kreuzvalidierung ist. Die Lösung ist die **Regularisierung** [23].
+
+### Wie das Lasso funktioniert
+* Anstatt nur den Fehler (Deviance) zu minimieren, minimieren wir eine *bestrafte* Deviance [23]. 
+* Das **Lasso** belegt den absoluten Betrag der Koeffizienten (L1-Norm) mit einem Straf-Faktor $\lambda$ [24], [25].
+* **Automatisches Screening:** Das Lasso schrumpft die Koeffizienten irrelevanter oder stark korrelierender Variablen automatisch exakt auf Null [26], [24], [25]. 
+* **Schnell & Stabil:** Da sich die Koeffizienten bei einer Veränderung von $\lambda$ nur weich und kontinuierlich verändern, ist der Algorithmus rasend schnell und extrem stabil gegenüber Schwankungen in den Daten [27].
+
+Es ist nicht nur ein cooler neuer Algorithmus, sondern die technologische Voraussetzung, um bei Big Data überhaupt effizient testen zu können. Erklären Sie die Strafe (λ): Irrelevante Variablen werden nicht in mehreren Iterationen weggerechnet, sondern vom Algorithmus elegant auf Null "gequetscht".
+
+
+
+---
+
+# Die Synthese: Cross-Validation + Lasso
+
+Das Lasso liefert uns nicht nur *ein* Modell, sondern durch die Variation der Strafe $\lambda$ einen ganzen **Regularisierungspfad** an Kandidaten-Modellen – von extrem simpel (Strafe hoch) bis hochkomplex (Strafe gering) [28]. 
+
+.panelset[
+.panel[.panel-name[Squelch]
+### Der $\lambda$-Parameter als "Squelch"
+* $\lambda$ funktioniert wie die Rauschunterdrückung (Squelch) beim Funkgerät [29].
+* Drehen wir zu hoch, hören wir nichts mehr (Underfitting). Drehen wir zu niedrig, hören wir nur Rauschen (Overfitting / Gefahr 1) [29].
+
+]
+.panel[.panel-name[Kreuzvalidierung]
+### Prinzip
+
+```
+Fold 1: [TEST] [Train] [Train] [Train] [Train] → MSE₁
+Fold 2: [Train] [TEST] [Train] [Train] [Train] → MSE₂
+Fold 3: [Train] [Train] [TEST] [Train] [Train] → MSE₃
+Fold 4: [Train] [Train] [Train] [TEST] [Train] → MSE₄
+Fold 5: [Train] [Train] [Train] [Train] [TEST] → MSE₅
+```
+
+$$\text{CV-Score} = \frac{1}{K} \sum_{k=1}^{K} MSE_k$$
+
+**Jeder Datenpunkt ist genau einmal im Testset!**
+]
+
+.panel[.panel-name[Entscheidungsregel]
+### Die finale Modellauswahl
+* Da das Lasso so schnell ist, können wir den gesamten Modellpfad mühelos in unsere $K$-Fold Cross Validation einspeisen [30].
+* Wir wählen am Ende genau den $\lambda$-Wert, der den Out-of-Sample-Fehler auf den ungesehenen Folds minimiert (CV-min Rule) [30], [31].
+
+**$\rightarrow$ Gefahr 1 ist gebannt: Wir haben ein Modell, das generalisiert!**
+]
+]
+
+
+???
+
+Das Lasso generiert uns in Sekundenschnelle ein Menü an 100 Modellen. Die Kreuzvalidierung ist der Richter, der aus diesem Menü dasjenige Modell auswählt, das in der ungesehenen Zukunft am besten funktioniert. Gefahr 1 (fehlende Generalisierung) ist damit systematisch ausgeschaltet.
+
+* Wir teilen die Daten zufällig in $K$ gleich große Teile (Folds) auf [5].
+* Das Modell lernt auf $K-1$ Teilen und macht Vorhersagen für den versteckten Teil. Jeder Datenpunkt wird genau einmal Out-of-Sample vorhergesagt [5, 6].
+* *Resultat:* Wir kennen den wahren Vorhersagefehler für jedes $\lambda$.
+
+
+
+---
+class: left
+
+# Der Goldstandard: Kreuzvalidierung (Out-of-Sample)
+## Wie bestimmen wir die optimale Stärke der Rauschunterdrückung ($\lambda$)?
+
+Das Lasso-Verfahren hat uns einen Pfad aus 100 Modellen generiert. Wir trauen niemals der In-Sample-Performance (Trainingsdaten), sondern simulieren die ungesehene Zukunft!
+
+.pull-left[
+### Varianten der Kreuzvalidierung
+
+| Variante | Beschreibung |
+|:---------|:-------------|
+| **K-Fold** | Standard, K=5 oder 10 |
+| **LOOCV** | K=n, wenig Bias |
+| **Stratified** | Klassenverteilung erhalten |
+| **Nested** | CV in CV für Modellselektion |
+| **Time Series** | Nur Vergangenheit zum Training |
+
+Validierungsdesign muss zur Anwendungsrealität passen!
+]
+
+.pull-right[
+### Die Management-Regel (nach Taddy)
+
+Welches Modell (das $\lambda$) wählen wir aus?
+
+* **Die CV-Min-Regel:** Wir wählen das Modell, das den Out-of-Sample-Fehler strikt minimiert. *Fokus: Maximale Vorhersagegenauigkeit.*
+
+* **Die 1se-Regel (1 Standard Error):** Wir wählen das *einfachste* Modell, dessen Fehler noch innerhalb einer Standardabweichung des Minimums liegt. *Fokus: Konservative, robustere Modelle.*
+
+*Regieanweisung für den Validator:* Wenn Ihnen ein Data Team ein Vorhersagemodell ohne sauberen Train-Test-Split präsentiert, schicken Sie es zurück ans Reißbrett!
+]
+
+
+???
+
+Anwendungsrealität: bei Zeitreihendaten (bspw. Umsatzentwicklung) kann nicht einfach k-fold CV genutzt werden (weil dann Daten aus der Zukunft genutzt würden, um die Vergangenheit zu validieren)!
+
+
+---
+class: center, middle, inverse
+
+# Pfad B: Causal Modeling
+## Ziel: Interventionen & Entscheidungsfindung
+### (Wenn Annahme C1 durch Endogenität verletzt wird)
+
+---
+
+# Das Problem: Endogenität & Lucas-Kritik
+
+Im Management wollen wir oft nicht nur vorhersagen, sondern **eingreifen** (z. B. den Preis ändern). Hier wird die Verletzung der **Exogenitäts-Annahme (C1)** fatal [13].
+
+.pull-left[
+### Omitted Variable Bias
+* Wir vergessen eine relevante Störgröße (z. B. "Ferienzeit" treibt Preis UND Nachfrage). Das ist eine Verletzung von Annahme A1 [14, 15].
+* **Die Konsequenz:** Unsere exogene Handlungsvariable (Preis) korreliert plötzlich mit der Störgröße (Endogenität). Annahme C1 ist verletzt! [16, 17]
+]
+
+.pull-right[
+### Die Lucas-Kritik
+* Ein rein prädiktives Modell lernt nur die historische Korrelation ("hoher Preis = hohe Verkäufe") [18].
+* Greifen wir nun aktiv ein und erhöhen den Preis mitten im Jahr, brechen diese historischen Korrelationen sofort zusammen [18, 19]. Die Vorhersage wird falsch und gefährlich.
+]
+
+---
+
+# Die Lösung 1: Echte Experimente (A/B-Testing)
+
+Der absolute Goldstandard der Kausalanalyse ist das **Randomized Controlled Trial (RCT)** – im Business oft **A/B-Testing** genannt [20, 21].
+
+### Warum heilt der Zufall unser Modell?
+* Indem wir User streng per Zufall (Münzwurf) der Gruppe A (alter Preis) oder Gruppe B (neuer Preis) zuweisen, machen wir die Behandlung **völlig unabhängig** von allen anderen Einflussfaktoren [22, 23].
+* Die gefürchtete Korrelation zwischen unserer Maßnahme und verborgenen Störgrößen wird gewaltsam aufgebrochen. **Annahme C1 ist künstlich wiederhergestellt!**
+* Die Differenz der Mittelwerte zwischen Gruppe A und B liefert uns nun den echten kausalen Effekt (Average Treatment Effect) [22, 24].
+
+---
+
+# Die Lösung 2: Quasi-Experimente
+
+Oft können wir im Business keine A/B-Tests durchführen (z. B. weil wir nicht zufällig die Gehälter von Mitarbeitern halbieren dürfen). Wie finden wir Kausalität in Beobachtungsdaten?
+
+.pull-left[
+### Instrumentvariablen (IV)
+* Wir suchen nach einer externen Variable (dem Instrument), die wie ein Zufallsgenerator auf unsere Handlungsvariable wirkt, aber selbst nichts mit der Störgröße zu tun hat [25].
+* Methodisch wird dies durch die **Zweistufige KQ-Schätzung (ZSKQ)** gelöst [26, 27]. Wir isolieren den unkorrelierten Teil der Variablen.
+]
+
+.pull-right[
+### Weitere Causal-Designs
+* **Regression Discontinuity Design (RDD):** Wir nutzen harte Schwellenwerte (z.B. staatliche Förderung nur unter 30.000 CHF Einkommen), um an der Schwelle Quasi-Experimente zu simulieren [28].
+* **Difference-in-Differences / Synthetische Kontrollgruppen:** Wir vergleichen die Entwicklung behandelter Märkte mit statistisch gewichteten Kontrollmärkten über die Zeit [29, 30].
+]
+
+---
+class: center, middle
+
+# Synthese: Ihre Rolle als AI Value Creator
+
+## Predictive Modeling (Pfad A)
+"Zeig mir, dass dein Algorithmus nicht nur auswendig lernt. Zeig mir die **Kreuzvalidierung auf ungesehenen Daten**!"
+
+## Causal Modeling (Pfad B)
+"Zeig mir, dass deine Handlungsempfehlung nicht auf einer Scheinkorrelation beruht. Wo ist der **A/B-Test** oder dein **Design zur kausalen Inferenz**?"
+
+**$\rightarrow$ Data Science ist keine IT-Magie. Es ist rigorose Logik, die Sie beherrschen!**
+
+
+???
+
+Der harte Kontrast: Die Folien machen jetzt extrem deutlich, warum wir zwei Pfade brauchen. Auf Pfad A (Predictive) ist Korrelation unser bester Freund, und unser einziger Feind ist das Overfitting (wir heilen es mit Lasso und CV). Auf Pfad B (Causal) ist Korrelation unser schlimmster Feind (die Lucas-Kritik), und wir heilen die fehlende Exogenität durch A/B-Testing oder ZSKQ.
+
+
+
+---
+class: inverse, center, middle
+
+# Teil 1
+## Vom Beschreiben zum Erklären
+### Der Shift in der Modellinterpretation
+
+---
+
+# Zwei Welten der Regression
+
+.pull-left[
+### Deskriptive Regression (PVA 1, Stocker)
+
+$$y_i = b_0 + b_1 x_i + e_i$$
+
+- **Zusammenfassung** beobachteter Daten
+- Koeffizienten: *"Wie sieht der Trend aus?"*
+- Residuum $e_i$: individuelle Abweichung vom Trend
+- **Keine Aussage** über die Population
+- Kein Zufall, kein Fehlerterm im stochastischen Sinne
+
+*→ Das war unsere Welt in PVA 1.*
+]
+
+.pull-right[
+### Stochastisches Regressionsmodell
+
+$$Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i$$
+
+- **Modell für einen Datengenerierenden Prozess (DGP)**
+- $\beta_j$: Parameter der *Population* (unbekannt!)
+- $\varepsilon_i \sim (0, \sigma^2)$: **stochastischer** Fehlerterm
+- Ziel: Von der *Stichprobe* auf die Population schliessen
+- Braucht **Annahmen**, damit der Schluss gültig ist
+
+*→ Das ist der Shift, den wir heute machen.*
+]
+
+---
+
+# Wozu modellieren? Drei Perspektiven
+
+```{r purpose-table}
+tibble(
+  ` ` = c("🔬 Statistik / Ökonometrie", "🤖 Data Science / ML", "⛏ Data Mining"),
+  `Ziel` = c("Inferenz (Schluss auf Population)", 
+             "Prädiktion (Vorhersage neuer Fälle)",
+             "Mustererkennung (Exploration)"),
+  `Fokus` = c("β-Koeffizienten, Konfidenzintervalle, Tests", 
+              "ŷ — Out-of-Sample Performance",
+              "Verborgene Strukturen, Cluster, Assoziationen"),
+  `Typische Frage` = c("Wirkt die Werbung? (kausal)", 
+                       "Wer kauft morgen? (prädiktiv)",
+                       "Welche Kundengruppen gibt es? (deskriptiv)"),
+  `Schlüsselkriterium` = c("Erwartungstreue, Konsistenz",
+                           "Kreuzvalidierung, RMSE, AUC",
+                           "Interpretierbarkeit, Neuheit")
+) %>%
+  kable(format = "html", escape = FALSE) %>%
+  kable_styling(font_size = 15, full_width = TRUE) %>%
+  row_spec(0, bold = TRUE, background = "#16213e", color = "white")
+```
+
+> *"An interpretable model translates raw data into information that is directly relevant to decision-making."* — Taddy (2019, Intro)
+
+📌 **Inferenz und Prädiktion stellen unterschiedliche Anforderungen an Modelle!**
+
+---
+
+# Inferenz vs. Prädiktion: Was zählt?
+
+.pull-left[
+### Inferenz ("Verstehen")
+
+- Ziel: **$\hat{\beta}$ nahe an $\beta$** (erwartungstreu)
+- Braucht korrekte **Modellannahmen**
+- Overfitting = Annahmenverletzung
+- Multikollinearität ist **Gift** (instabile $\hat{\beta}$)
+- Endogenität ist **Gift** (verzerrte $\hat{\beta}$)
+
+*Taddy: "Statisticians have concentrated on how close $\hat{\beta}$ is to the true $\beta$."*
+]
+
+.pull-right[
+### Prädiktion ("Vorhersagen")
+
+- Ziel: **$\hat{y}$ nahe an $y_{\text{neu}}$** (Out-of-Sample)
+- Braucht **gute Generalisierung**
+- Overfitting = schlechte Generalisierung
+- Multikollinearität **oft tolerierbar**
+- Das Modell ist eine **Black Box** — ok!
+
+*Taddy: "The machine learner just wants to make $\hat{y}_{n+1}$ as close as possible to $y_{n+1}$."*
+]
+
+--
+
+.center[
+### ⚡ Aber: Prädiktion allein reicht nicht für Geschäftsentscheidungen!
+
+*"ML will not tell you what will happen if you **change** something."* — Taddy, Lucas-Kritik
+]
+
+---
+class: inverse, center, middle
+
+# Teil 2
+## Ökonometrische Grundlagen
+### Die Spielregeln für valide Schlüsse
+
+---
+
+# Modellannahmen kompakt (nach von Auer)
+
+.pull-left[
+### A-Annahmen: Das Modell
+
+- **A1** — Linearität in den Parametern
+- **A2** — Vollständige Spezifikation (alle relevanten $X$ enthalten)
+- **A3** — Keine perfekte Multikollinearität
+- **A4** — Korrekte funktionale Form
+
+*→ Betreffen die **rechte Seite** der Gleichung*
+]
+
+.pull-right[
+### B-Annahmen: Der Fehlerterm
+
+- **B1** — $E(\varepsilon_i) = 0$
+- **B2** — $\text{Var}(\varepsilon_i) = \sigma^2$ (Homoskedastizität)
+- **B3** — $\text{Cov}(\varepsilon_i, \varepsilon_j) = 0$ (keine Autokorrelation)
+- **B4** — $\text{Cov}(X_i, \varepsilon_i) = 0$ (**Exogenität**)
+
+### C-Annahmen: Verteilung
+
+- **C1** — $\varepsilon_i \sim N(0, \sigma^2)$
+
+*→ B4 ist die **kritischste** — verletzt = Endogenität!*
+]
+
+---
+
+# Von OLS zu BLUE — und die Grenzen
+
+.pull-left[
+### Gauss-Markov-Theorem
+
+Wenn A- und B-Annahmen erfüllt, ist OLS **BLUE**:
+
+| | Bedeutung |
+|:--|:----------|
+| **B**est | Kleinste Varianz unter allen... |
+| **L**inear | ...linearen... |
+| **U**nbiased | ...erwartungstreuen... |
+| **E**stimators | ...Schätzern |
+
+📌 "Best" = **nur Varianz**, nicht Gesamtfehler!
+]
+
+.pull-right[
+### Bias-Varianz-Tradeoff
+
+$$\text{MSE} = \text{Bias}^2 + \text{Varianz}$$
+
+- BLUE verlangt: Bias = 0
+- Regularisierung erlaubt: *etwas* Bias, **viel** weniger Varianz
+- → Niedrigerer Gesamtfehler (MSE)!
+
+⚠️ BLUE ist theoretisch schön, praktisch **nicht immer optimal**.
+
+*→ Das CAPM-Beispiel bei Taddy zeigt: Ein einfaches Modell ($\alpha$, $\beta$) extrahiert mehr **brauchbare Information** aus 7 Jahren S&P-500-Daten als ein "fancy plot" mit allen Einzelwerten.*
+]
+
+---
+
+# Vom Linear Model zum Generalized Linear Model
+
+.pull-left[
+### Linear Model (LM)
+
+$$E(Y|X) = X\beta$$
+
+- $Y$ kontinuierlich
+- OLS-Schätzung
+- *Was wir bisher verwendet haben*
+
+### Generalized Linear Model (GLM)
+
+$$g\big(E(Y|X)\big) = X\beta$$
+
+- $g(\cdot)$ = Linkfunktion
+- Maximum Likelihood-Schätzung
+]
+
+.pull-right[
+### Warum GLM?
+
+Viele Geschäftsfragen haben **nicht-kontinuierliche** Outcomes:
+
+| Business-Frage | Y | GLM-Variante |
+|:--|:--|:--|
+| Kauft der Kunde? | binär | Logit |
+| Wie viele Klicks? | Count | Poisson |
+| Wie lange bis Kauf? | Dauer | Gamma |
+
+### Logistische Regression
+
+$$P(Y\!=\!1|X) = \frac{1}{1+e^{-X\beta}}$$
+
+📌 In **Lab 1** erleben Sie den Übergang live: `lm()` produziert $\hat{y} \notin [0,1]$ → `glm(family = binomial)` löst das Problem.
+
+*→ Vertiefung in Modul ER017*
+]
+
+---
+class: inverse, center, middle
+
+# Teil 3
+## Wenn Annahmen brechen
+### Problem 1: Multikollinearität & Overfitting
+
+---
+
+# Multikollinearität: Das Zwillingsproblem
+
+.pull-left[
+### Was passiert?
+
+Prädiktoren sind **stark korreliert** → OLS kann ihre Effekte **nicht trennen**
+
+### Symptome
+
+- Hohes $R^2$, aber **nichts signifikant**
+- $\hat{\beta}$ instabil, grosse Standardfehler
+- Vorzeichenwechsel bei leichten Datenänderungen
+
+### Diagnose: VIF
+
+$$VIF_j = \frac{1}{1 - R^2_j}$$
+
+VIF > 5 problematisch, VIF > 10 schwer problematisch
+]
+
+.pull-right[
+### Differenzierte Betrachtung
+
+| | Inferenz | Prädiktion |
+|:--|:---------|:-----------|
+| Problem? | ⚠️ **Ja!** ($\hat{\beta}$ unbrauchbar) | 🟢 Oft tolerierbar |
+| Warum? | Koeffizienten instabil | $\hat{y}$ trotzdem stabil |
+| Lösung | Variable entfernen, Index | Regularisierung |
+
+### In R
+
+```r
+library(car)
+lm(umsatz ~ werbung + marketing, data = daten) %>% vif()
+```
+
+*"Multikollinearität ist für Interpretation problematisch, weniger für Vorhersage!"*
+]
+
+---
+
+# Overfitting: Zu viel des Guten
+
+.pull-left[
+### Das Grundproblem
+
+Das Modell lernt **Rauschen** statt **Muster**.
+
+$$E[(y - \hat{y})^2] = \underbrace{\text{Bias}^2}_{\text{zu einfach}} + \underbrace{\text{Varianz}}_{\text{zu komplex}} + \sigma^2$$
+
+*Taddy: "The entire field of ML is calibrated against out-of-sample experiments."*
+
+Faustregel: Mind. **10–20 Beobachtungen pro Prädiktor**
+]
+
+.pull-right[
+### Gegenstrategien
+
+| Strategie | Ziel |
+|:----------|:-----|
+| Train/Test-Split | Generalisierung prüfen |
+| K-Fold CV | Robustere Schätzung |
+| Lasso/Ridge | Koeffizienten bestrafen |
+| PCA | Dimensionen reduzieren |
+| Feature Selection | Inhaltlich begründen |
+
+> Die Schlüsselfrage: *Generalisiert mein Modell auf **neue, ungesehene** Daten?*
+
+📌 → **Lab 1: Train-Test-Split & HARKing**
+]
+
+---
+
+# Regularisierung: Kontrollierte Komplexität
+
+.pull-left[
+### Lasso (L1) vs. Ridge (L2)
+
+**Ridge:** $\min \sum(y_i - \hat{y}_i)^2 + \lambda \sum \beta_j^2$
+→ Schrumpft alle, entfernt keine
+
+**Lasso:** $\min \sum(y_i - \hat{y}_i)^2 + \lambda \sum |\beta_j|$
+→ Schrumpft **und** setzt auf 0 → **Variablenselektion**
+
+$\lambda$ wird per **Kreuzvalidierung** gewählt.
+
+```r
+library(glmnet)
+cv_fit <- cv.glmnet(X, y, alpha = 1)
+coef(cv_fit, s = "lambda.min")
+```
+]
+
+.pull-right[
+### Inferenz vs. Prädiktion — erneut!
+
+| | Inferenz | Prädiktion |
+|:--|:---------|:-----------|
+| Regularisierung? | ⚠️ Erzeugt Bias | ✅ Reduziert Overfitting |
+| Wann? | Variablenselektion (Lasso) | Immer prüfen |
+
+### Dimensionsreduktion (PCA)
+
+- Komprimiert in unkorrelierte Hauptkomponenten
+- Löst Multikollinearität *mechanisch*
+- Verliert **Interpretierbarkeit**
+
+📌 → **Lab 2: Multikollinearität & Regularisierung**
+]
+
+---
+
+# Kreuzvalidierung: Das Schweizer Taschenmesser
+
+.pull-left[
+### K-Fold CV
+
+Jeder Datenpunkt ist **genau einmal** im Testset.
+
+$$\text{CV-Score} = \frac{1}{K}\sum_{k=1}^{K} \text{MSE}_k$$
+
+Standard: $K = 5$ oder $K = 10$
+
+### Wozu?
+
+1. **Modellvergleich** — welches generalisiert besser?
+2. **Hyperparameter** — welches $\lambda$?
+3. **Realistische** Performance-Schätzung
+]
+
+.pull-right[
+### In R (tidy)
+
+```r
+library(caret)
+ctrl <- trainControl(method = "cv", number = 10)
+
+daten %>%
+  train(umsatz ~ ., data = .,
+        method = "lm", trControl = ctrl)
+```
+
+### Varianten
+
+| Variante | Wann? |
+|:---------|:------|
+| K-Fold | Standard |
+| Stratified | Unbalancierte Klassen |
+| Time-Series CV | Zeitreihen (keine Zukunft leaken!) |
+| Nested CV | Modellselektion + Evaluation |
+]
+
+---
+class: inverse, center, middle
+
+# Teil 4
+## Wenn Annahmen brechen
+### Problem 2: Endogenität & Kausalität
+
+---
+
+# Endogenität: Das versteckte Gift
+
+.pull-left[
+### Definition
+
+$\text{Cov}(X_i, \varepsilon_i) \neq 0$ — Annahme **B4 verletzt!**
+
+→ OLS ist **verzerrt und inkonsistent**
+
+### Drei Ursachen
+
+1. **Omitted Variable Bias** (Confounding)
+   *Werbung ↔ Umsatz, Saison vergessen*
+
+2. **Simultanität / Reverse Causality**
+   *Polizei ↔ Kriminalität*
+
+3. **Messfehler** in $X$
+]
+
+.pull-right[
+### Kontextabhängige Erscheinungsformen
+
+| Kontext | Problem | Strategie |
+|:--------|:--------|:----------|
+| Querschnitt | Confounding | Kontrollvariablen |
+| Zeitreihen | Trending | Lags, Differenzen |
+| Panel | Unbeob. Heterogenität | Fixed/Random Effects |
+| Treatment | Selection Bias | **Experiment!** |
+
+> Bei Endogenität hilft **keine** Regularisierung und **keine** grössere Stichprobe.
+
+*→ Hier liegt die Grenze von ML. Hier braucht es **Kausalanalyse**.*
+]
+
+---
+
+# Korrelation ≠ Kausalität
+
+.pull-left[
+### Das DAG-Prinzip
+
+```
+       Z (Confounder)
+      ↙        ↘
+    X  ←---→  Y
+    (Scheinkorrelation)
+```
+
+**Business:** Marketing ↔ Umsatz (Confounder: Konjunktur)
+
+*Taddy: "ML will not tell you what happens if you **change** something."*
+]
+
+.pull-right[
+### Goldstandard: Experiment
+
+Randomisierung balanciert **alle** Confounder — auch unbekannte!
+
+### Kausale Kriterien
+
+1. ✅ Korrelation vorhanden
+2. ✅ Zeitliche Reihenfolge
+3. ✅ **Kein** Confounding
+4. ✅ Mechanismus plausibel
+5. ✅ Dosis-Wirkungs-Beziehung
+
+*→ Ohne Experiment: nur Assoziation!*
+]
+
+---
+class: inverse, center, middle
+
+# "Design Your Experiment"
+### Schrage (2014): *Embrace Your Ignorance*
+
+---
+
+# Warum experimentieren?
+
+.pull-left[
+### Die ernüchternde Realität (Schrage 2014)
+
+Microsofts **Ronny Kohavi** zeigt reale A/B-Tests — Publikum rät den Gewinner:
+
+> *Kein Konsens. Nie.*
+
+- Kaushik: *"80% der Zeit irren wir uns"*
+- Kohavi: Nur **⅓** der Ideen verbessern Metriken
+- Hadiaris: Trefferquote nach 5 Jahren ≈ **33%**
+
+> *"We are poor at assessing the value of ideas."*
+
+### Die Lektion
+
+Überzeugung ≠ Evidenz. Experten überschätzen sich systematisch (Kahneman, Tetlock).
+]
+
+.pull-right[
+### Schrage's zentrale These
+
+> *"They run experiments not because they can confidently predict outcomes — but precisely because they can't."*
+
+### Big Data + Little Experiments
+
+- Big Data: **Muster** und **Korrelationen**
+- Experimente: **kausale Evidenz**
+- Zusammen: *"Virtuous cycles of profitable insight"*
+
+### Verbindung zu PVA 2
+
+- p-Hacking-Problem → Hypothese **vorher** festlegen!
+- *"Data trumps intuition"* — aber mit Demut
+
+📌 → **Lab 3: Design your Experiment**
+]
+
+---
+
+# Kausalanalytische Strategien: Überblick
+
+```{r causal-overview}
+tibble(
+  Strategie = c("A/B-Test (RCT)", "Lab-Experiment", 
+                "Feld-Experiment", "Natürliches Experiment",
+                "Difference-in-Differences", "Instrumentvariablen"),
+  `Randomisierung` = c("✅ Ja", "✅ Ja", "✅ Ja",
+                       "❌ (‚als ob')", "❌ Nein", "❌ Nein"),
+  `Interne Validität` = c("Hoch", "Sehr hoch", "Hoch", "Mittel", "Mittel", "Hoch*"),
+  `Externe Validität` = c("Hoch (digital)", "Niedrig", "Hoch", "Kontextabh.", "Gut", "Schwer prüfbar"),
+  Beispiel = c("Website-Design", "UX-Labor", "Coupon-Verteilung",
+               "Gesetzesänderung", "Policy-Evaluation", "Angebotsschocks")
+) %>%
+  kable(format = "html", escape = FALSE) %>%
+  kable_styling(font_size = 14, full_width = TRUE) %>%
+  row_spec(0, bold = TRUE, background = "#16213e", color = "white") %>%
+  row_spec(1, background = "#e8f8f5")
+```
+
+.footnote[*wenn Instrument valide]
+
+---
+
+# A/B-Testing: Die Essentials
+
+.pull-left[
+### Design (Kohavi / Schrage)
+
+✅ Hypothese **vorher** formulieren
+✅ **Primäre Metrik** festlegen
+✅ Minimalen Effekt → **Sample Size**
+✅ **Nicht** vorzeitig reinschauen!
+✅ **Effektgrösse** berichten
+
+### Cohen's d
+
+$$d = \frac{\bar{X}_B - \bar{X}_A}{s_{\text{pooled}}}$$
+
+| d | Interpretation |
+|:--:|:--:|
+| 0.2 | klein |
+| 0.5 | mittel |
+| 0.8 | gross |
+]
+
+.pull-right[
+### Ausblick: DiD & IV
+
+**Difference-in-Differences:**
+
+```
+        Vorher  Nachher
+Treated:  A  →  B     ΔT = B-A
+Control:  C  →  D     ΔK = D-C
+DiD = ΔT - ΔK
+```
+
+**Instrumentvariablen:**
+Finde $Z$ das $X$ beeinflusst, aber $Y$ nur über $X$.
+
+### Philosophy Eats AI (Schrage 2025)
+
+> *Welche Fragen wir stellen und welche Metriken wir wählen sind philosophische Entscheidungen.*
+
+Schrage 2019: *"You don't get what you measure; you get what you pay for."*
+]
+
+---
+class: inverse, center, middle
+
+# Zusammenfassung & Labs
+
+---
+
+# Block 3: Der rote Faden
+
+```{r red-thread, fig.height=4, fig.width=12}
+tibble(
+  x = 1:6,
+  label = c("Deskriptive\nRegression\n(PVA 1)", 
+            "Stochastisches\nModell\n(Shift)", 
+            "Inferenz vs.\nPrädiktion\n(Zweck)",
+            "Annahmen\n(A/B/C)\n& GLM",
+            "Multikoll.\n& Overfitting\n(Regularisierung)",
+            "Endogenität\n& Kausalität\n(Experimente)"),
+  color = c("#95a5a6", "#95a5a6", "#3498db", "#2ecc71", "#e74c3c", "#e74c3c")
+) %>%
+  ggplot(aes(x, y = 0)) +
+  geom_segment(aes(xend = x, yend = 0.5), color = "grey70", linewidth = 2) +
+  geom_point(aes(y = 0.5, color = I(color)), size = 8) +
+  geom_text(aes(y = 0.8, label = label), size = 3.3, lineheight = 0.9) +
+  geom_segment(aes(x = 1, xend = 6, y = 0, yend = 0), 
+               arrow = arrow(length = unit(0.3, "cm")), linewidth = 1, color = "#2c3e50") +
+  annotate("text", x = 1, y = -0.15, label = "PVA 1–2", size = 3, color = "grey50") +
+  annotate("text", x = 3.5, y = -0.15, label = "PVA 3: Komplexität, Generalisierung & Kausalität", 
+           size = 3.5, fontface = "bold") +
+  coord_cartesian(ylim = c(-0.3, 1.2)) +
+  theme_void(base_size = 14)
+```
+
+---
+
+# Labs: Induktiv lernen
+
+.pull-left[
+### Lab 1: Train-Test-Split & HARKing
+*Einstieg Prädiktion & LM → GLM*
+
+- Modell fitten → super $R^2$!
+- Auf Testdaten: 💥 → Overfitting erleben
+- HARKing simulieren
+- 🔑 **LM → GLM Übergang**: $Y$ wird binär → `lm()` versagt → `glm(family = binomial)`
+
+### Lab 2: Multikollinearität & Regularisierung
+
+- Korrelierte Features → VIF
+- Lasso, Ridge, Elastic Net
+- CV für $\lambda$ → Was passiert mit $\hat{\beta}$?
+]
+
+.pull-right[
+### Lab 3: Design your Experiment
+*A/B-Testing (Schrage)*
+
+- A/B-Test simulieren
+- Hypothese **vor** vs. **nach** dem Test
+- Cohen's d berechnen
+- Scheinkorrelation aufdecken
+- *"Embrace your ignorance"*
+
+### Durchgängig: `tidyverse`
+
+```r
+daten %>%
+  group_by(gruppe) %>%
+  summarise(
+    mean = mean(outcome),
+    se = sd(outcome) / sqrt(n())
+  )
+```
+]
+
+
+
+
+
+
+
+
+---
+class: inverse, center, middle
+
+# Vielen Dank!
+
+### Fragen? → Dann ab ins Lab! 🧪

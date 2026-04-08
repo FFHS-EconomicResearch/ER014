@@ -1,0 +1,465 @@
+---
+title: "Demo: Multiples Regressionsmodell"
+subtitle: "CRISP-DM Phase 4 — Modeling | Vollständig annotierter Dozenten-Code"
+author: "Prof. Dr. Jörg Schoder"
+date: today
+lang: de
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "Inhalt"
+    number-sections: false
+    code-fold: false
+    code-tools: true
+    theme: cosmo
+    css: ../../../css/styles.css
+    embed-resources: true
+execute:
+  echo: true
+  message: false
+  warning: false
+---
+
+```{r setup}
+#| include: false
+library(tidyverse)
+library(moderndive)
+library(broom)
+library(gt)
+library(patchwork)
+library(ISLR2)
+
+tbl_carseats <- tibble(Carseats)
+```
+
+:::{.callout-note}
+## Zweck dieses Dokuments
+
+Dieses Dokument dient **zwei Zwecken:**
+
+1. **Für den Dozenten:** Vollständig annotierter Fahrplan für die Live-Demo in RStudio.
+   Schritt für Schritt — mit Erklärungen was warum gezeigt wird.
+
+2. **Für Studierende:** Nach der Session als Referenzdokument verfügbar.
+   Alle Schritte sind reproduzierbar und können selbstständig nachvollzogen werden.
+:::
+
+---
+
+## Ausgangslage: Was haben wir bisher?
+
+In Lab 2 haben wir das **Baseline-Modell** `Sales ~ Price` geschätzt:
+
+```{r baseline-recap}
+mod_baseline <- tbl_carseats %>%
+  lm(Sales ~ Price, data = .)
+
+mod_baseline %>%
+  get_regression_summaries() %>%
+  select(r_squared, rmse) %>%
+  mutate(modell = "Baseline: Sales ~ Price") %>%
+  relocate(modell) %>%
+  gt() %>%
+  fmt_number(columns = c(r_squared, rmse), decimals = 4) %>%
+  tab_options(table.font.size = "13px")
+```
+
+:::{.callout-important}
+## Das Problem: Omitted Variable Bias
+
+$R^2 \approx$ `r round(summary(mod_baseline)$r.squared, 2)` — der Preis allein erklärt wenig.
+Und der Residualplot zeigte ein systematisches Muster nach `ShelveLoc`.
+
+**Diagnose:** `ShelveLoc` ist ein **Confounder** —
+es korreliert sowohl mit `Price` (Filialen mit gutem Regalplatz können höhere Preise verlangen)
+als auch mit `Sales` (guter Regalplatz erhöht den Umsatz direkt).
+
+**Lösung:** `ShelveLoc` und `Advertising` ins Modell aufnehmen.
+:::
+
+---
+
+## Schritt 1: Dummy-Kodierung verstehen
+
+### Wie R kategoriale Variablen behandelt
+
+```{r dummy-check}
+#| code-fold: false
+# ShelveLoc ist ein character — R konvertiert automatisch
+class(tbl_carseats$ShelveLoc)
+levels(factor(tbl_carseats$ShelveLoc))
+```
+
+R kodiert `ShelveLoc` automatisch in **Dummy-Variablen** (One-Hot-Encoding mit Referenzkategorie):
+
+```{r dummy-viz}
+#| echo: false
+tibble(
+  ShelveLoc       = c("Bad", "Medium", "Good"),
+  `(Intercept)`   = c("✅ Referenz", "—", "—"),
+  ShelveLocGood   = c(0, 0, 1),
+  ShelveLocMedium = c(0, 1, 0)
+) %>%
+  gt() %>%
+  tab_style(
+    style     = cell_fill(color = "#fff8e1"),
+    locations = cells_body(rows = ShelveLoc == "Bad")
+  ) %>%
+  tab_style(
+    style     = cell_fill(color = "#f0fff0"),
+    locations = cells_body(rows = ShelveLoc == "Good")
+  ) %>%
+  tab_options(table.font.size = "13px") %>%
+  tab_footnote("Bad = Referenzkategorie (alphabetisch erste Kategorie)")
+```
+
+:::{.callout-note}
+## Warum Referenzkategorie?
+
+Mit $k$ Kategorien brauchen wir nur $k-1$ Dummies — sonst entsteht **perfekte Multikollinearität**
+(die Dummy-Variablen summieren sich immer zu 1).
+
+Die Referenzkategorie (**Bad**) ist im **Intercept** enthalten.
+Alle anderen Koeffizienten messen die **Differenz** zur Referenz.
+:::
+
+### Visualisierung: Sales nach ShelveLoc
+
+```{r shelveloc-viz}
+tbl_carseats %>%
+  ggplot(aes(x = ShelveLoc, y = Sales, fill = ShelveLoc)) +
+  geom_boxplot(alpha = 0.7, outlier.alpha = 0.4) +
+  stat_summary(fun = mean, geom = "point",
+               shape = 23, size = 3, fill = "white") +
+  scale_fill_manual(values = c("Bad"    = "#D50006",
+                               "Medium" = "#686868",
+                               "Good"   = "#502479")) +
+  labs(
+    title    = "Sales nach Regalplatz (ShelveLoc)",
+    subtitle = "Raute = Mittelwert | Linie = Median",
+    x = "Regalplatz", y = "Sales (Tsd. Einheiten)"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "none")
+```
+
+---
+
+## Schritt 2: Multiples Modell schätzen
+
+### Das Modell
+
+$$\widehat{\text{Sales}} = \hat\beta_0 + \hat\beta_1 \cdot \text{Price} + \hat\beta_2 \cdot \text{Advertising} + \hat\beta_3 \cdot \mathbf{1}_{\text{Good}} + \hat\beta_4 \cdot \mathbf{1}_{\text{Medium}}$$
+
+```{r multipel-fit}
+#| code-fold: false
+mod_multipel <- tbl_carseats %>%
+  lm(Sales ~ Price + Advertising + ShelveLoc, data = .)
+
+mod_multipel %>%
+  get_regression_table() %>%
+  gt() %>%
+  fmt_number(columns = c(estimate, std_error, statistic,
+                         p_value, lower_ci, upper_ci),
+             decimals = 4) %>%
+  tab_style(
+    style     = cell_fill(color = "#f5f0fa"),
+    locations = cells_body(rows = str_detect(term, "ShelveLoc"))
+  ) %>%
+  tab_style(
+    style     = cell_fill(color = "#fff0f0"),
+    locations = cells_body(rows = term == "Price")
+  ) %>%
+  tab_style(
+    style     = cell_fill(color = "#f0fff8"),
+    locations = cells_body(rows = term == "Advertising")
+  ) %>%
+  tab_options(table.font.size = "14px") %>%
+  tab_footnote("Lila = ShelveLoc-Dummies | Rot = Price | Grün = Advertising")
+```
+
+---
+
+## Schritt 3: Koeffizienten interpretieren
+
+### Ceteris-Paribus-Logik
+
+:::{.callout-important}
+## Was bedeutet *ceteris paribus*?
+
+Jeder Koeffizient im multiplen Modell misst den Effekt **einer** Variable
+unter **Konstanthaltung aller anderen** ("alles andere gleich").
+
+> *"Multiple regression does not tell us what happens if we change Price. 
+> It tells us what the data shows about Price AFTER removing the influence 
+> of all other variables."*
+> — @provost_data_2013, S. 147
+:::
+
+```{r interpretation-table}
+#| echo: false
+coefs <- coef(mod_multipel)
+
+tibble(
+  Koeffizient    = names(coefs),
+  Schätzwert     = round(coefs, 4),
+  Interpretation = c(
+    paste0("Ø Sales = ", round(coefs[1], 2),
+           " Tsd. bei Price=0, Adv=0, ShelveLoc=Bad"),
+    paste0("Pro +1 USD Preis → ",
+           round(coefs[2], 4),
+           " Tsd. weniger Sales (c.p.)"),
+    paste0("Pro +1 Tsd. USD Werbung → +",
+           round(coefs[3], 4),
+           " Tsd. Sales (c.p.)"),
+    paste0("Good vs. Bad Regalplatz: +",
+           round(coefs[4], 3),
+           " Tsd. Sales (c.p.)"),
+    paste0("Medium vs. Bad Regalplatz: +",
+           round(coefs[5], 3),
+           " Tsd. Sales (c.p.)")
+  )
+) %>%
+  gt() %>%
+  tab_style(
+    style     = cell_fill(color = "#f5f0fa"),
+    locations = cells_body(rows = str_detect(Koeffizient, "ShelveLoc"))
+  ) %>%
+  tab_options(table.font.size = "13px")
+```
+
+### Live-Berechnung: Was verkauft eine typische Filiale?
+
+```{r prediction}
+#| code-fold: false
+# Beispiel: Filiale mit Price=120, Advertising=10, ShelveLoc="Good"
+predict(mod_multipel,
+        newdata = data.frame(
+          Price       = 120,
+          Advertising = 10,
+          ShelveLoc   = "Good"
+        ))
+```
+
+```{r prediction-manual}
+# Manuell nachrechnen (zeigt ceteris paribus live)
+beta <- coef(mod_multipel)
+beta["(Intercept)"] +
+  beta["Price"] * 120 +
+  beta["Advertising"] * 10 +
+  beta["ShelveLocGood"] * 1   # Good = 1
+```
+
+---
+
+## Schritt 4: Modellgüte vergleichen
+
+### Baseline vs. Multiples Modell
+
+```{r model-comparison}
+bind_rows(
+  mod_baseline %>%
+    get_regression_summaries() %>%
+    mutate(modell = "Baseline: Sales ~ Price"),
+  mod_multipel %>%
+    get_regression_summaries() %>%
+    mutate(modell = "Multipel: Sales ~ Price + Advertising + ShelveLoc")
+) %>%
+  select(modell, r_squared, adj_r_squared, rmse, sigma) %>%
+  gt() %>%
+  fmt_number(columns = c(r_squared, adj_r_squared, rmse, sigma),
+             decimals = 4) %>%
+  tab_style(
+    style     = cell_fill(color = "#f0fff0"),
+    locations = cells_body(rows = str_detect(modell, "Multipel"))
+  ) %>%
+  tab_options(table.font.size = "13px") %>%
+  tab_footnote("Grün = deutliche Verbesserung durch zusätzliche Variablen")
+```
+
+### Veränderung des Preiskoeffizienten (OVB-Korrektur)
+
+```{r ovb-correction}
+#| code-fold: false
+cat("β_Price ohne ShelveLoc:", round(coef(mod_baseline)["Price"], 4), "\n")
+cat("β_Price mit ShelveLoc: ", round(coef(mod_multipel)["Price"], 4), "\n")
+cat("Veränderung:           ",
+    round(coef(mod_multipel)["Price"] - coef(mod_baseline)["Price"], 4), "\n")
+```
+
+:::{.callout-note}
+## Warum verändert sich der Preiskoeffizient?
+
+Im Baseline-Modell war $\hat\beta_{\text{Price}}$ durch den Confounder `ShelveLoc` **verzerrt**:
+
+Filialen mit gutem Regalplatz können höhere Preise verlangen UND haben mehr Umsatz.
+Das "versteckte" Muster ließ den Preiskoeffizienten weniger negativ erscheinen als er wirklich ist.
+
+Im multiplen Modell wird dieser Einfluss **herausgerechnet** — der Preiseffekt wird **ceteris paribus** gemessen.
+:::
+
+---
+
+## Schritt 5: Residualdiagnostik
+
+```{r resid-comparison}
+pts_base <- augment(mod_baseline, data = tbl_carseats)
+pts_mult <- augment(mod_multipel, data = tbl_carseats)
+
+p1 <- pts_base %>%
+  ggplot(aes(.fitted, .resid, color = ShelveLoc)) +
+  geom_point(alpha = 0.5, size = 1.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "#686868") +
+  scale_color_manual(values = c("Bad" = "#D50006",
+                                "Medium" = "#b3b2b2",
+                                "Good" = "#502479")) +
+  labs(title = "Baseline", subtitle = "Muster sichtbar!",
+       x = "Ŷ", y = "Residuum") +
+  theme_minimal(base_size = 10) + theme(legend.position = "none")
+
+p2 <- pts_mult %>%
+  ggplot(aes(.fitted, .resid, color = ShelveLoc)) +
+  geom_point(alpha = 0.5, size = 1.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "#686868") +
+  scale_color_manual(values = c("Bad" = "#D50006",
+                                "Medium" = "#b3b2b2",
+                                "Good" = "#502479")) +
+  labs(title = "Multiples Modell",
+       subtitle = "Muster weitgehend verschwunden ✅",
+       x = "Ŷ", y = "Residuum") +
+  theme_minimal(base_size = 10) + theme(legend.position = "bottom")
+
+p1 + p2 +
+  plot_annotation(
+    title    = "Residualplot: Baseline vs. Multiples Modell",
+    subtitle = "Nach Aufnahme von ShelveLoc verschwindet das systematische Muster"
+  )
+```
+
+---
+
+## Schritt 6: Multikollinearität prüfen
+
+```{r multicollinearity}
+#| code-fold: false
+# Korrelationsmatrix der numerischen Prädiktoren
+tbl_carseats %>%
+  select(Price, Advertising, Income, Age, Population) %>%
+  cor() %>%
+  round(3)
+```
+
+```{r vif}
+# Variance Inflation Factor (VIF) — Faustregel: VIF > 5 problematisch
+library(car)
+vif(mod_multipel)
+```
+
+:::{.callout-note}
+## Faustregel: VIF-Interpretation
+
+| VIF | Einschätzung |
+|-----|-------------|
+| 1–2 | Kein Problem |
+| 2–5 | Leichte Multikollinearität |
+| 5–10 | Problematisch — Koeffizienten instabil |
+| > 10 | Sehr problematisch |
+
+Für unser Modell: alle VIF-Werte niedrig → kein Multikollinearitätsproblem.
+:::
+
+---
+
+## Schritt 7: Performance-Scores berechnen
+
+```{r performance-scores}
+#| code-fold: false
+filial_scored <- mod_multipel %>%
+  get_regression_points() %>%
+  mutate(performance_gap = residual) %>%
+  arrange(performance_gap)
+
+# Top 5 Underperformer
+filial_scored %>%
+  head(5) %>%
+  select(ID, Sales, Sales_hat, residual) %>%
+  gt() %>%
+  fmt_number(columns = c(Sales, Sales_hat, residual), decimals = 2) %>%
+  tab_style(
+    style     = cell_fill(color = "#fff0f0"),
+    locations = cells_body()
+  ) %>%
+  tab_options(table.font.size = "13px") %>%
+  tab_header("Top 5 Underperformer (stärkste negative Residuen)")
+```
+
+```{r performance-viz}
+filial_scored %>%
+  ggplot(aes(x = Sales_hat, y = performance_gap)) +
+  geom_point(
+    aes(color = performance_gap < -2),
+    alpha = 0.6, size = 1.8
+  ) +
+  geom_hline(yintercept = 0, color = "#D50006",
+             linewidth = 1.1, linetype = "dashed") +
+  geom_hline(yintercept = c(-2, 2), color = "#686868",
+             linewidth = 0.6, linetype = "dotted") +
+  scale_color_manual(values = c("FALSE" = "#b3b2b2",
+                                "TRUE"  = "#D50006"),
+                     labels = c("Normal", "Underperformer")) +
+  labs(
+    title    = "Performance-Score: Residuen des multiplen Modells",
+    subtitle = "Roter Bereich = stark negatives Residuum = Underperformer",
+    x = "Vorhergesagter Umsatz (Sales_hat)",
+    y = "Performance-Gap (Residuum)",
+    color = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+---
+
+## Gesamtvergleich: alle drei Modelle
+
+```{r full-comparison}
+mod_adv <- lm(Sales ~ Price + Advertising, data = tbl_carseats)
+
+bind_rows(
+  get_regression_summaries(mod_baseline) %>%
+    mutate(modell = "① Sales ~ Price"),
+  get_regression_summaries(mod_adv) %>%
+    mutate(modell = "② Sales ~ Price + Advertising"),
+  get_regression_summaries(mod_multipel) %>%
+    mutate(modell = "③ Sales ~ Price + Advertising + ShelveLoc")
+) %>%
+  select(modell, r_squared, adj_r_squared, rmse) %>%
+  gt() %>%
+  fmt_number(columns = c(r_squared, adj_r_squared, rmse), decimals = 4) %>%
+  tab_style(
+    style     = cell_fill(color = "#fff8e1"),
+    locations = cells_body(rows = 2)
+  ) %>%
+  tab_style(
+    style     = cell_fill(color = "#f0fff0"),
+    locations = cells_body(rows = 3)
+  ) %>%
+  tab_options(table.font.size = "13px") %>%
+  tab_footnote("Grün = bestes Modell | Gelb = mittleres Modell")
+```
+
+:::{.callout-important}
+## Fazit der Demo
+
+| Modell | R² | Hauptbotschaft |
+|--------|-----|----------------|
+| Baseline `Sales ~ Price` | ~0.15 | OVB durch ShelveLoc — Preis allein reicht nicht |
+| + Advertising | ~0.27 | Werbebudget erklärt zusätzliche Varianz |
+| + ShelveLoc | ~0.53 | Regalplatz ist der stärkste Predictor |
+
+**Nächster Schritt (Lab 3):** Die Residuen des multiplen Modells als **Performance-Score** 
+nutzen, um die Underperformer-Liste zu erstellen und das Managerial Memo zu verfassen.
+:::
+
+## Quellenverzeichnis {.unnumbered}

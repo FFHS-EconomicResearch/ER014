@@ -1,0 +1,1121 @@
+---
+title: "Data Science and Strategy for Business"
+subtitle: "ER014"
+author: "Prof. Dr. Jörg Schoder"
+institute: "FFHS" 
+date: "`r Sys.Date()`"
+bibliography: ../../../lit/my_bib.bib
+lang: en-US
+reference-section-title: Quellenverzeichnis
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: 
+         - default
+         - ../../../css/ffhs-theme_js.css
+         - xaringan-themer.css
+    includes:
+      after_body: ../../../css/insert-logo.html
+    lib_dir: ../../../libs
+    nature:
+      slideNumberFormat: "%current%/%total%"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    seal: false
+    
+
+    
+---
+class: title-slide
+
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+style_xaringan(text_color = "#d50006",inverse_text_color = "#FFFFFF",inverse_background_color = "#d50006", title_slide_background_color = "#d50006",header_background_color = "#d50006",header_color = "#FFFFFF",header_h1_font_size = "32px",
+  header_h2_font_size = "26px",link_color="#502479",
+  header_h3_font_size = "20px",text_slide_number_color = "#d50006",text_slide_number_font_size = "0.5em")
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_progress_bar(color = "#d50006", location = "bottom")
+xaringanExtra::use_xaringan_extra(c("tile_view","scribble","panelset","tachyons"))
+xaringanExtra::style_panelset_tabs(font_family = "inherit")
+#xaringanExtra::use_search(show_icon = TRUE)
+#weitere: "share_again","animate_css", "webcam","freezeframe","clipboard","fit_screen","extra-styles" 
+xaringanExtra::use_editable(expires = 1)
+xaringanExtra::use_freezeframe(trigger = "hover")
+``` 
+
+```{r}
+#| label: setup
+#| include: false
+options(htmltools.dir.version = FALSE)
+library(latex2exp)
+library(tidyverse)
+library(fontawesome)
+#library(emo)
+source(xfun::from_root("lit","helper.R"))
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           style = "markdown",
+           dashed = TRUE)
+bib <- ReadBib(xfun::from_root("lit","my_bib.bib"))
+## Fix: Zitiere()-Wrapper verhindert "and" statt "und" in deutschen Zitaten
+## und löst die structure(NULL,*)-Warnung bei Einträgen ohne Jahresfeld
+Zitiere <- function(bib, key, ...) {
+  gsub(" and ", " und ", Citet(bib, key, ...))
+}
+```
+
+# ER014 - Data Science and Strategy for Business
+
+## Session 1
+
+### Data Science als modellbasierte Abstraktion
+
+
+ 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+### FS 2026
+<br>
+### Prof. Dr. Jörg Schoder
+.mycontacts[
+`r fa('github')` @FFHS-EconomicResearch
+`r fa('linkedin')` @jfschoder
+]
+
+
+---
+layout: true
+
+<div class="my-footer"></div>       
+
+<div style="position: absolute;left:400px;bottom:10px;font-size:9px">`r fa('creative-commons')``r rmarkdown::metadata$author`</div>
+
+
+
+---
+class: left
+
+.blockquote[Agenda]
+
+## Data Science als modellbasierte Abstraktion
+
+<div style="display:grid; grid-template-columns:80px 1fr; gap:0.3em 1em;
+            font-size:0.82em; margin-top:0.5em; align-items:center;">
+
+<div style="color:#686868;">10'</div>
+<div>`r fa('handshake-simple')` <strong>Kennenlernen & Organisatorisches</strong> — Buli-EDA, Interaktionsterm, offene Fragen</div>
+
+<div style="color:#686868;">30'</div>
+<div>`r fa('globe')` <strong>Big Picture & Data Strategy</strong> — Walmart Szenario · Datentypen und KI · AI User vs. AI Value Creator · Translator Rolle · Statistik vs. Data Science </div>
+
+<div style="color:#686868;">20'</div>
+<div>`r fa('cogs')` <strong>CRISP-DM & `r fa('r-project')`-Tooling</strong> — </div>
+
+
+<div style="color:#D50006; font-weight:bold;">40'</div>
+<div style="color:#D50006; font-weight:bold;">`r fa('flask')` <strong>Lab 1</strong> — `r fa('r-project')`-Projekte· Datenimport · tidyverse · Quarto </div>
+
+
+<div style="color:#686868; font-style:italic;">10'</div>
+<div style="color:#686868; font-style:italic;">`r fa('mug-hot')` Pause</div>
+
+
+<div style="color:#D50006; font-weight:bold;">30'</div>
+<div style="color:#D50006; font-weight:bold;">`r fa('flask')` <strong>Lab 2</strong> — Data Understanding & EDA</div>
+
+
+<div style="color:#D50006; font-weight:bold;">20'</div>
+<div style="color:#D50006; font-weight:bold;">`r fa('flask')` <strong>Lab 3</strong> — Modellierung · Baseline · Lineare Regression</div>
+
+
+<div style="color:#686868;">10'</div>
+<div>`r fa('chart-line')` <strong>Modellierung & Demo</strong> — Deskriptive Regression (Population) · Komplexität · Demo: Multiples Modell</div>
+
+
+<div style="color:#D50006; font-weight:bold;">30'</div>
+<div style="color:#D50006; font-weight:bold;">`r fa('flask')` <strong>Lab 4</strong> — Performance Mining</div>
+
+<div style="color:#686868;">10'</div>
+<div>`r fa('flag-checkered')` <strong>Debrief & Ausblick</strong></div>
+
+</div>
+
+
+???
+* ToDo: Roter Faden: Carseats-Datensatz durch alle Labs (einheitlicher Datensatz)
+* Ziel heute: vom Business-Problem zum ersten deskriptiven Modell (AI User)
+* Regressionstheorie vertieft in Labs — hier nur deskriptiv als Population
+
+---
+class: inverse, center, middle
+
+# Warum einfach, wenn's auch kompliziert geht?
+
+### Mehr Variablen = besseres Modell?
+
+--
+
+### .large[Bist du sicher...? 🤔]
+
+---
+
+# Lernziele Block 3
+
+.pull-left[
+**Theorie & Konzepte**
+
+- Multikollinearität erkennen und Auswirkungen erklären
+- BLUE-Eigenschaften konzeptionell einordnen
+- Overfitting und In-/Out-of-Sample Performance unterscheiden
+- Kreuzvalidierung und Regularisierung erklären
+]
+
+.pull-right[
+**Anwendung & Methoden**
+
+- Korrelation von Kausalität unterscheiden
+- A/B-Tests als kausale Inferenz verstehen
+- Logistische Regression von OLS abgrenzen
+- Cohen's d und Effektstärke berechnen
+]
+
+.footnote[
+📌 Dieser Block bereitet auf fortgeschrittene ML-Methoden vor (Modul ER017).
+]
+
+---
+class: inverse, center, middle
+
+# Teil 1: BLUE-Eigenschaften & Annahmen
+
+---
+
+# OLS-Schätzer sind BLUE
+
+.pull-left[
+### Was bedeutet BLUE?
+
+| Buchstabe | Bedeutung | Erklärung |
+|:---------:|:---------:|:----------|
+| **B** | Best | Kleinste Varianz |
+| **L** | Linear | Lineare Funktion der Daten |
+| **U** | Unbiased | Erwartungstreu |
+| **E** | Estimator | Schätzer |
+]
+
+.pull-right[
+### Voraussetzungen (Gauss-Markov)
+
+1. **Linearität** in den Parametern
+2. **Keine perfekte Multikollinearität**
+3. **Exogenität** – keine Korrelation von X mit ε
+4. **Homoskedastizität** – konstante Fehlervarianz
+5. **Keine Autokorrelation** der Fehlerterme
+]
+
+---
+
+# BLUE: Was bedeutet "Best"?
+
+.pull-left[
+### Gauss-Markov-Theorem
+
+> Wenn die Annahmen erfüllt sind, gibt es **keinen besseren linearen Schätzer** als OLS.
+
+"Best" bezieht sich **nur auf Varianz**, nicht auf Bias!
+
+### Einschränkungen
+
+- Gilt nur für **lineare** Schätzer
+- Non-lineare Schätzer können besser sein
+- Bei kleinem n oft irrelevant
+- **Regularisierte Schätzer** haben niedrigeren MSE
+]
+
+.pull-right[
+### Bias-Variance-Tradeoff
+
+In vielen Fällen ist ein Schätzer mit **etwas Bias** aber **weniger Varianz** vorzuziehen!
+
+```{r bias-var-simple, echo=FALSE, fig.height=4, fig.width=5}
+set.seed(42)
+complexity <- seq(1, 10, by = 0.1)
+bias2 <- 3 * exp(-0.5 * complexity)
+variance <- 0.1 * exp(0.4 * complexity)
+total <- bias2 + variance + 0.3
+
+df <- data.frame(
+  x = rep(complexity, 3),
+  y = c(bias2, variance, total),
+  type = rep(c("Bias²", "Varianz", "Gesamtfehler"), each = length(complexity))
+)
+
+ggplot(df, aes(x, y, color = type, linetype = type)) +
+  geom_line(linewidth = 1.2) +
+  geom_vline(xintercept = complexity[which.min(total)], linetype = "dashed", alpha = 0.5) +
+  annotate("text", x = complexity[which.min(total)] + 0.3, y = 3.5, 
+           label = "Optimum", angle = 90, size = 3.5) +
+  scale_color_manual(values = c("Bias²" = "#E74C3C", "Varianz" = "#3498DB", "Gesamtfehler" = "#2C3E50")) +
+  labs(x = "Modellkomplexität", y = "Fehler", color = "", linetype = "") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "bottom")
+```
+]
+
+---
+
+# Annahmen prüfen – Diagnostik in R
+
+.pull-left[
+```r
+# Modell schätzen
+model <- lm(y ~ x1 + x2 + x3, data = df)
+
+# 4 Diagnose-Plots auf einen Blick
+par(mfrow = c(2, 2))
+plot(model)
+
+# Breusch-Pagan Test (Homoskedastizität)
+library(lmtest)
+bptest(model)
+
+# Durbin-Watson Test (Autokorrelation)
+dwtest(model)
+
+# Shapiro-Wilk Test (Normalität)
+shapiro.test(residuals(model))
+```
+]
+
+.pull-right[
+### Was prüfen wir?
+
+| Annahme | Test / Plot |
+|:--------|:------------|
+| Linearität | Residuen vs. Fitted |
+| Homoskedastizität | Breusch-Pagan |
+| Normalität | Q-Q Plot, Shapiro-Wilk |
+| Autokorrelation | Durbin-Watson |
+| Exogenität | Theorie! |
+
+⚠️ **Blinde Anwendung von OLS ist gefährlich!**
+]
+
+---
+class: inverse, center, middle
+
+# Teil 2: Multikollinearität
+
+---
+
+# Multikollinearität: Das Zwillingsproblem
+
+.pull-left[
+### Definition
+Prädiktoren sind **stark miteinander korreliert**.
+
+### Symptome
+- Hohes R², aber **keine signifikanten** Koeffizienten
+- **Instabile** Koeffizienten
+- Große Standardfehler
+- Vorzeichenwechsel bei Koeffizienten
+
+### Diagnose: VIF
+$$VIF_j = \frac{1}{1 - R^2_j}$$
+
+- **VIF > 5**: problematisch
+- **VIF > 10**: schwer problematisch
+]
+
+.pull-right[
+```{r vif-demo, echo=FALSE, fig.height=5, fig.width=6}
+set.seed(123)
+cors <- seq(0, 0.99, by = 0.01)
+vifs <- 1 / (1 - cors^2)
+betas <- sapply(cors, function(r) {
+  n <- 100
+  x1 <- rnorm(n)
+  x2 <- r * x1 + sqrt(1 - r^2) * rnorm(n)
+  y <- 1 * x1 + 1 * x2 + rnorm(n)
+  coef(lm(y ~ x1 + x2))[2]
+})
+
+df_vif <- data.frame(cor = cors, vif = vifs, beta = betas)
+
+ggplot(df_vif, aes(cor, beta)) +
+  geom_point(alpha = 0.5, color = "#3498DB") +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "#E74C3C") +
+  geom_vline(xintercept = 0.9, linetype = "dotted", color = "#E67E22", linewidth = 1) +
+  annotate("rect", xmin = 0.9, xmax = 1, ymin = -Inf, ymax = Inf, 
+           alpha = 0.15, fill = "#E74C3C") +
+  annotate("text", x = 0.95, y = max(betas) * 0.9, label = "Gefahrenzone\n(VIF > 5)", 
+           size = 3.5, color = "#E74C3C") +
+  labs(x = "Korrelation zwischen Prädiktoren", y = "Geschätzter Koeffizient",
+       title = "Multikollinearität: Instabile Koeffizienten") +
+  theme_minimal(base_size = 14)
+```
+]
+
+---
+
+# Multikollinearität: Lösungen
+
+.pull-left[
+### VIF in R berechnen
+
+```r
+library(car)
+vif(model)
+```
+
+### 5 Lösungsansätze
+
+1. **Variable entfernen** (inhaltlich begründen!)
+2. **Variablen kombinieren** (Index bilden)
+3. **Regularisierung** (Lasso/Ridge)
+4. **Hauptkomponentenanalyse** (PCA)
+5. **Mehr Daten sammeln**
+]
+
+.pull-right[
+### Wichtige Unterscheidung
+
+| Ziel | Multikollinearität... |
+|:-----|:---------------------|
+| **Interpretation** | ⚠️ Problematisch! |
+| **Vorhersage** | ✅ Oft tolerierbar |
+
+Bei reiner Vorhersage kann Multikollinearität **toleriert** werden – die Koeffizienten sind instabil, aber die Vorhersagen bleiben stabil.
+
+Bei **Interpretation** einzelner Effekte ist die Lösung zwingend nötig.
+]
+
+---
+class: inverse, center, middle
+
+# Teil 3: Bias-Varianz-Tradeoff & Overfitting
+
+---
+
+# Bias vs. Varianz
+
+.pull-left[
+### Bias (Verzerrung) → Underfitting
+- Systematischer Fehler
+- Modell **zu einfach**
+- Wichtige Zusammenhänge fehlen
+- *Beispiel: Lineare Regression für quadratischen Zusammenhang*
+
+### Varianz → Overfitting
+- Zufällige Schwankung
+- Modell **zu komplex**
+- Lernt Rauschen mit
+- *Beispiel: Polynom Grad 20 für 10 Datenpunkte*
+]
+
+.pull-right[
+### Gesamtfehler
+
+$$E[(y - \hat{y})^2] = \text{Bias}^2 + \text{Varianz} + \sigma^2$$
+
+```{r target-analogy, echo=FALSE, fig.height=4.5, fig.width=6}
+library(ggplot2)
+
+set.seed(42)
+# Hoher Bias
+theta1 <- runif(20, 0, 2*pi)
+r1 <- rnorm(20, 0, 0.3)
+bias_x <- 1.5 + r1 * cos(theta1)
+bias_y <- 1.5 + r1 * sin(theta1)
+
+# Hohe Varianz
+theta2 <- runif(20, 0, 2*pi)
+r2 <- rnorm(20, 0, 1.2)
+var_x <- 0 + r2 * cos(theta2)
+var_y <- 0 + r2 * sin(theta2)
+
+df_target <- data.frame(
+  x = c(bias_x, var_x),
+  y = c(bias_y, var_y),
+  type = rep(c("Hoher Bias\n(konsistent daneben)", "Hohe Varianz\n(verstreut)"), each = 20)
+)
+
+ggplot(df_target, aes(x, y)) +
+  geom_point(color = "#E74C3C", size = 2.5) +
+  geom_point(aes(x = 0, y = 0), shape = 3, size = 5, color = "#2C3E50") +
+  facet_wrap(~type) +
+  coord_fixed(xlim = c(-3, 3), ylim = c(-3, 3)) +
+  theme_minimal(base_size = 13) +
+  labs(x = "", y = "", title = "Ziel: Niedrig in beidem – das ist der Sweet Spot") +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(),
+        panel.grid.minor = element_blank())
+```
+]
+
+---
+
+# Overfitting erkennen und vermeiden
+
+.pull-left[
+### Symptome
+- Training-Fehler **sehr klein**
+- Test-Fehler **viel größer**
+- Komplexes Modell mit vielen Parametern
+- Koeffizienten werden sehr groß
+
+### Ursachen
+- Zu wenig Daten
+- Zu viele Features
+- Zu flexibles Modell
+- Kein separates Testset
+]
+
+.pull-right[
+### Gegenmassnahmen
+
+1. ✅ Mehr Daten sammeln
+2. ✅ Feature Selection
+3. ✅ **Regularisierung**
+4. ✅ **Kreuzvalidierung**
+5. ✅ Einfacheres Modell wählen
+
+### Faustregel
+
+> Mindestens **10–20 Beobachtungen pro Prädiktor!**
+
+⚠️ Overfitting ist **das** Hauptproblem in Machine Learning – **immer validieren!**
+]
+
+---
+
+# Overfitting live demonstriert
+
+```{r overfitting-demo, echo=FALSE, fig.height=5, fig.width=11}
+set.seed(42)
+n <- 30
+x <- sort(runif(n, 0, 10))
+y <- sin(x) + rnorm(n, 0, 0.3)
+
+df_fit <- data.frame(x = x, y = y)
+
+p1 <- ggplot(df_fit, aes(x, y)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", se = FALSE, color = "#3498DB", linewidth = 1.2) +
+  labs(title = "Underfitting (linear)", subtitle = "Hoher Bias, niedrige Varianz") +
+  theme_minimal(base_size = 13)
+
+p2 <- ggplot(df_fit, aes(x, y)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 3), se = FALSE, color = "#27AE60", linewidth = 1.2) +
+  labs(title = "Guter Fit (Polynom Grad 3)", subtitle = "Balance aus Bias und Varianz") +
+  theme_minimal(base_size = 13)
+
+p3 <- ggplot(df_fit, aes(x, y)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 20), se = FALSE, color = "#E74C3C", linewidth = 1.2) +
+  labs(title = "Overfitting (Polynom Grad 20)", subtitle = "Niedriger Bias, hohe Varianz") +
+  theme_minimal(base_size = 13)
+
+library(patchwork)
+p1 + p2 + p3
+```
+
+---
+class: inverse, center, middle
+
+# Teil 4: Regularisierung
+
+---
+
+# Regularisierung: Lasso und Ridge
+
+.pull-left[
+### Idee
+Koeffizienten "bestrafen", um Overfitting zu reduzieren.
+
+### Ridge (L2-Strafe)
+$$\min \sum(y_i - \hat{y}_i)^2 + \lambda \sum \beta_j^2$$
+
+➡️ **Schrumpft** alle Koeffizienten, entfernt keine.
+
+### Lasso (L1-Strafe)
+$$\min \sum(y_i - \hat{y}_i)^2 + \lambda \sum |\beta_j|$$
+
+➡️ **Schrumpft UND setzt auf 0** → Variablenselektion!
+]
+
+.pull-right[
+```{r lasso-paths, echo=FALSE, fig.height=5, fig.width=6}
+set.seed(42)
+n <- 200; p <- 5
+X <- matrix(rnorm(n*p), n, p)
+colnames(X) <- c("Preis", "Werbung", "Qualität", "Alter", "Zufall")
+y <- 2*X[,1] - 1.5*X[,2] + 1*X[,3] + 0.3*X[,4] + 0*X[,5] + rnorm(n)
+
+library(glmnet)
+fit <- glmnet(X, y, alpha = 1)
+
+# Extract coefficients at each lambda
+beta_df <- as.data.frame(as.matrix(t(coef(fit)[-1,])))
+beta_df$lambda <- fit$lambda
+beta_long <- pivot_longer(beta_df, -lambda, names_to = "Variable", values_to = "Koeffizient")
+
+ggplot(beta_long, aes(log10(lambda), Koeffizient, color = Variable)) +
+  geom_line(linewidth = 1.1) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.3) +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = expression(log[10](lambda)), y = "Koeffizientenwert",
+       title = "Lasso: Koeffizientenpfade") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "right")
+```
+]
+
+---
+
+# Lasso vs. Ridge: Wann was?
+
+.pull-left[
+### Ridge bevorzugen wenn:
+- Viele **kleine Effekte**
+- **Alle** Variablen wichtig
+- **Multikollinearität** vorhanden
+- Stabilere Koeffizienten gewünscht
+
+### Lasso bevorzugen wenn:
+- **Sparsity** erwartet (wenige wichtige Variablen)
+- **Variablenselektion** gewünscht
+- **Interpretierbarkeit** wichtig
+- Sehr viele Features
+]
+
+.pull-right[
+### Elastic Net – das Beste aus beiden Welten
+
+$$\lambda_1 \sum |\beta_j| + \lambda_2 \sum \beta_j^2$$
+
+### In R (`glmnet`)
+
+```r
+library(glmnet)
+
+# alpha = 1: Lasso
+# alpha = 0: Ridge  
+# alpha = 0.5: Elastic Net
+
+cv_fit <- cv.glmnet(X, y, alpha = 1)
+best_lambda <- cv_fit$lambda.min
+```
+
+💡 **Praxis:** Oft Elastic Net mit CV für α und λ.
+]
+
+---
+
+# Regularisierung in R – Schritt für Schritt
+
+```r
+library(glmnet)
+
+# 1. Daten vorbereiten (Matrix-Format nötig!)
+X <- model.matrix(y ~ ., data = train_data)[, -1]  # ohne Intercept
+y <- train_data$y
+
+# 2. Lasso mit Kreuzvalidierung
+cv_lasso <- cv.glmnet(X, y, alpha = 1)
+
+# 3. Optimales Lambda visualisieren
+plot(cv_lasso)  # Lambda vs. MSE
+
+# 4. Bestes Lambda extrahieren
+best_lambda <- cv_lasso$lambda.min
+cat("Optimales Lambda:", best_lambda)
+
+# 5. Finales Modell
+final_model <- glmnet(X, y, alpha = 1, lambda = best_lambda)
+
+# 6. Koeffizienten anzeigen (viele = 0 bei Lasso!)
+coef(final_model)
+```
+
+📌 `cv.glmnet` wählt **automatisch** das beste λ per Kreuzvalidierung.
+
+---
+class: inverse, center, middle
+
+# Teil 5: Kreuzvalidierung
+
+---
+
+# K-Fold Kreuzvalidierung
+
+.pull-left[
+### Prinzip
+
+```
+Fold 1: [TEST] [Train] [Train] [Train] [Train] → MSE₁
+Fold 2: [Train] [TEST] [Train] [Train] [Train] → MSE₂
+Fold 3: [Train] [Train] [TEST] [Train] [Train] → MSE₃
+Fold 4: [Train] [Train] [Train] [TEST] [Train] → MSE₄
+Fold 5: [Train] [Train] [Train] [Train] [TEST] → MSE₅
+```
+
+$$\text{CV-Score} = \frac{1}{K} \sum_{k=1}^{K} MSE_k$$
+
+**Jeder Datenpunkt ist genau einmal im Testset!**
+]
+
+.pull-right[
+### Varianten
+
+| Variante | Beschreibung |
+|:---------|:-------------|
+| **K-Fold** | Standard, K=5 oder 10 |
+| **LOOCV** | K=n, wenig Bias |
+| **Stratified** | Klassenverteilung erhalten |
+| **Nested** | CV in CV für Modellselektion |
+| **Time Series** | Nur Vergangenheit zum Training |
+
+### In R (`caret`)
+
+```r
+library(caret)
+ctrl <- trainControl(
+  method = "cv", number = 10
+)
+model <- train(y ~ ., data = df,
+               method = "lm", 
+               trControl = ctrl)
+```
+]
+
+---
+class: inverse, center, middle
+
+# Teil 6: Korrelation vs. Kausalität
+
+---
+
+# Korrelation ≠ Kausalität
+
+.pull-left[
+### Das Confounder-Problem
+
+```
+  Eisverkauf ←──── Temperatur ────→ Ertrinken
+       ↑                                ↑
+       └────── Korrelation ─────────────┘
+               (nicht kausal!)
+```
+
+### Business-Beispiel
+
+```
+  Marketing ←──── Konjunktur ────→ Umsatz
+       ↑                              ↑
+       └──── Korrelation ─────────────┘
+```
+
+*"Marketing steigert Umsatz!"* – Oder ist es die Konjunktur?
+]
+
+.pull-right[
+### Wann ist es kausal?
+
+1. ✅ Korrelation vorhanden
+2. ✅ Zeitliche Reihenfolge
+3. ✅ **Kein Confounding**
+4. ✅ Mechanismus plausibel
+5. ✅ Konsistenz über Studien
+
+### Goldstandard
+
+> **Randomisiertes Experiment (A/B-Test)**
+
+### Observationsdaten
+
+⚠️ Keine Randomisierung → Confounding möglich → Nur **Assoziation**, keine Kausalität!
+]
+
+---
+
+# Confounding: Das versteckte Problem
+
+```{r confounding-dag, echo=FALSE, fig.height=4.5, fig.width=9}
+library(ggplot2)
+
+nodes <- data.frame(
+  x = c(0, 3, 6),
+  y = c(0, 2, 0),
+  label = c("X\n(Werbung)", "Z\n(Confounder:\nSaison)", "Y\n(Umsatz)")
+)
+
+ggplot() +
+  # Arrows
+  geom_segment(aes(x = 3, y = 1.6, xend = 0.4, yend = 0.4),
+               arrow = arrow(length = unit(0.3, "cm")), linewidth = 1.2, color = "#E74C3C") +
+  geom_segment(aes(x = 3, y = 1.6, xend = 5.6, yend = 0.4),
+               arrow = arrow(length = unit(0.3, "cm")), linewidth = 1.2, color = "#E74C3C") +
+  geom_segment(aes(x = 0.5, y = 0, xend = 5.5, yend = 0),
+               arrow = arrow(length = unit(0.3, "cm")), linewidth = 1, 
+               linetype = "dashed", color = "#95A5A6") +
+  # Nodes
+  geom_point(data = nodes, aes(x, y), size = 20, color = "#2C3E50", shape = 21, fill = "white", stroke = 2) +
+  geom_text(data = nodes, aes(x, y, label = label), size = 3.5, fontface = "bold") +
+  # Labels
+  annotate("text", x = 3, y = -0.3, label = "Scheinkorrelation?", 
+           color = "#95A5A6", size = 4, fontface = "italic") +
+  annotate("text", x = 1.2, y = 1.3, label = "kausal", color = "#E74C3C", size = 3.5) +
+  annotate("text", x = 4.8, y = 1.3, label = "kausal", color = "#E74C3C", size = 3.5) +
+  coord_cartesian(xlim = c(-1, 7), ylim = c(-0.8, 2.5)) +
+  theme_void(base_size = 14) +
+  labs(title = "Directed Acyclic Graph (DAG): Confounding")
+```
+
+**Lösungsansätze:** Randomisierung, Kontrollvariablen, Matching, Instrumentvariablen, Difference-in-Differences
+
+⚠️ **"No unmeasured confounding"** ist eine kritische, oft unprüfbare Annahme!
+
+---
+class: inverse, center, middle
+
+# Teil 7: A/B-Testing
+
+---
+
+# A/B-Testing: Das Standardtool
+
+.pull-left[
+### Prinzip
+
+1. **Zufällige Zuteilung** zu Gruppe A oder B
+2. **Intervention** nur in Gruppe B
+3. **Messen** des Ergebnisses
+4. **Differenz** = Kausaler Effekt
+
+### Warum funktioniert es?
+
+Randomisierung macht Gruppen **vergleichbar** – alle Confounder sind balanciert!
+
+### Typische Anwendungen
+- Website-Design (Conversion)
+- Preisstrategien
+- E-Mail-Kampagnen
+- Feature-Tests
+]
+
+.pull-right[
+### A/B-Test Design Checkliste
+
+**Vor dem Test:**
+1. Hypothese formulieren
+2. Primäre Metrik festlegen
+3. Minimalen Effekt definieren
+4. Sample Size berechnen
+5. Laufzeit planen
+
+**Während des Tests:**
+- ⚠️ Nicht reinschauen (Peeking!)
+- Randomisierung prüfen
+- Technische Probleme monitoren
+
+**Nach dem Test:**
+- Primäre Metrik auswerten
+- **Effektgröße** berichten
+- Heterogenität prüfen
+]
+
+---
+
+# Cohen's d – Effektstärke im A/B-Test
+
+.pull-left[
+### Definition
+
+$$d = \frac{\bar{X}_B - \bar{X}_A}{s_{\text{pooled}}}$$
+
+### Interpretation
+
+| Cohen's d | Interpretation |
+|:---------:|:---------------|
+| 0.2 | kleiner Effekt |
+| 0.5 | mittlerer Effekt |
+| 0.8 | großer Effekt |
+
+### Vorteile
+- **Unabhängig** von Stichprobengröße
+- **Vergleichbar** zwischen Studien
+- Sagt **mehr** als der p-Wert!
+]
+
+.pull-right[
+```{r cohens-d-visual, echo=FALSE, fig.height=5, fig.width=6}
+x_range <- seq(-4, 6, length.out = 300)
+
+df_cohen <- data.frame(
+  x = rep(x_range, 2),
+  y = c(dnorm(x_range, 0, 1), dnorm(x_range, 1.5, 1)),
+  Gruppe = rep(c("Kontrolle (A)", "Treatment (B)"), each = 300)
+)
+
+ggplot(df_cohen, aes(x, y, fill = Gruppe)) +
+  geom_area(alpha = 0.4, position = "identity") +
+  geom_vline(xintercept = c(0, 1.5), linetype = "dashed", alpha = 0.5) +
+  annotate("segment", x = 0, xend = 1.5, y = 0.42, yend = 0.42,
+           arrow = arrow(ends = "both", length = unit(0.2, "cm")), linewidth = 1) +
+  annotate("text", x = 0.75, y = 0.44, label = "d = 1.5", size = 5, fontface = "bold") +
+  scale_fill_manual(values = c("#3498DB", "#E74C3C")) +
+  labs(x = "Wert", y = "Dichte", title = "Cohen's d: Abstand in Standardabweichungen") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+]
+
+---
+class: inverse, center, middle
+
+# Teil 8: Logistische Regression
+
+---
+
+# Warum nicht einfach OLS für 0/1?
+
+.pull-left[
+### Problem mit OLS bei binärer Zielvariable
+
+- Vorhersagen **außerhalb [0, 1]**
+- Linearitätsannahme verletzt
+- Heteroskedastizität
+]
+
+.pull-right[
+```{r logit-vs-ols, echo=FALSE, fig.height=5, fig.width=6}
+set.seed(42)
+n <- 200
+x <- rnorm(n, 0, 1.5)
+prob <- 1 / (1 + exp(-(1 + 1.5*x)))
+y <- rbinom(n, 1, prob)
+df_logit <- data.frame(x = x, y = y)
+
+ggplot(df_logit, aes(x, y)) +
+  geom_point(alpha = 0.3, size = 2) +
+  geom_smooth(method = "lm", se = FALSE, color = "#3498DB", linewidth = 1.2, 
+              aes(linetype = "OLS (linear)")) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), 
+              se = FALSE, color = "#E74C3C", linewidth = 1.2,
+              aes(linetype = "Logit (S-Kurve)")) +
+  geom_hline(yintercept = c(0, 1), linetype = "dotted", alpha = 0.4) +
+  annotate("text", x = -3.5, y = -0.15, label = "Unmöglich!", color = "#E74C3C", size = 3.5) +
+  annotate("text", x = 3.5, y = 1.15, label = "Unmöglich!", color = "#E74C3C", size = 3.5) +
+  scale_linetype_manual(values = c("OLS (linear)" = "dashed", "Logit (S-Kurve)" = "solid")) +
+  labs(x = "Prädiktor", y = "P(Y=1)", linetype = "",
+       title = "OLS vs. Logistische Regression") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+]
+
+---
+
+# Logistische Regression: Das Modell
+
+.pull-left[
+### Formel
+
+$$P(Y=1|X) = \frac{1}{1 + e^{-(\beta_0 + \beta_1 X)}}$$
+
+### Log-Odds (Logit)
+
+$$\log\left(\frac{P}{1-P}\right) = \beta_0 + \beta_1 X$$
+
+### Interpretation
+
+$e^{\beta_1}$ = **Odds Ratio** bei 1 Einheit mehr X
+]
+
+.pull-right[
+### In R
+
+```r
+# Modell schätzen
+model <- glm(
+  y ~ x1 + x2,
+  data = data,
+  family = binomial
+)
+summary(model)
+
+# Odds Ratios berechnen
+exp(coef(model))
+
+# Konfidenzintervalle für OR
+exp(confint(model))
+```
+
+📌 Logit-Koeffizienten sind **log-Odds** → `exp()` gibt Odds Ratios!
+]
+
+---
+
+# Odds Ratios interpretieren
+
+.pull-left[
+### Was ist ein Odds Ratio?
+
+$$OR = \frac{\text{Odds}_{X+1}}{\text{Odds}_X} = e^{\beta}$$
+
+### Interpretation
+
+| OR | Bedeutung |
+|:--:|:----------|
+| = 1 | kein Effekt |
+| > 1 | erhöhte Chance |
+| < 1 | verringerte Chance |
+
+### Beispiel
+> *"Kunden mit Premium-Abo haben 2.5-fach höhere Odds zu konvertieren (OR=2.5, 95%-KI: [1.8, 3.5])"*
+]
+
+.pull-right[
+### ⚠️ Achtung bei Interpretation
+
+- OR ist **nicht** Relatives Risiko!
+- Bei **häufigen** Ereignissen überschätzt OR den Effekt
+- **Immer Konfidenzintervall** mit angeben
+
+### Modellgüte
+
+| Metrik | Formel |
+|:-------|:-------|
+| Accuracy | (TP+TN) / N |
+| Precision | TP / (TP+FP) |
+| Recall | TP / (TP+FN) |
+| F1 | 2·Prec·Rec / (Prec+Rec) |
+
+📌 Kein R² wie bei OLS! AUC-ROC stattdessen.
+]
+
+---
+
+# Logistische Regression: Typische Anwendungen
+
+.pull-left[
+### Business Use Cases
+
+| Anwendung | Fragestellung |
+|:----------|:-------------|
+| **Churn** | Kündigt der Kunde? |
+| **Conversion** | Kauft der Besucher? |
+| **Credit Scoring** | Wird der Kredit zurückgezahlt? |
+| **Fraud Detection** | Ist die Transaktion betrügerisch? |
+
+### AUC-ROC Interpretation
+
+| AUC | Qualität |
+|:---:|:---------|
+| 0.5 | Zufall |
+| 0.7–0.8 | akzeptabel |
+| 0.8–0.9 | gut |
+| > 0.9 | exzellent |
+]
+
+.pull-right[
+### Confusion Matrix
+
+```
+              Vorhergesagt
+              Nein    Ja
+Tatsächlich
+  Nein         TN     FP  ← Typ-I-Fehler
+  Ja           FN     TP  ← Typ-II-Fehler
+```
+
+Welche Metrik relevant ist, hängt vom **Business-Problem** ab:
+
+- **Spam-Filter:** Hohe Precision (wenig FP)
+- **Krebsdiagnose:** Hoher Recall (wenig FN)
+- **Balanced:** F1-Score
+]
+
+---
+class: inverse, center, middle
+
+# Zusammenfassung Block 3
+
+---
+
+# Block 3: Zusammenfassung
+
+.pull-left[
+### Konzepte
+
+✅ BLUE und Gauss-Markov-Annahmen
+
+✅ Multikollinearität (VIF)
+
+✅ Bias-Varianz-Tradeoff
+
+✅ Regularisierung (Lasso, Ridge, Elastic Net)
+
+✅ Kreuzvalidierung (K-Fold, LOOCV)
+
+✅ Korrelation vs. Kausalität
+
+✅ A/B-Testing & Cohen's d
+
+✅ Logistische Regression & Odds Ratios
+]
+
+.pull-right[
+### Praktische R-Skills
+
+```r
+# VIF berechnen
+library(car); vif(model)
+
+# Lasso/Ridge
+library(glmnet)
+cv.glmnet(X, y, alpha = 1)
+
+# Kreuzvalidierung
+library(caret)
+train(y ~ ., method = "lm",
+      trControl = trainControl("cv", 10))
+
+# Logistische Regression
+glm(y ~ ., family = binomial)
+exp(coef(model))  # Odds Ratios
+```
+]
+
+.footnote[
+🔮 **Ausblick:** Modul ER017 vertieft ML-Algorithmen (Random Forest, Boosting, Neural Networks).
+]
+
+---
+class: inverse, center, middle
+
+# Bereit für die Praxis?
+
+### Data Science ist mehr als p-Werte – es geht um **robuste, validierte Modelle**.
+
+---
+class: inverse, center, middle
+
+# Vielen Dank für Ihre Aufmerksamkeit!
+
+### 🤔 Fragen?
+
+.footnote[
+Weiter geht es mit dem **Lab / Demo** →
+]

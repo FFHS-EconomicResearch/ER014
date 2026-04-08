@@ -1,0 +1,116 @@
+<svg width="100%" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <linearGradient id="fullGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#D50006"/>
+    <stop offset="100%" stop-color="#502479"/>
+  </linearGradient>
+  <linearGradient id="rowGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#fff0f0"/>
+    <stop offset="100%" stop-color="#f3eeff"/>
+  </linearGradient>
+  <linearGradient id="basisGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#D50006"/>
+    <stop offset="100%" stop-color="#502479"/>
+  </linearGradient>
+  <linearGradient id="folgeGradL" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#fce8e8"/><stop offset="100%" stop-color="#f3e0f8"/>
+  </linearGradient>
+  <linearGradient id="folgeGradR" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#ede0f8"/><stop offset="100%" stop-color="#e4d8f5"/>
+  </linearGradient>
+</defs>
+
+<rect x="16" y="8" width="928" height="398" rx="10" fill="none" stroke="#b3b2b2" stroke-width="1"/>
+
+<rect x="36" y="18" width="888" height="7" rx="3" fill="url(#fullGrad)"/>
+<text font-family="sans-serif" font-size="10" fill="#D50006" x="36" y="35" text-anchor="start">menschlich wahrnehmbar</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="480" y="35" text-anchor="middle">&#x2190; Wahrnehmungsgrenze &#x2192;</text>
+<text font-family="sans-serif" font-size="10" fill="#502479" x="924" y="35" text-anchor="end">maschinell erschlossen</text>
+
+<rect x="36" y="44" width="888" height="32" rx="7" fill="url(#fullGrad)"/>
+<text font-family="sans-serif" font-size="13" font-weight="500" fill="#ffffff" x="200" y="65" text-anchor="middle">Explorative Datenanalyse (EDA)</text>
+<text font-family="sans-serif" font-size="9" font-style="italic" fill="rgba(255,255,255,0.82)" x="480" y="62" text-anchor="middle">auch: Data-Understanding-Schritt in KDD (CRISP-DM)</text>
+<text font-family="sans-serif" font-size="13" font-weight="500" fill="#ffffff" x="760" y="65" text-anchor="middle">Data Mining (KDD)</text>
+
+<rect x="36" y="84" width="888" height="102" rx="6" fill="url(#rowGrad)" stroke="#b3b2b2" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#5a0050" x="480" y="99" text-anchor="middle">Erkenntnisziel</text>
+<rect x="44" y="105" width="204" height="72" rx="4" fill="#ffe8e8" stroke="#D50006" stroke-width="0.4"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#8a0004" x="146" y="120" text-anchor="middle">Analyseziel</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="146" y="134" text-anchor="middle">Mustererkennung (niedrigdim.)</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="146" y="148" text-anchor="middle">Hypothesengenerierung</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="146" y="162" text-anchor="middle">Anomalieerkennung, Aufbereitung</text>
+<rect x="256" y="105" width="216" height="72" rx="4" fill="#ffe8e8" stroke="#D50006" stroke-width="0.4"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#8a0004" x="364" y="120" text-anchor="middle">Analysetyp</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="364" y="134" text-anchor="middle">Deskriptiv, explorativ</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="364" y="148" text-anchor="middle">Parsimonisch (Filliben/Tukey 1977)</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="364" y="162" text-anchor="middle">Vorl&#228;ufig, theorieoffen</text>
+<rect x="488" y="105" width="196" height="72" rx="4" fill="#ebe0ff" stroke="#502479" stroke-width="0.4"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#2d1050" x="586" y="120" text-anchor="middle">Analyseziel</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="586" y="134" text-anchor="middle">Mustererkennung (hochdim.)</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="586" y="148" text-anchor="middle">Extraktion handl. Wissens</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="586" y="162" text-anchor="middle">Entscheidungsunterst. (Fayyad 1996)</text>
+<rect x="694" y="105" width="206" height="72" rx="4" fill="#ebe0ff" stroke="#502479" stroke-width="0.4"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#2d1050" x="797" y="120" text-anchor="middle">Analysetyp</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="797" y="134" text-anchor="middle">Pr&#228;diktiv, pr&#228;skriptiv</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="797" y="148" text-anchor="middle">Parsimonisch (Effizienz)</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="797" y="162" text-anchor="middle">Hypothesenfrei, skalierbar</text>
+
+<rect x="36" y="194" width="888" height="52" rx="6" fill="url(#rowGrad)" stroke="#b3b2b2" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#5a0050" x="480" y="209" text-anchor="middle">Kausalit&#228;t</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="240" y="232" text-anchor="middle">Nicht identifizierbar &#x2014; nur Korrelation</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="700" y="232" text-anchor="middle">Irrelevant &#x2014; Stabilit&#228;t der Muster entscheidend</text>
+
+<rect x="36" y="254" width="888" height="84" rx="6" fill="url(#rowGrad)" stroke="#b3b2b2" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#5a0050" x="480" y="269" text-anchor="middle">Werkzeuge</text>
+<rect x="44" y="275" width="204" height="55" rx="4" fill="#ffe8e8" stroke="#D50006" stroke-width="0.4"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#8a0004" x="146" y="290" text-anchor="middle">Visualisierung</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="146" y="304" text-anchor="middle">Prim&#228;res Werkzeug</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="146" y="318" text-anchor="middle">Scatter, Box, Histogramm &#x2026;</text>
+<rect x="256" y="275" width="216" height="55" rx="4" fill="#ffe8e8" stroke="#D50006" stroke-width="0.4"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#8a0004" x="364" y="290" text-anchor="middle">Kennzahlen</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="364" y="304" text-anchor="middle">Median, IQR, Streuung,</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="364" y="318" text-anchor="middle">Schiefe &#x2014; deskriptiv</text>
+<rect x="488" y="275" width="196" height="55" rx="4" fill="#ebe0ff" stroke="#502479" stroke-width="0.4"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#2d1050" x="586" y="290" text-anchor="middle">Algorithmen</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="586" y="304" text-anchor="middle">Automatisierte Suche</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="586" y="318" text-anchor="middle">Hochdim., jenseits menschl. Wahrn.</text>
+<rect x="694" y="275" width="206" height="55" rx="4" fill="#ebe0ff" stroke="#502479" stroke-width="0.4"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#2d1050" x="797" y="290" text-anchor="middle">Kennzahlen</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="797" y="304" text-anchor="middle">Accuracy, Lift, AUC,</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="797" y="318" text-anchor="middle">F1, RMSE &#x2014; Performanz</text>
+
+<rect x="36" y="346" width="888" height="44" rx="6" fill="url(#rowGrad)" stroke="#b3b2b2" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#5a0050" x="480" y="361" text-anchor="middle">Datenmenge / Dimensionalit&#228;t</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="240" y="379" text-anchor="middle">Klein&#x2013;mittel, niedrig-dimensional &#x2014; handhabbar f&#252;r Analyst:innen</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="700" y="379" text-anchor="middle">Gro&#223;, hochdimensional &#x2014; 100s von Features, automatisiert</text>
+
+<rect x="16" y="414" width="928" height="66" rx="8" fill="url(#basisGrad)"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#ffffff" x="480" y="432" text-anchor="middle">Gemeinsame Basis</text>
+<text font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.92)" x="480" y="447" text-anchor="middle">Mustererkennung in Daten &#xB7; Statistische Methoden &#xB7; Korrelationsanalyse</text>
+<text font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.82)" x="480" y="462" text-anchor="middle">Kausalit&#228;t ist weder durch EDA noch durch Data Mining identifizierbar</text>
+<text font-family="sans-serif" font-size="10" fill="rgba(255,255,255,0.65)" x="480" y="475" text-anchor="middle">(erfordert konfirmatorische Methoden, Experimente oder kausale Inferenzverfahren)</text>
+
+<text font-family="sans-serif" font-size="9" fill="#b3b2b2" x="480" y="496" text-anchor="middle">Nachgelagerte Schritte (ausserhalb der Methode)</text>
+<line x1="16" y1="500" x2="455" y2="500" stroke="#b3b2b2" stroke-width="0.5" stroke-dasharray="3 3"/>
+<line x1="505" y1="500" x2="944" y2="500" stroke="#b3b2b2" stroke-width="0.5" stroke-dasharray="3 3"/>
+<line x1="258" y1="486" x2="258" y2="506" fill="none" stroke="#D50006" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="702" y1="486" x2="702" y2="506" fill="none" stroke="#502479" stroke-width="1" marker-end="url(#arrow)"/>
+
+<rect x="16" y="506" width="456" height="82" rx="7" fill="url(#folgeGradL)" stroke="#D50006" stroke-width="0.8"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#8a0004" x="244" y="523" text-anchor="middle">Konfirmatorische Analyse</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="244" y="538" text-anchor="middle">Hypothesenpr&#252;fung auf unabh&#228;ngigen Daten</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="244" y="553" text-anchor="middle">
+  <tspan font-weight="500" fill="#8a0004">Achtung:</tspan> Zirkelschluss / HARKing (Kerr 1998)
+</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="244" y="568" text-anchor="middle">G&#228;ngige L&#246;sung: Datentrennung / A-B-Tests</text>
+
+<rect x="488" y="506" width="456" height="82" rx="7" fill="url(#folgeGradR)" stroke="#502479" stroke-width="0.8"/>
+<text font-family="sans-serif" font-size="10" font-weight="500" fill="#2d1050" x="716" y="523" text-anchor="middle">Deployment / Entscheidungssystem</text>
+<text font-family="sans-serif" font-size="10" fill="#333333" x="716" y="538" text-anchor="middle">Stabile Muster &#x2192; operative Nutzung</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="716" y="553" text-anchor="middle">Pr&#228;diktiv: &#xAB;was wird passieren?&#xBB;</text>
+<text font-family="sans-serif" font-size="10" fill="#686868" x="716" y="568" text-anchor="middle">Pr&#228;skriptiv: &#xAB;was soll getan werden?&#xBB;</text>
+
+</svg>

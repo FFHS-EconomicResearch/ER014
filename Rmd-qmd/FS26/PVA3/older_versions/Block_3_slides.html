@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Block 3: Komplexität, Generalisierung &amp; Kausalität</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Präsenzveranstaltung 3" />
+    <meta name="date" content="2026-04-07" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <script src="libs/kePrint/kePrint.js"></script>
+    <link href="libs/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="custom_block3.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Block 3: Komplexität, Generalisierung &amp; Kausalität
+]
+.subtitle[
+## Data Science and Strategy for Business
+]
+.author[
+### Präsenzveranstaltung 3
+]
+.date[
+### 2026-04-07
+]
+
+---
+
+
+
+
+---
+class: inverse, center, middle
+
+# Wo stehen wir?
+
+### PVA 1 → PVA 2 → **PVA 3**
+
+---
+
+# Rückblick: Unser bisheriger Weg
+
+.pull-left[
+### PVA 1: Sehen &amp; Beschreiben
+- Deskriptive Statistik &amp; EDA
+- Data Mining: **Muster erkennen**
+- Deskriptive Regression (Stocker): *Gerade als Zusammenfassung der Daten*
+- Residuum = was das Modell **nicht** erklärt
+- Erster Ausblick: Overfitting
+
+### PVA 2: Quantifizierung von Unsicherheit
+- Resampling &amp; Bootstrap
+- p-Hacking &amp; HARKing
+- ANOVA: *"There is only one test"* (moderndive)
+- Signifikanz vs. Relevanz
+]
+
+.pull-right[
+### PVA 3: Heute
+
+**Komplexität** — Was passiert, wenn Modelle wachsen?
+
+**Generalisierung** — Wann funktioniert ein Modell auch morgen noch?
+
+**Kausalität** — Wann darf ich aus Daten *handeln*?
+
+&gt; *"There is a ton of data on the graph but little useful information."*
+&gt; — Taddy (2019)
+
+📌 Ziel: Reflektierter Umgang mit datengetriebenen Entscheidungen.
+]
+
+---
+class: inverse, center, middle
+
+# Teil 1
+## Vom Beschreiben zum Erklären
+### Der Shift in der Modellinterpretation
+
+---
+
+# Zwei Welten der Regression
+
+.pull-left[
+### Deskriptive Regression (PVA 1, Stocker)
+
+`$$y_i = b_0 + b_1 x_i + e_i$$`
+
+- **Zusammenfassung** beobachteter Daten
+- Koeffizienten: *"Wie sieht der Trend aus?"*
+- Residuum `\(e_i\)`: individuelle Abweichung vom Trend
+- **Keine Aussage** über die Population
+- Kein Zufall, kein Fehlerterm im stochastischen Sinne
+
+*→ Das war unsere Welt in PVA 1.*
+]
+
+.pull-right[
+### Stochastisches Regressionsmodell
+
+`$$Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i$$`
+
+- **Modell für einen Datengenerierenden Prozess (DGP)**
+- `\(\beta_j\)`: Parameter der *Population* (unbekannt!)
+- `\(\varepsilon_i \sim (0, \sigma^2)\)`: **stochastischer** Fehlerterm
+- Ziel: Von der *Stichprobe* auf die Population schliessen
+- Braucht **Annahmen**, damit der Schluss gültig ist
+
+*→ Das ist der Shift, den wir heute machen.*
+]
+
+---
+
+# Wozu modellieren? Drei Perspektiven
+
+&lt;table class="table" style="font-size: 15px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt; Ziel &lt;/th&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt; Fokus &lt;/th&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt; Typische Frage &lt;/th&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt; Schlüsselkriterium &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 🔬 Statistik / Ökonometrie &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Inferenz (Schluss auf Population) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; β-Koeffizienten, Konfidenzintervalle, Tests &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Wirkt die Werbung? (kausal) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Erwartungstreue, Konsistenz &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 🤖 Data Science / ML &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Prädiktion (Vorhersage neuer Fälle) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; ŷ — Out-of-Sample Performance &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Wer kauft morgen? (prädiktiv) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Kreuzvalidierung, RMSE, AUC &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ⛏ Data Mining &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Mustererkennung (Exploration) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Verborgene Strukturen, Cluster, Assoziationen &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Welche Kundengruppen gibt es? (deskriptiv) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Interpretierbarkeit, Neuheit &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&gt; *"An interpretable model translates raw data into information that is directly relevant to decision-making."* — Taddy (2019, Intro)
+
+📌 **Inferenz und Prädiktion stellen unterschiedliche Anforderungen an Modelle!**
+
+---
+
+# Inferenz vs. Prädiktion: Was zählt?
+
+.pull-left[
+### Inferenz ("Verstehen")
+
+- Ziel: **$\hat{\beta}$ nahe an `\(\beta\)`** (erwartungstreu)
+- Braucht korrekte **Modellannahmen**
+- Overfitting = Annahmenverletzung
+- Multikollinearität ist **Gift** (instabile `\(\hat{\beta}\)`)
+- Endogenität ist **Gift** (verzerrte `\(\hat{\beta}\)`)
+
+*Taddy: "Statisticians have concentrated on how close `\(\hat{\beta}\)` is to the true `\(\beta\)`."*
+]
+
+.pull-right[
+### Prädiktion ("Vorhersagen")
+
+- Ziel: **$\hat{y}$ nahe an `\(y_{\text{neu}}\)`** (Out-of-Sample)
+- Braucht **gute Generalisierung**
+- Overfitting = schlechte Generalisierung
+- Multikollinearität **oft tolerierbar**
+- Das Modell ist eine **Black Box** — ok!
+
+*Taddy: "The machine learner just wants to make `\(\hat{y}_{n+1}\)` as close as possible to `\(y_{n+1}\)`."*
+]
+
+--
+
+.center[
+### ⚡ Aber: Prädiktion allein reicht nicht für Geschäftsentscheidungen!
+
+*"ML will not tell you what will happen if you **change** something."* — Taddy, Lucas-Kritik
+]
+
+---
+class: inverse, center, middle
+
+# Teil 2
+## Ökonometrische Grundlagen
+### Die Spielregeln für valide Schlüsse
+
+---
+
+# Modellannahmen kompakt (nach von Auer)
+
+.pull-left[
+### A-Annahmen: Das Modell
+
+- **A1** — Linearität in den Parametern
+- **A2** — Vollständige Spezifikation (alle relevanten `\(X\)` enthalten)
+- **A3** — Keine perfekte Multikollinearität
+- **A4** — Korrekte funktionale Form
+
+*→ Betreffen die **rechte Seite** der Gleichung*
+]
+
+.pull-right[
+### B-Annahmen: Der Fehlerterm
+
+- **B1** — `\(E(\varepsilon_i) = 0\)`
+- **B2** — `\(\text{Var}(\varepsilon_i) = \sigma^2\)` (Homoskedastizität)
+- **B3** — `\(\text{Cov}(\varepsilon_i, \varepsilon_j) = 0\)` (keine Autokorrelation)
+- **B4** — `\(\text{Cov}(X_i, \varepsilon_i) = 0\)` (**Exogenität**)
+
+### C-Annahmen: Verteilung
+
+- **C1** — `\(\varepsilon_i \sim N(0, \sigma^2)\)`
+
+*→ B4 ist die **kritischste** — verletzt = Endogenität!*
+]
+
+---
+
+# Von OLS zu BLUE — und die Grenzen
+
+.pull-left[
+### Gauss-Markov-Theorem
+
+Wenn A- und B-Annahmen erfüllt, ist OLS **BLUE**:
+
+| | Bedeutung |
+|:--|:----------|
+| **B**est | Kleinste Varianz unter allen... |
+| **L**inear | ...linearen... |
+| **U**nbiased | ...erwartungstreuen... |
+| **E**stimators | ...Schätzern |
+
+📌 "Best" = **nur Varianz**, nicht Gesamtfehler!
+]
+
+.pull-right[
+### Bias-Varianz-Tradeoff
+
+`$$\text{MSE} = \text{Bias}^2 + \text{Varianz}$$`
+
+- BLUE verlangt: Bias = 0
+- Regularisierung erlaubt: *etwas* Bias, **viel** weniger Varianz
+- → Niedrigerer Gesamtfehler (MSE)!
+
+⚠️ BLUE ist theoretisch schön, praktisch **nicht immer optimal**.
+
+*→ Das CAPM-Beispiel bei Taddy zeigt: Ein einfaches Modell (`\(\alpha\)`, `\(\beta\)`) extrahiert mehr **brauchbare Information** aus 7 Jahren S&amp;P-500-Daten als ein "fancy plot" mit allen Einzelwerten.*
+]
+
+---
+
+# Vom Linear Model zum Generalized Linear Model
+
+.pull-left[
+### Linear Model (LM)
+
+`$$E(Y|X) = X\beta$$`
+
+- `\(Y\)` kontinuierlich
+- OLS-Schätzung
+- *Was wir bisher verwendet haben*
+
+### Generalized Linear Model (GLM)
+
+`$$g\big(E(Y|X)\big) = X\beta$$`
+
+- `\(g(\cdot)\)` = Linkfunktion
+- Maximum Likelihood-Schätzung
+]
+
+.pull-right[
+### Warum GLM?
+
+Viele Geschäftsfragen haben **nicht-kontinuierliche** Outcomes:
+
+| Business-Frage | Y | GLM-Variante |
+|:--|:--|:--|
+| Kauft der Kunde? | binär | Logit |
+| Wie viele Klicks? | Count | Poisson |
+| Wie lange bis Kauf? | Dauer | Gamma |
+
+### Logistische Regression
+
+`$$P(Y\!=\!1|X) = \frac{1}{1+e^{-X\beta}}$$`
+
+📌 In **Lab 1** erleben Sie den Übergang live: `lm()` produziert `\(\hat{y} \notin [0,1]\)` → `glm(family = binomial)` löst das Problem.
+
+*→ Vertiefung in Modul ER017*
+]
+
+---
+class: inverse, center, middle
+
+# Teil 3
+## Wenn Annahmen brechen
+### Problem 1: Multikollinearität &amp; Overfitting
+
+---
+
+# Multikollinearität: Das Zwillingsproblem
+
+.pull-left[
+### Was passiert?
+
+Prädiktoren sind **stark korreliert** → OLS kann ihre Effekte **nicht trennen**
+
+### Symptome
+
+- Hohes `\(R^2\)`, aber **nichts signifikant**
+- `\(\hat{\beta}\)` instabil, grosse Standardfehler
+- Vorzeichenwechsel bei leichten Datenänderungen
+
+### Diagnose: VIF
+
+`$$VIF_j = \frac{1}{1 - R^2_j}$$`
+
+VIF &gt; 5 problematisch, VIF &gt; 10 schwer problematisch
+]
+
+.pull-right[
+### Differenzierte Betrachtung
+
+| | Inferenz | Prädiktion |
+|:--|:---------|:-----------|
+| Problem? | ⚠️ **Ja!** (`\(\hat{\beta}\)` unbrauchbar) | 🟢 Oft tolerierbar |
+| Warum? | Koeffizienten instabil | `\(\hat{y}\)` trotzdem stabil |
+| Lösung | Variable entfernen, Index | Regularisierung |
+
+### In R
+
+```r
+library(car)
+lm(umsatz ~ werbung + marketing, data = daten) %&gt;% vif()
+```
+
+*"Multikollinearität ist für Interpretation problematisch, weniger für Vorhersage!"*
+]
+
+---
+
+# Overfitting: Zu viel des Guten
+
+.pull-left[
+### Das Grundproblem
+
+Das Modell lernt **Rauschen** statt **Muster**.
+
+`$$E[(y - \hat{y})^2] = \underbrace{\text{Bias}^2}_{\text{zu einfach}} + \underbrace{\text{Varianz}}_{\text{zu komplex}} + \sigma^2$$`
+
+*Taddy: "The entire field of ML is calibrated against out-of-sample experiments."*
+
+Faustregel: Mind. **10–20 Beobachtungen pro Prädiktor**
+]
+
+.pull-right[
+### Gegenstrategien
+
+| Strategie | Ziel |
+|:----------|:-----|
+| Train/Test-Split | Generalisierung prüfen |
+| K-Fold CV | Robustere Schätzung |
+| Lasso/Ridge | Koeffizienten bestrafen |
+| PCA | Dimensionen reduzieren |
+| Feature Selection | Inhaltlich begründen |
+
+&gt; Die Schlüsselfrage: *Generalisiert mein Modell auf **neue, ungesehene** Daten?*
+
+📌 → **Lab 1: Train-Test-Split &amp; HARKing**
+]
+
+---
+
+# Regularisierung: Kontrollierte Komplexität
+
+.pull-left[
+### Lasso (L1) vs. Ridge (L2)
+
+**Ridge:** `\(\min \sum(y_i - \hat{y}_i)^2 + \lambda \sum \beta_j^2\)`
+→ Schrumpft alle, entfernt keine
+
+**Lasso:** `\(\min \sum(y_i - \hat{y}_i)^2 + \lambda \sum |\beta_j|\)`
+→ Schrumpft **und** setzt auf 0 → **Variablenselektion**
+
+`\(\lambda\)` wird per **Kreuzvalidierung** gewählt.
+
+```r
+library(glmnet)
+cv_fit &lt;- cv.glmnet(X, y, alpha = 1)
+coef(cv_fit, s = "lambda.min")
+```
+]
+
+.pull-right[
+### Inferenz vs. Prädiktion — erneut!
+
+| | Inferenz | Prädiktion |
+|:--|:---------|:-----------|
+| Regularisierung? | ⚠️ Erzeugt Bias | ✅ Reduziert Overfitting |
+| Wann? | Variablenselektion (Lasso) | Immer prüfen |
+
+### Dimensionsreduktion (PCA)
+
+- Komprimiert in unkorrelierte Hauptkomponenten
+- Löst Multikollinearität *mechanisch*
+- Verliert **Interpretierbarkeit**
+
+📌 → **Lab 2: Multikollinearität &amp; Regularisierung**
+]
+
+---
+
+# Kreuzvalidierung: Das Schweizer Taschenmesser
+
+.pull-left[
+### K-Fold CV
+
+Jeder Datenpunkt ist **genau einmal** im Testset.
+
+`$$\text{CV-Score} = \frac{1}{K}\sum_{k=1}^{K} \text{MSE}_k$$`
+
+Standard: `\(K = 5\)` oder `\(K = 10\)`
+
+### Wozu?
+
+1. **Modellvergleich** — welches generalisiert besser?
+2. **Hyperparameter** — welches `\(\lambda\)`?
+3. **Realistische** Performance-Schätzung
+]
+
+.pull-right[
+### In R (tidy)
+
+```r
+library(caret)
+ctrl &lt;- trainControl(method = "cv", number = 10)
+
+daten %&gt;%
+  train(umsatz ~ ., data = .,
+        method = "lm", trControl = ctrl)
+```
+
+### Varianten
+
+| Variante | Wann? |
+|:---------|:------|
+| K-Fold | Standard |
+| Stratified | Unbalancierte Klassen |
+| Time-Series CV | Zeitreihen (keine Zukunft leaken!) |
+| Nested CV | Modellselektion + Evaluation |
+]
+
+---
+class: inverse, center, middle
+
+# Teil 4
+## Wenn Annahmen brechen
+### Problem 2: Endogenität &amp; Kausalität
+
+---
+
+# Endogenität: Das versteckte Gift
+
+.pull-left[
+### Definition
+
+`\(\text{Cov}(X_i, \varepsilon_i) \neq 0\)` — Annahme **B4 verletzt!**
+
+→ OLS ist **verzerrt und inkonsistent**
+
+### Drei Ursachen
+
+1. **Omitted Variable Bias** (Confounding)
+   *Werbung ↔ Umsatz, Saison vergessen*
+
+2. **Simultanität / Reverse Causality**
+   *Polizei ↔ Kriminalität*
+
+3. **Messfehler** in `\(X\)`
+]
+
+.pull-right[
+### Kontextabhängige Erscheinungsformen
+
+| Kontext | Problem | Strategie |
+|:--------|:--------|:----------|
+| Querschnitt | Confounding | Kontrollvariablen |
+| Zeitreihen | Trending | Lags, Differenzen |
+| Panel | Unbeob. Heterogenität | Fixed/Random Effects |
+| Treatment | Selection Bias | **Experiment!** |
+
+&gt; Bei Endogenität hilft **keine** Regularisierung und **keine** grössere Stichprobe.
+
+*→ Hier liegt die Grenze von ML. Hier braucht es **Kausalanalyse**.*
+]
+
+---
+
+# Korrelation ≠ Kausalität
+
+.pull-left[
+### Das DAG-Prinzip
+
+```
+       Z (Confounder)
+      ↙        ↘
+    X  ←---→  Y
+    (Scheinkorrelation)
+```
+
+**Business:** Marketing ↔ Umsatz (Confounder: Konjunktur)
+
+*Taddy: "ML will not tell you what happens if you **change** something."*
+]
+
+.pull-right[
+### Goldstandard: Experiment
+
+Randomisierung balanciert **alle** Confounder — auch unbekannte!
+
+### Kausale Kriterien
+
+1. ✅ Korrelation vorhanden
+2. ✅ Zeitliche Reihenfolge
+3. ✅ **Kein** Confounding
+4. ✅ Mechanismus plausibel
+5. ✅ Dosis-Wirkungs-Beziehung
+
+*→ Ohne Experiment: nur Assoziation!*
+]
+
+---
+class: inverse, center, middle
+
+# "Design Your Experiment"
+### Schrage (2014): *Embrace Your Ignorance*
+
+---
+
+# Warum experimentieren?
+
+.pull-left[
+### Die ernüchternde Realität (Schrage 2014)
+
+Microsofts **Ronny Kohavi** zeigt reale A/B-Tests — Publikum rät den Gewinner:
+
+&gt; *Kein Konsens. Nie.*
+
+- Kaushik: *"80% der Zeit irren wir uns"*
+- Kohavi: Nur **⅓** der Ideen verbessern Metriken
+- Hadiaris: Trefferquote nach 5 Jahren ≈ **33%**
+
+&gt; *"We are poor at assessing the value of ideas."*
+
+### Die Lektion
+
+Überzeugung ≠ Evidenz. Experten überschätzen sich systematisch (Kahneman, Tetlock).
+]
+
+.pull-right[
+### Schrage's zentrale These
+
+&gt; *"They run experiments not because they can confidently predict outcomes — but precisely because they can't."*
+
+### Big Data + Little Experiments
+
+- Big Data: **Muster** und **Korrelationen**
+- Experimente: **kausale Evidenz**
+- Zusammen: *"Virtuous cycles of profitable insight"*
+
+### Verbindung zu PVA 2
+
+- p-Hacking-Problem → Hypothese **vorher** festlegen!
+- *"Data trumps intuition"* — aber mit Demut
+
+📌 → **Lab 3: Design your Experiment**
+]
+
+---
+
+# Kausalanalytische Strategien: Überblick
+
+&lt;table class="table" style="font-size: 14px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt; Strategie &lt;/th&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt; Randomisierung &lt;/th&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt; Interne Validität &lt;/th&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt; Externe Validität &lt;/th&gt;
+   &lt;th style="text-align:left;font-weight: bold;color: white !important;background-color: rgba(22, 33, 62, 255) !important;"&gt; Beispiel &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: rgba(232, 248, 245, 255) !important;"&gt; A/B-Test (RCT) &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: rgba(232, 248, 245, 255) !important;"&gt; ✅ Ja &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: rgba(232, 248, 245, 255) !important;"&gt; Hoch &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: rgba(232, 248, 245, 255) !important;"&gt; Hoch (digital) &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: rgba(232, 248, 245, 255) !important;"&gt; Website-Design &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Lab-Experiment &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; ✅ Ja &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Sehr hoch &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Niedrig &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; UX-Labor &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Feld-Experiment &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; ✅ Ja &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Hoch &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Hoch &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Coupon-Verteilung &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Natürliches Experiment &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; ❌ (‚als ob') &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Mittel &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Kontextabh. &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Gesetzesänderung &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Difference-in-Differences &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; ❌ Nein &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Mittel &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Gut &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Policy-Evaluation &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Instrumentvariablen &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; ❌ Nein &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Hoch* &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Schwer prüfbar &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Angebotsschocks &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+.footnote[*wenn Instrument valide]
+
+---
+
+# A/B-Testing: Die Essentials
+
+.pull-left[
+### Design (Kohavi / Schrage)
+
+✅ Hypothese **vorher** formulieren
+✅ **Primäre Metrik** festlegen
+✅ Minimalen Effekt → **Sample Size**
+✅ **Nicht** vorzeitig reinschauen!
+✅ **Effektgrösse** berichten
+
+### Cohen's d
+
+`$$d = \frac{\bar{X}_B - \bar{X}_A}{s_{\text{pooled}}}$$`
+
+| d | Interpretation |
+|:--:|:--:|
+| 0.2 | klein |
+| 0.5 | mittel |
+| 0.8 | gross |
+]
+
+.pull-right[
+### Ausblick: DiD &amp; IV
+
+**Difference-in-Differences:**
+
+```
+        Vorher  Nachher
+Treated:  A  →  B     ΔT = B-A
+Control:  C  →  D     ΔK = D-C
+DiD = ΔT - ΔK
+```
+
+**Instrumentvariablen:**
+Finde `\(Z\)` das `\(X\)` beeinflusst, aber `\(Y\)` nur über `\(X\)`.
+
+### Philosophy Eats AI (Schrage 2025)
+
+&gt; *Welche Fragen wir stellen und welche Metriken wir wählen sind philosophische Entscheidungen.*
+
+Schrage 2019: *"You don't get what you measure; you get what you pay for."*
+]
+
+---
+class: inverse, center, middle
+
+# Zusammenfassung &amp; Labs
+
+---
+
+# Block 3: Der rote Faden
+
+&lt;img src="Block_3_slides_files/figure-html/red-thread-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Labs: Induktiv lernen
+
+.pull-left[
+### Lab 1: Train-Test-Split &amp; HARKing
+*Einstieg Prädiktion &amp; LM → GLM*
+
+- Modell fitten → super `\(R^2\)`!
+- Auf Testdaten: 💥 → Overfitting erleben
+- HARKing simulieren
+- 🔑 **LM → GLM Übergang**: `\(Y\)` wird binär → `lm()` versagt → `glm(family = binomial)`
+
+### Lab 2: Multikollinearität &amp; Regularisierung
+
+- Korrelierte Features → VIF
+- Lasso, Ridge, Elastic Net
+- CV für `\(\lambda\)` → Was passiert mit `\(\hat{\beta}\)`?
+]
+
+.pull-right[
+### Lab 3: Design your Experiment
+*A/B-Testing (Schrage)*
+
+- A/B-Test simulieren
+- Hypothese **vor** vs. **nach** dem Test
+- Cohen's d berechnen
+- Scheinkorrelation aufdecken
+- *"Embrace your ignorance"*
+
+### Durchgängig: `tidyverse`
+
+```r
+daten %&gt;%
+  group_by(gruppe) %&gt;%
+  summarise(
+    mean = mean(outcome),
+    se = sd(outcome) / sqrt(n())
+  )
+```
+]
+
+
+
+---
+class: left
+
+
+&lt;svg width="720" height="420" viewBox="0 0 720 420" xmlns="http://www.w3.org/2000/svg"&gt;
+  &lt;!-- Background --&gt;
+  &lt;rect x="0" y="0" width="720" height="420" fill="#ffffff" /&gt;
+
+  &lt;!-- Title --&gt;
+  &lt;text x="360" y="40" text-anchor="middle" font-family="sans-serif" font-size="20"&gt;
+    Verwirrung: „Inference“ vs. „Prediction“
+  &lt;/text&gt;
+
+  &lt;!-- Axis labels --&gt;
+  &lt;text x="40" y="220" text-anchor="middle" font-family="sans-serif" font-size="12" transform="rotate(-90 40 220)"&gt;
+    epistemologische Bedeutung
+  &lt;/text&gt;
+  &lt;text x="360" y="400" text-anchor="middle" font-family="sans-serif" font-size="12"&gt;
+    technische / Engineering-Bedeutung
+  &lt;/text&gt;
+
+  &lt;!-- Left column: Statistik --&gt;
+  &lt;rect x="60" y="80" width="260" height="280" fill="#f5f5ff" stroke="#777" /&gt;
+  &lt;text x="190" y="100" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold"&gt;
+    Statistik / Wissenschaft
+  &lt;/text&gt;
+
+  &lt;!-- Statistik: Inference-Box --&gt;
+  &lt;rect x="90" y="130" width="200" height="80" fill="#d0d8ff" stroke="#555" /&gt;
+  &lt;text x="190" y="155" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold"&gt;
+    Inference
+  &lt;/text&gt;
+  &lt;text x="190" y="175" text-anchor="middle" font-family="sans-serif" font-size="11"&gt;
+    Schlussfolgern über Parameter,
+  &lt;/text&gt;
+  &lt;text x="190" y="190" text-anchor="middle" font-family="sans-serif" font-size="11"&gt;
+    Hypothesentests, Kausalität
+  &lt;/text&gt;
+
+  &lt;!-- Statistik: Prediction-Box --&gt;
+  &lt;rect x="90" y="240" width="200" height="80" fill="#ffe4cc" stroke="#555" /&gt;
+  &lt;text x="190" y="265" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold"&gt;
+    Prediction
+  &lt;/text&gt;
+  &lt;text x="190" y="285" text-anchor="middle" font-family="sans-serif" font-size="11"&gt;
+    Vorhersage von Werten
+  &lt;/text&gt;
+
+  &lt;!-- Right column: ML / LLMs --&gt;
+  &lt;rect x="400" y="80" width="260" height="280" fill="#f5fffa" stroke="#777" /&gt;
+  &lt;text x="530" y="100" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold"&gt;
+    ML / LLMs / Engineering
+  &lt;/text&gt;
+
+  &lt;!-- ML: Training-Box --&gt;
+  &lt;rect x="430" y="130" width="200" height="70" fill="#e0ffe0" stroke="#555" /&gt;
+  &lt;text x="530" y="155" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold"&gt;
+    Training
+  &lt;/text&gt;
+  &lt;text x="530" y="175" text-anchor="middle" font-family="sans-serif" font-size="11"&gt;
+    Modell lernen aus Daten
+  &lt;/text&gt;
+
+  &lt;!-- ML: Inference-Box --&gt;
+  &lt;rect x="430" y="230" width="200" height="70" fill="#fff2cc" stroke="#555" /&gt;
+  &lt;text x="530" y="250" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold"&gt;
+    Inference
+  &lt;/text&gt;
+  &lt;text x="530" y="268" text-anchor="middle" font-family="sans-serif" font-size="11"&gt;
+    Forward Pass: Modell anwenden
+  &lt;/text&gt;
+  &lt;text x="530" y="283" text-anchor="middle" font-family="sans-serif" font-size="11"&gt;
+    (faktisch: Prediction)
+  &lt;/text&gt;
+
+  &lt;!-- Verbindungspfeile: Begriffskollision --&gt;
+  &lt;!-- Pfeil von Statistik-Inference zu ML-Inference-Label „gleicher Begriff, andere Bedeutung“ --&gt;
+  &lt;line x1="290" y1="170" x2="430" y2="245" stroke="#aa0000" stroke-width="1.5" marker-end="url(#arrowhead)" /&gt;
+  &lt;text x="360" y="210" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#aa0000"&gt;
+    gleicher Begriff „Inference“,
+  &lt;/text&gt;
+  &lt;text x="360" y="225" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#aa0000"&gt;
+    unterschiedliche Bedeutung
+  &lt;/text&gt;
+
+  &lt;!-- Pfeil von Statistik-Prediction zu ML-Inference „eigentlich Prediction“ --&gt;
+  &lt;line x1="290" y1="280" x2="430" y2="265" stroke="#0066aa" stroke-width="1.5" marker-end="url(#arrowheadBlue)" /&gt;
+  &lt;text x="360" y="295" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#0066aa"&gt;
+    hier wird „Inference“ für das genutzt,
+  &lt;/text&gt;
+  &lt;text x="360" y="310" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#0066aa"&gt;
+    was statistisch „Prediction“ wäre
+  &lt;/text&gt;
+
+  &lt;!-- Arrowhead definitions --&gt;
+  &lt;defs&gt;
+    &lt;marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"&gt;
+      &lt;polygon points="0 0, 8 4, 0 8" fill="#aa0000" /&gt;
+    &lt;/marker&gt;
+    &lt;marker id="arrowheadBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"&gt;
+      &lt;polygon points="0 0, 8 4, 0 8" fill="#0066aa" /&gt;
+    &lt;/marker&gt;
+  &lt;/defs&gt;
+
+  &lt;!-- Legende --&gt;
+  &lt;rect x="230" y="340" width="260" height="60" fill="#ffffff" stroke="#999" /&gt;
+  &lt;text x="360" y="355" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold"&gt;
+    Legende
+  &lt;/text&gt;
+  &lt;text x="240" y="372" font-family="sans-serif" font-size="11"&gt;
+    • Statistik: „Inference“ = Parameter-/Hypothesenschluss
+  &lt;/text&gt;
+  &lt;text x="240" y="387" font-family="sans-serif" font-size="11"&gt;
+    • ML/LLMs: „Inference“ = Modell ausführen (Forward Pass, faktisch Prediction)
+  &lt;/text&gt;
+&lt;/svg&gt;
+
+
+
+
+
+
+---
+class: inverse, center, middle
+
+# Vielen Dank!
+
+### Fragen? → Dann ab ins Lab! 🧪
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+  "highlightStyle": "github",
+  "highlightLines": true,
+  "countIncrementalSlides": false,
+  "ratio": "16:9",
+  "slideNumberFormat": "%current% / %total%"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
